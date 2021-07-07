@@ -1,18 +1,18 @@
-// Copyright 2020 The go-ethereum Authors
-// This file is part of go-ethereum.
+// Copyright 2020 The go-highcoin Authors
+// This file is part of go-highcoin.
 //
-// go-ethereum is free software: you can redistribute it and/or modify
+// go-highcoin is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// go-ethereum is distributed in the hope that it will be useful,
+// go-highcoin is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with go-ethereum. If not, see <http://www.gnu.org/licenses/>.
+// along with go-highcoin. If not, see <http://www.gnu.org/licenses/>.
 
 package v5test
 
@@ -24,11 +24,11 @@ import (
 	"net"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common/mclock"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/p2p/discover/v5wire"
-	"github.com/ethereum/go-ethereum/p2p/enode"
-	"github.com/ethereum/go-ethereum/p2p/enr"
+	"github.com/420integrated/go-highcoin/common/mclock"
+	"github.com/420integrated/go-highcoin/crypto"
+	"github.com/420integrated/go-highcoin/p2p/discover/v5wire"
+	"github.com/420integrated/go-highcoin/p2p/enode"
+	"github.com/420integrated/go-highcoin/p2p/enr"
 )
 
 // readError represents an error during packet reading.

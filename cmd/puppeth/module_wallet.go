@@ -1,18 +1,18 @@
-// Copyright 2017 The go-ethereum Authors
-// This file is part of go-ethereum.
+// Copyright 2017 The go-highcoin Authors
+// This file is part of go-highcoin.
 //
-// go-ethereum is free software: you can redistribute it and/or modify
+// go-highcoin is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// go-ethereum is distributed in the hope that it will be useful,
+// go-highcoin is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with go-ethereum. If not, see <http://www.gnu.org/licenses/>.
+// along with go-highcoin. If not, see <http://www.gnu.org/licenses/>.
 
 package main
 
@@ -25,7 +25,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ethereum/go-ethereum/log"
+	"github.com/420integrated/go-highcoin/log"
 )
 
 // walletDockerfile is the Dockerfile required to run a web wallet.
@@ -36,8 +36,8 @@ ADD genesis.json /genesis.json
 
 RUN \
   echo 'node server.js &'                     > wallet.sh && \
-	echo 'geth --cache 512 init /genesis.json' >> wallet.sh && \
-	echo $'exec geth --networkid {{.NetworkID}} --port {{.NodePort}} --bootnodes {{.Bootnodes}} --ethstats \'{{.Ethstats}}\' --cache=512 --http --http.addr=0.0.0.0 --http.corsdomain "*" --http.vhosts "*"' >> wallet.sh
+	echo 'highcoin --cache 512 init /genesis.json' >> wallet.sh && \
+	echo $'exec highcoin --networkid {{.NetworkID}} --port {{.NodePort}} --bootnodes {{.Bootnodes}} --ethstats \'{{.Ethstats}}\' --cache=512 --http --http.addr=0.0.0.0 --http.corsdomain "*" --http.vhosts "*"' >> wallet.sh
 
 RUN \
 	sed -i 's/PuppethNetworkID/{{.NetworkID}}/g' dist/js/etherwallet-master.js && \
@@ -61,10 +61,10 @@ services:
     ports:
       - "{{.NodePort}}:{{.NodePort}}"
       - "{{.NodePort}}:{{.NodePort}}/udp"
-      - "{{.RPCPort}}:8545"{{if not .VHost}}
+      - "{{.RPCPort}}:42000"{{if not .VHost}}
       - "{{.WebPort}}:80"{{end}}
     volumes:
-      - {{.Datadir}}:/root/.ethereum
+      - {{.Datadir}}:/root/.highcoin
     environment:
       - NODE_PORT={{.NodePort}}/tcp
       - STATS={{.Ethstats}}{{if .VHost}}
@@ -184,13 +184,13 @@ func checkWallet(client *sshClient, network string) (*walletInfos, error) {
 	if err = checkPort(client.server, nodePort); err != nil {
 		log.Warn("Wallet devp2p port seems unreachable", "server", client.server, "port", nodePort, "err", err)
 	}
-	rpcPort := infos.portmap["8545/tcp"]
+	rpcPort := infos.portmap["42000/tcp"]
 	if err = checkPort(client.server, rpcPort); err != nil {
 		log.Warn("Wallet RPC port seems unreachable", "server", client.server, "port", rpcPort, "err", err)
 	}
 	// Assemble and return the useful infos
 	stats := &walletInfos{
-		datadir:  infos.volumes["/root/.ethereum"],
+		datadir:  infos.volumes["/root/.highcoin"],
 		nodePort: nodePort,
 		rpcPort:  rpcPort,
 		webHost:  host,

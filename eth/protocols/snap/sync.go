@@ -1,18 +1,18 @@
-// Copyright 2020 The go-ethereum Authors
-// This file is part of the go-ethereum library.
+// Copyright 2020 The go-highcoin Authors
+// This file is part of the go-highcoin library.
 //
-// The go-ethereum library is free software: you can redistribute it and/or modify
+// The go-highcoin library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The go-ethereum library is distributed in the hope that it will be useful,
+// The go-highcoin library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
+// along with the go-highcoin library. If not, see <http://www.gnu.org/licenses/>.
 
 package snap
 
@@ -26,16 +26,16 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/rawdb"
-	"github.com/ethereum/go-ethereum/core/state"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/ethdb"
-	"github.com/ethereum/go-ethereum/event"
-	"github.com/ethereum/go-ethereum/light"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/rlp"
-	"github.com/ethereum/go-ethereum/trie"
+	"github.com/420integrated/go-highcoin/common"
+	"github.com/420integrated/go-highcoin/core/rawdb"
+	"github.com/420integrated/go-highcoin/core/state"
+	"github.com/420integrated/go-highcoin/crypto"
+	"github.com/420integrated/go-highcoin/ethdb"
+	"github.com/420integrated/go-highcoin/event"
+	"github.com/420integrated/go-highcoin/light"
+	"github.com/420integrated/go-highcoin/log"
+	"github.com/420integrated/go-highcoin/rlp"
+	"github.com/420integrated/go-highcoin/trie"
 	"golang.org/x/crypto/sha3"
 )
 
@@ -364,7 +364,7 @@ type SyncPeer interface {
 	Log() log.Logger
 }
 
-// Syncer is an Ethereum account and storage trie syncer based on snapshots and
+// Syncer is an Highcoin account and storage trie syncer based on snapshots and
 // the  snap protocol. It's purpose is to download all the accounts and storage
 // slots from remote peers and reassemble chunks of the state trie, on top of
 // which a state sync can be run to fix any gaps / overlaps.
@@ -444,7 +444,7 @@ type Syncer struct {
 	lock sync.RWMutex   // Protects fields that can change outside of sync (peers, reqs, root)
 }
 
-// NewSyncer creates a new snapshot syncer to download the Ethereum state over the
+// NewSyncer creates a new snapshot syncer to download the Highcoin state over the
 // snap protocol.
 func NewSyncer(db ethdb.KeyValueStore, bloom *trie.SyncBloom) *Syncer {
 	return &Syncer{

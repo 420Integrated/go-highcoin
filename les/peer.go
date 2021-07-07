@@ -1,18 +1,18 @@
-// Copyright 2016 The go-ethereum Authors
-// This file is part of the go-ethereum library.
+// Copyright (c) 2017-2021 420Integrated Devlopment Team
+// This file is part of the go-highcoin library.
 //
-// The go-ethereum library is free software: you can redistribute it and/or modify
+// The go-highcoin library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The go-ethereum library is distributed in the hope that it will be useful,
+// The go-highcoin library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
+// along with the go-highcoin library. If not, see <http://www.gnu.org/licenses/>.
 
 package les
 
@@ -26,19 +26,19 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/mclock"
-	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/core/forkid"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/les/flowcontrol"
-	"github.com/ethereum/go-ethereum/les/utils"
-	vfc "github.com/ethereum/go-ethereum/les/vflux/client"
-	vfs "github.com/ethereum/go-ethereum/les/vflux/server"
-	"github.com/ethereum/go-ethereum/light"
-	"github.com/ethereum/go-ethereum/p2p"
-	"github.com/ethereum/go-ethereum/params"
-	"github.com/ethereum/go-ethereum/rlp"
+	"github.com/420integrated/go-highcoin/common"
+	"github.com/420integrated/go-highcoin/common/mclock"
+	"github.com/420integrated/go-highcoin/core"
+	"github.com/420integrated/go-highcoin/core/forkid"
+	"github.com/420integrated/go-highcoin/core/types"
+	"github.com/420integrated/go-highcoin/les/flowcontrol"
+	"github.com/420integrated/go-highcoin/les/utils"
+	vfc "github.com/420integrated/go-highcoin/les/vflux/client"
+	vfs "github.com/420integrated/go-highcoin/les/vflux/server"
+	"github.com/420integrated/go-highcoin/light"
+	"github.com/420integrated/go-highcoin/p2p"
+	"github.com/420integrated/go-highcoin/params"
+	"github.com/420integrated/go-highcoin/rlp"
 )
 
 var (
@@ -164,7 +164,7 @@ func (p *peerCommons) String() string {
 // PeerInfo represents a short summary of the `eth` sub-protocol metadata known
 // about a connected peer.
 type PeerInfo struct {
-	Version    int      `json:"version"`    // Ethereum protocol version negotiated
+	Version    int      `json:"version"`    // Highcoin protocol version negotiated
 	Difficulty *big.Int `json:"difficulty"` // Total difficulty of the peer's blockchain
 	Head       string   `json:"head"`       // SHA3 hash of the peer's best owned block
 }
@@ -271,8 +271,7 @@ func (p *peerCommons) handshake(td *big.Int, head common.Hash, headNum uint64, g
 	send = send.add("genesisHash", genesis)
 
 	// If the protocol version is beyond les4, then pass the forkID
-	// as well. Check http://eips.ethereum.org/EIPS/eip-2124 for more
-	// spec detail.
+	// as well.
 	if p.version >= lpv4 {
 		send = send.add("forkID", forkID)
 	}
@@ -1003,7 +1002,7 @@ func (p *clientPeer) Handshake(td *big.Int, head common.Hash, headNum uint64, ge
 			*lists = (*lists).add("serveChainSince", uint64(0))
 			*lists = (*lists).add("serveStateSince", uint64(0))
 
-			// If local ethereum node is running in archive mode, advertise ourselves we have
+			// If local highcoin node is running in archive mode, advertise ourselves we have
 			// all version state data. Otherwise only recent state is available.
 			stateRecent := uint64(core.TriesInMemory - blockSafetyMargin)
 			if server.archiveMode {
@@ -1072,7 +1071,7 @@ type serverPeerSubscriber interface {
 }
 
 // serverPeerSet represents the set of active server peers currently
-// participating in the Light Ethereum sub-protocol.
+// participating in the Light Highcoin sub-protocol.
 type serverPeerSet struct {
 	peers map[string]*serverPeer
 	// subscribers is a batch of subscribers and peerset will notify

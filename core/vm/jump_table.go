@@ -1,23 +1,23 @@
-// Copyright 2015 The go-ethereum Authors
-// This file is part of the go-ethereum library.
+// Copyright 2015 The go-highcoin Authors
+// This file is part of the go-highcoin library.
 //
-// The go-ethereum library is free software: you can redistribute it and/or modify
+// The go-highcoin library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The go-ethereum library is distributed in the hope that it will be useful,
+// The go-highcoin library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
+// along with the go-highcoin library. If not, see <http://www.gnu.org/licenses/>.
 
 package vm
 
 import (
-	"github.com/ethereum/go-ethereum/params"
+	"github.com/420integrated/go-highcoin/params"
 )
 
 type (
@@ -67,8 +67,8 @@ type JumpTable [256]*operation
 // - "EIP-2929: Gas cost increases for state access opcodes"
 func newYoloV3InstructionSet() JumpTable {
 	instructionSet := newIstanbulInstructionSet()
-	enable2315(&instructionSet) // Subroutines - https://eips.ethereum.org/EIPS/eip-2315
-	enable2929(&instructionSet) // Access lists for trie accesses https://eips.ethereum.org/EIPS/eip-2929
+	enable2315(&instructionSet) // Subroutines
+	enable2929(&instructionSet) // Access lists for trie accesses
 	return instructionSet
 }
 
@@ -77,9 +77,9 @@ func newYoloV3InstructionSet() JumpTable {
 func newIstanbulInstructionSet() JumpTable {
 	instructionSet := newConstantinopleInstructionSet()
 
-	enable1344(&instructionSet) // ChainID opcode - https://eips.ethereum.org/EIPS/eip-1344
-	enable1884(&instructionSet) // Reprice reader opcodes - https://eips.ethereum.org/EIPS/eip-1884
-	enable2200(&instructionSet) // Net metered SSTORE - https://eips.ethereum.org/EIPS/eip-2200
+	enable1344(&instructionSet) // ChainID opcode
+	enable1884(&instructionSet) // Reprice reader opcodes
+	enable2200(&instructionSet) // Net metered SSTORE
 
 	return instructionSet
 }

@@ -1,18 +1,18 @@
-// Copyright 2021 The go-ethereum Authors
-// This file is part of the go-ethereum library.
+// Copyright 2021 The go-highcoin Authors
+// This file is part of the go-highcoin library.
 //
-// The go-ethereum library is free software: you can redistribute it and/or modify
+// The go-highcoin library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The go-ethereum library is distributed in the hope that it will be useful,
+// The go-highcoin library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
+// along with the go-highcoin library. If not, see <http://www.gnu.org/licenses/>.
 
 package eth
 
@@ -21,19 +21,19 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/core/state"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/core/vm"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/trie"
+	"github.com/420integrated/go-highcoin/common"
+	"github.com/420integrated/go-highcoin/core"
+	"github.com/420integrated/go-highcoin/core/state"
+	"github.com/420integrated/go-highcoin/core/types"
+	"github.com/420integrated/go-highcoin/core/vm"
+	"github.com/420integrated/go-highcoin/log"
+	"github.com/420integrated/go-highcoin/trie"
 )
 
 // stateAtBlock retrieves the state database associated with a certain block.
 // If no state is locally available for the given block, a number of blocks are
 // attempted to be reexecuted to generate the desired state.
-func (eth *Ethereum) stateAtBlock(block *types.Block, reexec uint64) (statedb *state.StateDB, release func(), err error) {
+func (eth *Highcoin) stateAtBlock(block *types.Block, reexec uint64) (statedb *state.StateDB, release func(), err error) {
 	// If we have the state fully available, use that
 	statedb, err = eth.blockchain.StateAt(block.Root())
 	if err == nil {
@@ -114,7 +114,7 @@ func (eth *Ethereum) stateAtBlock(block *types.Block, reexec uint64) (statedb *s
 // statesInRange retrieves a batch of state databases associated with the specific
 // block ranges. If no state is locally available for the given range, a number of
 // blocks are attempted to be reexecuted to generate the ancestor state.
-func (eth *Ethereum) statesInRange(fromBlock, toBlock *types.Block, reexec uint64) (states []*state.StateDB, release func(), err error) {
+func (eth *Highcoin) statesInRange(fromBlock, toBlock *types.Block, reexec uint64) (states []*state.StateDB, release func(), err error) {
 	statedb, err := eth.blockchain.StateAt(fromBlock.Root())
 	if err != nil {
 		statedb, _, err = eth.stateAtBlock(fromBlock, reexec)
@@ -188,7 +188,7 @@ func (eth *Ethereum) statesInRange(fromBlock, toBlock *types.Block, reexec uint6
 }
 
 // stateAtTransaction returns the execution environment of a certain transaction.
-func (eth *Ethereum) stateAtTransaction(block *types.Block, txIndex int, reexec uint64) (core.Message, vm.BlockContext, *state.StateDB, func(), error) {
+func (eth *Highcoin) stateAtTransaction(block *types.Block, txIndex int, reexec uint64) (core.Message, vm.BlockContext, *state.StateDB, func(), error) {
 	// Short circuit if it's genesis block.
 	if block.NumberU64() == 0 {
 		return nil, vm.BlockContext{}, nil, nil, errors.New("no transaction in genesis")

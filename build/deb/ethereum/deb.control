@@ -4,15 +4,15 @@ Priority: extra
 Maintainer: {{.Author}}
 Build-Depends: debhelper (>= 8.0.0), {{.GoBootPackage}}
 Standards-Version: 3.9.5
-Homepage: https://ethereum.org
-Vcs-Git: git://github.com/ethereum/go-ethereum.git
-Vcs-Browser: https://github.com/ethereum/go-ethereum
+Homepage: https://420integrated.com
+Vcs-Git: git://github.com/420integrated/go-highcoin.git
+Vcs-Browser: https://github.com/420integrated/go-highcoin
 
 Package: {{.Name}}
 Architecture: any
 Depends: ${misc:Depends}, {{.ExeList}}
-Description: Meta-package to install geth and other tools
- Meta-package to install geth and other tools
+Description: Meta-package to install highcoin and other tools
+ Meta-package to install highcoin and other tools
 
 {{range .Executables}}
 Package: {{$.ExeName .}}

@@ -1776,10 +1776,10 @@ var ETH_UNITS = [
     'nano',
     'micro',
     'milli',
-    'ether',
+    'highcoin',
     'grand',
     'Mether',
-    'Gether',
+    'Highcoiner',
     'Tether',
     'Pether',
     'Eether',
@@ -1905,11 +1905,11 @@ var unitMap = {
     'finney':       '1000000000000000',
     'milliether':    '1000000000000000',
     'milli':         '1000000000000000',
-    'ether':        '1000000000000000000',
+    'highcoin':        '1000000000000000000',
     'kether':       '1000000000000000000000',
     'grand':        '1000000000000000000000',
     'mether':       '1000000000000000000000000',
-    'gether':       '1000000000000000000000000000',
+    'highcoiner':       '1000000000000000000000000000',
     'tether':       '1000000000000000000000000000000'
 };
 
@@ -2129,7 +2129,7 @@ var toHex = function (val) {
  * @throws error if the unit is not correct:w
  */
 var getValueOfUnit = function (unit) {
-    unit = unit ? unit.toLowerCase() : 'ether';
+    unit = unit ? unit.toLowerCase() : 'highcoin';
     var unitValue = unitMap[unit];
     if (unitValue === undefined) {
         throw new Error('This unit doesn\'t exists, please use the one of the following units' + JSON.stringify(unitMap, null, 2));
@@ -2150,7 +2150,7 @@ var getValueOfUnit = function (unit) {
  * - ether      --             --
  * - kether                    --           grand
  * - mether
- * - gether
+ * - highcoiner
  * - tether
  *
  * @method fromWei
@@ -2178,7 +2178,7 @@ var fromWei = function(number, unit) {
  * - ether      --             --
  * - kether                    --           grand
  * - mether
- * - gether
+ * - highcoiner
  * - tether
  *
  * @method toWei
@@ -2409,7 +2409,7 @@ var isJson = function (str) {
 };
 
 /**
- * Returns true if given string is a valid Ethereum block header bloom.
+ * Returns true if given string is a valid Highcoin block header bloom.
  *
  * @method isBloom
  * @param {String} hex encoded bloom filter
@@ -2609,7 +2609,7 @@ var properties = function () {
             inputFormatter: utils.toDecimal
         }),
         new Property({
-            name: 'version.ethereum',
+            name: 'version.highcoin',
             getter: 'eth_protocolVersion',
             inputFormatter: utils.toDecimal
         }),
@@ -4292,7 +4292,7 @@ var XHR2 = require('xhr2'); // jshint ignore: line
  * HttpProvider should be used to send rpc calls over http
  */
 var HttpProvider = function (host, timeout, user, password) {
-  this.host = host || 'http://localhost:8545';
+  this.host = host || 'http://localhost:42000';
   this.timeout = timeout || 0;
   this.user = user;
   this.password = password;
@@ -4496,7 +4496,7 @@ var Iban = function (iban) {
 };
 
 /**
- * This method should be used to create iban object from ethereum address
+ * This method should be used to create iban object from highcoin address
  *
  * @method fromAddress
  * @param {String} address
@@ -5862,7 +5862,7 @@ module.exports = Shh;
  * @author Alex Beregszaszi <alex@rtfs.hu>
  * @date 2016
  *
- * Reference: https://github.com/ethereum/go-ethereum/blob/swarm/internal/web3ext/web3ext.go#L33
+ * Reference: https://github.com/420integrated/go-highcoin/blob/swarm/internal/web3ext/web3ext.go#L33
  */
 
 "use strict";
@@ -6317,7 +6317,7 @@ var errors = require('./errors');
 
 /**
  * It's responsible for passing messages to providers
- * It's also responsible for polling the ethereum node for incoming messages
+ * It's also responsible for polling the highcoin node for incoming messages
  * Default poll timeout is 1 second
  * Singleton
  */

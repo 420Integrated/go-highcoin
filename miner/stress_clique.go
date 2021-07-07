@@ -1,18 +1,18 @@
-// Copyright 2018 The go-ethereum Authors
-// This file is part of the go-ethereum library.
+// Copyright 2018 The go-highcoin Authors
+// This file is part of the go-highcoin library.
 //
-// The go-ethereum library is free software: you can redistribute it and/or modify
+// The go-highcoin library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The go-ethereum library is distributed in the hope that it will be useful,
+// The go-highcoin library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
+// along with the go-highcoin library. If not, see <http://www.gnu.org/licenses/>.
 
 // +build none
 
@@ -28,20 +28,20 @@ import (
 	"os"
 	"time"
 
-	"github.com/ethereum/go-ethereum/accounts/keystore"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/fdlimit"
-	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/eth"
-	"github.com/ethereum/go-ethereum/eth/downloader"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/miner"
-	"github.com/ethereum/go-ethereum/node"
-	"github.com/ethereum/go-ethereum/p2p"
-	"github.com/ethereum/go-ethereum/p2p/enode"
-	"github.com/ethereum/go-ethereum/params"
+	"github.com/420integrated/go-highcoin/accounts/keystore"
+	"github.com/420integrated/go-highcoin/common"
+	"github.com/420integrated/go-highcoin/common/fdlimit"
+	"github.com/420integrated/go-highcoin/core"
+	"github.com/420integrated/go-highcoin/core/types"
+	"github.com/420integrated/go-highcoin/crypto"
+	"github.com/420integrated/go-highcoin/eth"
+	"github.com/420integrated/go-highcoin/eth/downloader"
+	"github.com/420integrated/go-highcoin/log"
+	"github.com/420integrated/go-highcoin/miner"
+	"github.com/420integrated/go-highcoin/node"
+	"github.com/420integrated/go-highcoin/p2p"
+	"github.com/420integrated/go-highcoin/p2p/enode"
+	"github.com/420integrated/go-highcoin/params"
 )
 
 func main() {
@@ -61,7 +61,7 @@ func main() {
 	genesis := makeGenesis(faucets, sealers)
 
 	var (
-		nodes  []*eth.Ethereum
+		nodes  []*eth.Highcoin
 		enodes []*enode.Node
 	)
 
@@ -165,12 +165,12 @@ func makeGenesis(faucets []*ecdsa.PrivateKey, sealers []*ecdsa.PrivateKey) *core
 	return genesis
 }
 
-func makeSealer(genesis *core.Genesis) (*node.Node, *eth.Ethereum, error) {
-	// Define the basic configurations for the Ethereum node
+func makeSealer(genesis *core.Genesis) (*node.Node, *eth.Highcoin, error) {
+	// Define the basic configurations for the Highcoin node
 	datadir, _ := ioutil.TempDir("", "")
 
 	config := &node.Config{
-		Name:    "geth",
+		Name:    "highcoin",
 		Version: params.Version,
 		DataDir: datadir,
 		P2P: p2p.Config{
@@ -179,7 +179,7 @@ func makeSealer(genesis *core.Genesis) (*node.Node, *eth.Ethereum, error) {
 			MaxPeers:    25,
 		},
 	}
-	// Start the node and configure a full Ethereum node on it
+	// Start the node and configure a full Highcoin node on it
 	stack, err := node.New(config)
 	if err != nil {
 		return nil, nil, err

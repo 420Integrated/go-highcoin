@@ -1,18 +1,18 @@
-// Copyright 2016 The go-ethereum Authors
-// This file is part of the go-ethereum library.
+// Copyright (c) 2017-2021 420Integrated Devlopment Team
+// This file is part of the go-highcoin library.
 //
-// The go-ethereum library is free software: you can redistribute it and/or modify
+// The go-highcoin library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The go-ethereum library is distributed in the hope that it will be useful,
+// The go-highcoin library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
+// along with the go-highcoin library. If not, see <http://www.gnu.org/licenses/>.
 
 // This file contains some shares testing functionality, common to multiple
 // different files and modules being tested. Client based network and Server
@@ -29,27 +29,27 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
-	"github.com/ethereum/go-ethereum/accounts/abi/bind/backends"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/common/mclock"
-	"github.com/ethereum/go-ethereum/consensus/ethash"
-	"github.com/ethereum/go-ethereum/contracts/checkpointoracle/contract"
-	"github.com/ethereum/go-ethereum/core"
-	"github.com/ethereum/go-ethereum/core/forkid"
-	"github.com/ethereum/go-ethereum/core/rawdb"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/eth/ethconfig"
-	"github.com/ethereum/go-ethereum/ethdb"
-	"github.com/ethereum/go-ethereum/event"
-	"github.com/ethereum/go-ethereum/les/checkpointoracle"
-	"github.com/ethereum/go-ethereum/les/flowcontrol"
-	"github.com/ethereum/go-ethereum/light"
-	"github.com/ethereum/go-ethereum/p2p"
-	"github.com/ethereum/go-ethereum/p2p/enode"
-	"github.com/ethereum/go-ethereum/p2p/nodestate"
-	"github.com/ethereum/go-ethereum/params"
+	"github.com/420integrated/go-highcoin/accounts/abi/bind"
+	"github.com/420integrated/go-highcoin/accounts/abi/bind/backends"
+	"github.com/420integrated/go-highcoin/common"
+	"github.com/420integrated/go-highcoin/common/mclock"
+	"github.com/420integrated/go-highcoin/consensus/ethash"
+	"github.com/420integrated/go-highcoin/contracts/checkpointoracle/contract"
+	"github.com/420integrated/go-highcoin/core"
+	"github.com/420integrated/go-highcoin/core/forkid"
+	"github.com/420integrated/go-highcoin/core/rawdb"
+	"github.com/420integrated/go-highcoin/core/types"
+	"github.com/420integrated/go-highcoin/crypto"
+	"github.com/420integrated/go-highcoin/eth/ethconfig"
+	"github.com/420integrated/go-highcoin/ethdb"
+	"github.com/420integrated/go-highcoin/event"
+	"github.com/420integrated/go-highcoin/les/checkpointoracle"
+	"github.com/420integrated/go-highcoin/les/flowcontrol"
+	"github.com/420integrated/go-highcoin/light"
+	"github.com/420integrated/go-highcoin/p2p"
+	"github.com/420integrated/go-highcoin/p2p/enode"
+	"github.com/420integrated/go-highcoin/p2p/nodestate"
+	"github.com/420integrated/go-highcoin/params"
 )
 
 var (
@@ -220,7 +220,7 @@ func newTestClientHandler(backend *backends.SimulatedBackend, odr *LesOdr, index
 		}
 		oracle = checkpointoracle.New(checkpointConfig, getLocal)
 	}
-	client := &LightEthereum{
+	client := &LightHighcoin{
 		lesCommons: lesCommons{
 			genesis:     genesis.Hash(),
 			config:      &ethconfig.Config{LightPeers: 100, NetworkId: NetworkId},

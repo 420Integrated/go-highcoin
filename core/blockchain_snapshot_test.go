@@ -1,18 +1,18 @@
-// Copyright 2020 The go-ethereum Authors
-// This file is part of the go-ethereum library.
+// Copyright 2020 The go-highcoin Authors
+// This file is part of the go-highcoin library.
 //
-// The go-ethereum library is free software: you can redistribute it and/or modify
+// The go-highcoin library is free software: you can redistribute it and/or modify
 // it under the terms of the GNU Lesser General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// The go-ethereum library is distributed in the hope that it will be useful,
+// The go-highcoin library is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU Lesser General Public License for more details.
 //
 // You should have received a copy of the GNU Lesser General Public License
-// along with the go-ethereum library. If not, see <http://www.gnu.org/licenses/>.
+// along with the go-highcoin library. If not, see <http://www.gnu.org/licenses/>.
 
 // Tests that abnormal program termination (i.e.crash) and restart can recovery
 // the snapshot properly if the snapshot is enabled.
@@ -28,13 +28,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ethereum/go-ethereum/consensus"
-	"github.com/ethereum/go-ethereum/consensus/ethash"
-	"github.com/ethereum/go-ethereum/core/rawdb"
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/core/vm"
-	"github.com/ethereum/go-ethereum/ethdb"
-	"github.com/ethereum/go-ethereum/params"
+	"github.com/420integrated/go-highcoin/consensus"
+	"github.com/420integrated/go-highcoin/consensus/ethash"
+	"github.com/420integrated/go-highcoin/core/rawdb"
+	"github.com/420integrated/go-highcoin/core/types"
+	"github.com/420integrated/go-highcoin/core/vm"
+	"github.com/420integrated/go-highcoin/ethdb"
+	"github.com/420integrated/go-highcoin/params"
 )
 
 // snapshotTestBasic wraps the common testing fields in the snapshot tests.
@@ -222,7 +222,7 @@ func (basic *snapshotTestBasic) teardown() {
 }
 
 // snapshotTest is a test case type for normal snapshot recovery.
-// It can be used for testing that restart Geth normally.
+// It can be used for testing that restart Highcoin normally.
 type snapshotTest struct {
 	snapshotTestBasic
 }
@@ -245,7 +245,7 @@ func (snaptest *snapshotTest) test(t *testing.T) {
 }
 
 // crashSnapshotTest is a test case type for innormal snapshot recovery.
-// It can be used for testing that restart Geth after the crash.
+// It can be used for testing that restart Highcoin after the crash.
 type crashSnapshotTest struct {
 	snapshotTestBasic
 }
@@ -461,7 +461,7 @@ func (snaptest *wipeCrashSnapshotTest) test(t *testing.T) {
 	snaptest.verify(t, newchain, blocks)
 }
 
-// Tests a Geth restart with valid snapshot. Before the shutdown, all snapshot
+// Tests a Highcoin restart with valid snapshot. Before the shutdown, all snapshot
 // journal will be persisted correctly. In this case no snapshot recovery is
 // required.
 func TestRestartWithNewSnapshot(t *testing.T) {
@@ -499,7 +499,7 @@ func TestRestartWithNewSnapshot(t *testing.T) {
 	test.teardown()
 }
 
-// Tests a Geth restart with valid but "legacy" snapshot. Before the shutdown,
+// Tests a Highcoin restart with valid but "legacy" snapshot. Before the shutdown,
 // all snapshot journal will be persisted correctly. In this case no snapshot
 // recovery is required.
 func TestRestartWithLegacySnapshot(t *testing.T) {
@@ -538,7 +538,7 @@ func TestRestartWithLegacySnapshot(t *testing.T) {
 	test.teardown()
 }
 
-// Tests a Geth was crashed and restarts with a broken snapshot. In this case the
+// Tests a Highcoin was crashed and restarts with a broken snapshot. In this case the
 // chain head should be rewound to the point with available state. And also the
 // new head should must be lower than disk layer. But there is no committed point
 // so the chain should be rewound to genesis and the disk layer should be left
@@ -578,7 +578,7 @@ func TestNoCommitCrashWithNewSnapshot(t *testing.T) {
 	test.teardown()
 }
 
-// Tests a Geth was crashed and restarts with a broken snapshot. In this case the
+// Tests a Highcoin was crashed and restarts with a broken snapshot. In this case the
 // chain head should be rewound to the point with available state. And also the
 // new head should must be lower than disk layer. But there is only a low committed
 // point so the chain should be rewound to committed point and the disk layer
@@ -618,7 +618,7 @@ func TestLowCommitCrashWithNewSnapshot(t *testing.T) {
 	test.teardown()
 }
 
-// Tests a Geth was crashed and restarts with a broken snapshot. In this case
+// Tests a Highcoin was crashed and restarts with a broken snapshot. In this case
 // the chain head should be rewound to the point with available state. And also
 // the new head should must be lower than disk layer. But there is only a high
 // committed point so the chain should be rewound to genesis and the disk layer
@@ -658,7 +658,7 @@ func TestHighCommitCrashWithNewSnapshot(t *testing.T) {
 	test.teardown()
 }
 
-// Tests a Geth was crashed and restarts with a broken and "legacy format"
+// Tests a Highcoin was crashed and restarts with a broken and "legacy format"
 // snapshot. In this case the entire legacy snapshot should be discared
 // and rebuild from the new chain head. The new head here refers to the
 // genesis because there is no committed point.
@@ -698,7 +698,7 @@ func TestNoCommitCrashWithLegacySnapshot(t *testing.T) {
 	test.teardown()
 }
 
-// Tests a Geth was crashed and restarts with a broken and "legacy format"
+// Tests a Highcoin was crashed and restarts with a broken and "legacy format"
 // snapshot. In this case the entire legacy snapshot should be discared
 // and rebuild from the new chain head. The new head here refers to the
 // block-2 because it's committed into the disk.
@@ -738,7 +738,7 @@ func TestLowCommitCrashWithLegacySnapshot(t *testing.T) {
 	test.teardown()
 }
 
-// Tests a Geth was crashed and restarts with a broken and "legacy format"
+// Tests a Highcoin was crashed and restarts with a broken and "legacy format"
 // snapshot. In this case the entire legacy snapshot should be discared
 // and rebuild from the new chain head.
 //
@@ -783,7 +783,7 @@ func TestHighCommitCrashWithLegacySnapshot(t *testing.T) {
 	test.teardown()
 }
 
-// Tests a Geth was running with snapshot enabled. Then restarts without
+// Tests a Highcoin was running with snapshot enabled. Then restarts without
 // enabling snapshot and after that re-enable the snapshot again. In this
 // case the snapshot should be rebuilt with latest chain head.
 func TestGappedNewSnapshot(t *testing.T) {
@@ -822,7 +822,7 @@ func TestGappedNewSnapshot(t *testing.T) {
 	test.teardown()
 }
 
-// Tests a Geth was running with leagcy snapshot enabled. Then restarts
+// Tests a Highcoin was running with leagcy snapshot enabled. Then restarts
 // without enabling snapshot and after that re-enable the snapshot again.
 // In this case the snapshot should be rebuilt with latest chain head.
 func TestGappedLegacySnapshot(t *testing.T) {
@@ -862,7 +862,7 @@ func TestGappedLegacySnapshot(t *testing.T) {
 	test.teardown()
 }
 
-// Tests the Geth was running with snapshot enabled and resetHead is applied.
+// Tests the Highcoin was running with snapshot enabled and resetHead is applied.
 // In this case the head is rewound to the target(with state available). After
 // that the chain is restarted and the original disk layer is kept.
 func TestSetHeadWithNewSnapshot(t *testing.T) {
@@ -901,7 +901,7 @@ func TestSetHeadWithNewSnapshot(t *testing.T) {
 	test.teardown()
 }
 
-// Tests the Geth was running with snapshot(legacy-format) enabled and resetHead
+// Tests the Highcoin was running with snapshot(legacy-format) enabled and resetHead
 // is applied. In this case the head is rewound to the target(with state available).
 // After that the chain is restarted and the original disk layer is kept.
 func TestSetHeadWithLegacySnapshot(t *testing.T) {
@@ -941,9 +941,9 @@ func TestSetHeadWithLegacySnapshot(t *testing.T) {
 	test.teardown()
 }
 
-// Tests the Geth was running with snapshot(legacy-format) enabled and upgrades
-// the disk layer journal(journal generator) to latest format. After that the Geth
-// is restarted from a crash. In this case Geth will find the new-format disk layer
+// Tests the Highcoin was running with snapshot(legacy-format) enabled and upgrades
+// the disk layer journal(journal generator) to latest format. After that the Highcoin
+// is restarted from a crash. In this case Highcoin will find the new-format disk layer
 // journal but with legacy-format diff journal(the new-format is never committed),
 // and the invalid diff journal is expected to be dropped.
 func TestRecoverSnapshotFromCrashWithLegacyDiffJournal(t *testing.T) {
@@ -983,7 +983,7 @@ func TestRecoverSnapshotFromCrashWithLegacyDiffJournal(t *testing.T) {
 	test.teardown()
 }
 
-// Tests the Geth was running with a complete snapshot and then imports a few
+// Tests the Highcoin was running with a complete snapshot and then imports a few
 // more new blocks on top without enabling the snapshot. After the restart,
 // crash happens. Check everything is ok after the restart.
 func TestRecoverSnapshotFromWipingCrash(t *testing.T) {

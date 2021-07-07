@@ -1,18 +1,18 @@
-// Copyright 2018 The go-ethereum Authors
-// This file is part of go-ethereum.
+// Copyright 2018 The go-highcoin Authors
+// This file is part of go-highcoin.
 //
-// go-ethereum is free software: you can redistribute it and/or modify
+// go-highcoin is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// go-ethereum is distributed in the hope that it will be useful,
+// go-highcoin is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with go-ethereum. If not, see <http://www.gnu.org/licenses/>.
+// along with go-highcoin. If not, see <http://www.gnu.org/licenses/>.
 
 package main
 
@@ -25,11 +25,11 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/ethereum/go-ethereum/accounts/keystore"
-	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/console/prompt"
-	"github.com/ethereum/go-ethereum/p2p/dnsdisc"
-	"github.com/ethereum/go-ethereum/p2p/enode"
+	"github.com/420integrated/go-highcoin/accounts/keystore"
+	"github.com/420integrated/go-highcoin/common"
+	"github.com/420integrated/go-highcoin/console/prompt"
+	"github.com/420integrated/go-highcoin/p2p/dnsdisc"
+	"github.com/420integrated/go-highcoin/p2p/enode"
 	"gopkg.in/urfave/cli.v1"
 )
 
@@ -220,7 +220,7 @@ func dnsToRoute53(ctx *cli.Context) error {
 	return client.deploy(domain, t)
 }
 
-// loadSigningKey loads a private key in Ethereum keystore format.
+// loadSigningKey loads a private key in Highcoin keystore format.
 func loadSigningKey(keyfile string) *ecdsa.PrivateKey {
 	keyjson, err := ioutil.ReadFile(keyfile)
 	if err != nil {

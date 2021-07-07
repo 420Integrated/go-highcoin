@@ -1,18 +1,18 @@
-// Copyright 2017 The go-ethereum Authors
-// This file is part of go-ethereum.
+// Copyright 2017 The go-highcoin Authors
+// This file is part of go-highcoin.
 //
-// go-ethereum is free software: you can redistribute it and/or modify
+// go-highcoin is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// go-ethereum is distributed in the hope that it will be useful,
+// go-highcoin is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with go-ethereum. If not, see <http://www.gnu.org/licenses/>.
+// along with go-highcoin. If not, see <http://www.gnu.org/licenses/>.
 
 package main
 
@@ -26,13 +26,13 @@ import (
 
 	"gopkg.in/urfave/cli.v1"
 
-	"github.com/ethereum/go-ethereum/cmd/utils"
-	"github.com/ethereum/go-ethereum/eth/ethconfig"
-	"github.com/ethereum/go-ethereum/internal/ethapi"
-	"github.com/ethereum/go-ethereum/log"
-	"github.com/ethereum/go-ethereum/metrics"
-	"github.com/ethereum/go-ethereum/node"
-	"github.com/ethereum/go-ethereum/params"
+	"github.com/420integrated/go-highcoin/cmd/utils"
+	"github.com/420integrated/go-highcoin/eth/ethconfig"
+	"github.com/420integrated/go-highcoin/internal/ethapi"
+	"github.com/420integrated/go-highcoin/log"
+	"github.com/420integrated/go-highcoin/metrics"
+	"github.com/420integrated/go-highcoin/node"
+	"github.com/420integrated/go-highcoin/params"
 	"github.com/naoina/toml"
 )
 
@@ -84,7 +84,7 @@ type whisperDeprecatedConfig struct {
 	RestrictConnectionBetweenLightClients bool    `toml:",omitempty"`
 }
 
-type gethConfig struct {
+type highcoinConfig struct {
 	Eth      ethconfig.Config
 	Shh      whisperDeprecatedConfig
 	Node     node.Config
@@ -92,7 +92,7 @@ type gethConfig struct {
 	Metrics  metrics.Config
 }
 
-func loadConfig(file string, cfg *gethConfig) error {
+func loadConfig(file string, cfg *highcoinConfig) error {
 	f, err := os.Open(file)
 	if err != nil {
 		return err
@@ -113,14 +113,14 @@ func defaultNodeConfig() node.Config {
 	cfg.Version = params.VersionWithCommit(gitCommit, gitDate)
 	cfg.HTTPModules = append(cfg.HTTPModules, "eth")
 	cfg.WSModules = append(cfg.WSModules, "eth")
-	cfg.IPCPath = "geth.ipc"
+	cfg.IPCPath = "highcoin.ipc"
 	return cfg
 }
 
-// makeConfigNode loads geth configuration and creates a blank node instance.
-func makeConfigNode(ctx *cli.Context) (*node.Node, gethConfig) {
+// makeConfigNode loads highcoin configuration and creates a blank node instance.
+func makeConfigNode(ctx *cli.Context) (*node.Node, highcoinConfig) {
 	// Load defaults.
-	cfg := gethConfig{
+	cfg := highcoinConfig{
 		Eth:     ethconfig.Defaults,
 		Node:    defaultNodeConfig(),
 		Metrics: metrics.DefaultConfig,
@@ -133,7 +133,7 @@ func makeConfigNode(ctx *cli.Context) (*node.Node, gethConfig) {
 		}
 
 		if cfg.Shh != (whisperDeprecatedConfig{}) {
-			log.Warn("Deprecated whisper config detected. Whisper has been moved to github.com/ethereum/whisper")
+			log.Warn("Deprecated whisper config detected. Whisper has been moved to github.com/420integrated/whisper")
 		}
 	}
 	// Apply flags.
@@ -157,12 +157,12 @@ func makeConfigNode(ctx *cli.Context) (*node.Node, gethConfig) {
 func checkWhisper(ctx *cli.Context) {
 	for _, flag := range whisperFlags {
 		if ctx.GlobalIsSet(flag.GetName()) {
-			log.Warn("deprecated whisper flag detected. Whisper has been moved to github.com/ethereum/whisper")
+			log.Warn("deprecated whisper flag detected. Whisper has been moved to github.com/420integrated/whisper")
 		}
 	}
 }
 
-// makeFullNode loads geth configuration and creates the Ethereum backend.
+// makeFullNode loads highcoin configuration and creates the Highcoin backend.
 func makeFullNode(ctx *cli.Context) (*node.Node, ethapi.Backend) {
 	stack, cfg := makeConfigNode(ctx)
 
@@ -173,7 +173,7 @@ func makeFullNode(ctx *cli.Context) (*node.Node, ethapi.Backend) {
 	if ctx.GlobalIsSet(utils.GraphQLEnabledFlag.Name) {
 		utils.RegisterGraphQLService(stack, backend, cfg.Node)
 	}
-	// Add the Ethereum Stats daemon if requested.
+	// Add the Highcoin Stats daemon if requested.
 	if cfg.Ethstats.URL != "" {
 		utils.RegisterEthStatsService(stack, backend, cfg.Ethstats.URL)
 	}
@@ -209,7 +209,7 @@ func dumpConfig(ctx *cli.Context) error {
 	return nil
 }
 
-func applyMetricConfig(ctx *cli.Context, cfg *gethConfig) {
+func applyMetricConfig(ctx *cli.Context, cfg *highcoinConfig) {
 	if ctx.GlobalIsSet(utils.MetricsEnabledFlag.Name) {
 		cfg.Metrics.Enabled = ctx.GlobalBool(utils.MetricsEnabledFlag.Name)
 	}

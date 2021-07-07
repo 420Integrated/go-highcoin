@@ -1,4 +1,4 @@
-module github.com/ethereum/go-ethereum
+module github.com/420integrated/go-highcoin
 
 go 1.13
 
