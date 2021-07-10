@@ -63,7 +63,7 @@ func (w *wizard) makeGenesis() {
 	choice := w.read()
 	switch {
 	case choice == "1":
-		// In case of ethash, we're pretty much done
+		// In case of othash, we're pretty much done
 		genesis.Config.Ethash = new(params.EthashConfig)
 		genesis.ExtraData = make([]byte, 32)
 
@@ -122,7 +122,7 @@ func (w *wizard) makeGenesis() {
 		break
 	}
 	fmt.Println()
-	fmt.Println("Should the precompile-addresses (0x1 .. 0xff) be pre-funded with 1 wei? (advisable yes)")
+	fmt.Println("Should the precompile-addresses (0x1 .. 0xff) be pre-funded with 1 marley? (advisable yes)")
 	if w.readDefaultYesNo(true) {
 		// Add a batch of precompile balances to avoid them getting deleted
 		for i := int64(0); i < 256; i++ {
@@ -191,7 +191,7 @@ func (w *wizard) importGenesis() {
 // manageGenesis permits the modification of chain configuration parameters in
 // a genesis config and the export of the entire genesis spec.
 func (w *wizard) manageGenesis() {
-	// Figure out whether to modify or export the genesis
+	// Figure out if to modify or export the genesis
 	fmt.Println()
 	fmt.Println(" 1. Modify existing configurations")
 	fmt.Println(" 2. Export genesis configurations")

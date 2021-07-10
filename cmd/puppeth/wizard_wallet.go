@@ -31,7 +31,7 @@ func (w *wizard) deployWallet() {
 		log.Error("No genesis block configured")
 		return
 	}
-	if w.conf.ethstats == "" {
+	if w.conf.highstats == "" {
 		log.Error("No ethstats server configured")
 		return
 	}
@@ -84,12 +84,12 @@ func (w *wizard) deployWallet() {
 
 	// Set a proper name to report on the stats page
 	fmt.Println()
-	if infos.ethstats == "" {
+	if infos.highstats == "" {
 		fmt.Printf("What should the wallet be called on the stats page?\n")
-		infos.ethstats = w.readString() + ":" + w.conf.ethstats
+		infos.highstats = w.readString() + ":" + w.conf.highstats
 	} else {
-		fmt.Printf("What should the wallet be called on the stats page? (default = %s)\n", infos.ethstats)
-		infos.ethstats = w.readDefaultString(infos.ethstats) + ":" + w.conf.ethstats
+		fmt.Printf("What should the wallet be called on the stats page? (default = %s)\n", infos.highstats)
+		infos.highstats = w.readDefaultString(infos.highstats) + ":" + w.conf.highstats
 	}
 	// Try to deploy the wallet on the host
 	nocache := false

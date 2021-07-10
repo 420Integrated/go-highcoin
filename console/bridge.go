@@ -55,12 +55,12 @@ func getJeth(vm *goja.Runtime) *goja.Object {
 	if jeth == nil {
 		panic(vm.ToValue("jeth object does not exist"))
 	}
-	return jeth.ToObject(vm)
+	return jhigh.ToObject(vm)
 }
 
 // NewAccount is a wrapper around the personal.newAccount RPC method that uses a
 // non-echoing password prompt to acquire the passphrase and executes the original
-// RPC method (saved in jeth.newAccount) with it to actually execute the RPC call.
+// RPC method (saved in jhigh.newAccount) with it to actually execute the RPC call.
 func (b *bridge) NewAccount(call jsre.Call) (goja.Value, error) {
 	var (
 		password string
@@ -88,7 +88,7 @@ func (b *bridge) NewAccount(call jsre.Call) (goja.Value, error) {
 	// Password acquired, execute the call and return
 	newAccount, callable := goja.AssertFunction(getJeth(call.VM).Get("newAccount"))
 	if !callable {
-		return nil, fmt.Errorf("jeth.newAccount is not callable")
+		return nil, fmt.Errorf("jhigh.newAccount is not callable")
 	}
 	ret, err := newAccount(goja.Null(), call.VM.ToValue(password))
 	if err != nil {
@@ -115,7 +115,7 @@ func (b *bridge) OpenWallet(call jsre.Call) (goja.Value, error) {
 	// Open the wallet and return if successful in itself
 	openWallet, callable := goja.AssertFunction(getJeth(call.VM).Get("openWallet"))
 	if !callable {
-		return nil, fmt.Errorf("jeth.openWallet is not callable")
+		return nil, fmt.Errorf("jhigh.openWallet is not callable")
 	}
 	val, err := openWallet(goja.Null(), wallet, passwd)
 	if err == nil {
@@ -198,7 +198,7 @@ func (b *bridge) readPassphraseAndReopenWallet(call jsre.Call) (goja.Value, erro
 	}
 	openWallet, callable := goja.AssertFunction(getJeth(call.VM).Get("openWallet"))
 	if !callable {
-		return nil, fmt.Errorf("jeth.openWallet is not callable")
+		return nil, fmt.Errorf("jhigh.openWallet is not callable")
 	}
 	return openWallet(goja.Null(), wallet, call.VM.ToValue(input))
 }
@@ -219,14 +219,14 @@ func (b *bridge) readPinAndReopenWallet(call jsre.Call) (goja.Value, error) {
 	}
 	openWallet, callable := goja.AssertFunction(getJeth(call.VM).Get("openWallet"))
 	if !callable {
-		return nil, fmt.Errorf("jeth.openWallet is not callable")
+		return nil, fmt.Errorf("jhigh.openWallet is not callable")
 	}
 	return openWallet(goja.Null(), wallet, call.VM.ToValue(input))
 }
 
 // UnlockAccount is a wrapper around the personal.unlockAccount RPC method that
 // uses a non-echoing password prompt to acquire the passphrase and executes the
-// original RPC method (saved in jeth.unlockAccount) with it to actually execute
+// original RPC method (saved in jhigh.unlockAccount) with it to actually execute
 // the RPC call.
 func (b *bridge) UnlockAccount(call jsre.Call) (goja.Value, error) {
 	if len(call.Arguments) < 1 {
@@ -267,14 +267,14 @@ func (b *bridge) UnlockAccount(call jsre.Call) (goja.Value, error) {
 	// Send the request to the backend and return.
 	unlockAccount, callable := goja.AssertFunction(getJeth(call.VM).Get("unlockAccount"))
 	if !callable {
-		return nil, fmt.Errorf("jeth.unlockAccount is not callable")
+		return nil, fmt.Errorf("jhigh.unlockAccount is not callable")
 	}
 	return unlockAccount(goja.Null(), account, passwd, duration)
 }
 
 // Sign is a wrapper around the personal.sign RPC method that uses a non-echoing password
 // prompt to acquire the passphrase and executes the original RPC method (saved in
-// jeth.sign) with it to actually execute the RPC call.
+// jhigh.sign) with it to actually execute the RPC call.
 func (b *bridge) Sign(call jsre.Call) (goja.Value, error) {
 	if nArgs := len(call.Arguments); nArgs < 2 {
 		return nil, fmt.Errorf("usage: sign(message, account, [ password ])")
@@ -307,7 +307,7 @@ func (b *bridge) Sign(call jsre.Call) (goja.Value, error) {
 	// Send the request to the backend and return
 	sign, callable := goja.AssertFunction(getJeth(call.VM).Get("sign"))
 	if !callable {
-		return nil, fmt.Errorf("jeth.sign is not callable")
+		return nil, fmt.Errorf("jhigh.sign is not callable")
 	}
 	return sign(goja.Null(), message, account, passwd)
 }

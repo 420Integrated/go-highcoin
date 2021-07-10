@@ -30,7 +30,7 @@ import (
 // TODO(rjl493456442, karalabe, holiman): Get rid of this when account management
 // is removed in favor of Clef.
 type Config struct {
-	InsecureUnlockAllowed bool // Whether account unlocking in insecure environment is allowed
+	InsecureUnlockAllowed bool // If account unlocking in insecure environment is allowed
 }
 
 // Manager is an overarching account manager that can communicate with various

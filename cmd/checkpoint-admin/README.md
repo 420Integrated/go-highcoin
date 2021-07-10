@@ -14,7 +14,7 @@ In the LES protocol, there is an important concept called checkpoint. In simple 
 
 Using this information, light clients can skip all historical block headers when synchronizing data and start synchronization from this checkpoint. Therefore, as long as the light client can obtain some latest and correct checkpoints, the amount of data and time for synchronization will be greatly reduced.
 
-However, from a security perspective, the most critical step in a synchronization algorithm based on checkpoints is to determine whether the checkpoint used by the light client is correct. Otherwise, all blockchain data synchronized based on this checkpoint may be wrong. For this we provide two different ways to ensure the correctness of the checkpoint used by the light client.
+However, from a security perspective, the most critical step in a synchronization algorithm based on checkpoints is to determine if the checkpoint used by the light client is correct. Otherwise, all blockchain data synchronized based on this checkpoint may be wrong. For this we provide two different ways to ensure the correctness of the checkpoint used by the light client.
 
 #### Hardcoded checkpoint
 
@@ -92,7 +92,7 @@ Currently, only the Highcoin mainnet and the default supported test networks (ro
 * Edit the configuration file and add the following information
 
 ```toml
-[Eth.CheckpointOracle]
+[High.CheckpointOracle]
 Address = CHECKPOINT_ORACLE_ADDRESS
 Signers = [TRUSTED_SIGNER_1, ..., TRUSTED_SIGNER_N]
 Threshold = THRESHOLD

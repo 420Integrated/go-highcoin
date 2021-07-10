@@ -22,9 +22,9 @@ var Modules = map[string]string{
 	"admin":      AdminJs,
 	"chequebook": ChequebookJs,
 	"clique":     CliqueJs,
-	"ethash":     EthashJs,
+	"othash":     EthashJs,
 	"debug":      DebugJs,
-	"eth":        EthJs,
+	"eth":        HighJs,
 	"miner":      MinerJs,
 	"net":        NetJs,
 	"personal":   PersonalJs,
@@ -120,26 +120,26 @@ web3._extend({
 
 const EthashJs = `
 web3._extend({
-	property: 'ethash',
+	property: 'othash',
 	methods: [
 		new web3._extend.Method({
 			name: 'getWork',
-			call: 'ethash_getWork',
+			call: 'othash_getWork',
 			params: 0
 		}),
 		new web3._extend.Method({
 			name: 'getHashrate',
-			call: 'ethash_getHashrate',
+			call: 'othash_getHashrate',
 			params: 0
 		}),
 		new web3._extend.Method({
 			name: 'submitWork',
-			call: 'ethash_submitWork',
+			call: 'othash_submitWork',
 			params: 3,
 		}),
 		new web3._extend.Method({
 			name: 'submitHashRate',
-			call: 'ethash_submitHashRate',
+			call: 'othash_submitHashRate',
 			params: 2,
 		}),
 	]
@@ -475,7 +475,7 @@ web3._extend({
 });
 `
 
-const EthJs = `
+const HighJs = `
 web3._extend({
 	property: 'eth',
 	methods: [
@@ -596,8 +596,8 @@ web3._extend({
 			call: 'miner_stop'
 		}),
 		new web3._extend.Method({
-			name: 'setEtherbase',
-			call: 'miner_setEtherbase',
+			name: 'setHighcoinbase',
+			call: 'miner_setHighcoinbase',
 			params: 1,
 			inputFormatter: [web3._extend.formatters.inputAddressFormatter]
 		}),

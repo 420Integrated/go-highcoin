@@ -40,7 +40,7 @@ func (b *sliceBuffer) Reset() {
 type hasher struct {
 	sha      crypto.KeccakState
 	tmp      sliceBuffer
-	parallel bool // Whether to use paralallel threads when hashing
+	parallel bool // If to use paralallel threads when hashing
 }
 
 // hasherPool holds pureHashers

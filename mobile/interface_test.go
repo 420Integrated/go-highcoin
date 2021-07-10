@@ -81,7 +81,7 @@ func TestInterfaceGetSet(t *testing.T) {
 		if !reflect.DeepEqual(result, c.expect) {
 			t.Errorf("Interface get/set mismatch, want %v, got %v", c.expect, result)
 		}
-		// Check whether the underlying value in args is still zero
+		// Check if the underlying value in args is still zero
 		iface, _ = args.Get(index)
 		if iface.object != nil {
 			t.Error("Get operation is not write safe")

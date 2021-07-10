@@ -4,8 +4,8 @@ The `signer` binary contains a ruleset engine, implemented with [OttoVM](https:/
 
 It enables usecases like the following:
 
-* I want to auto-approve transactions with contract `CasinoDapp`, with up to `0.05 ether` in value to maximum `1 ether` per 24h period
-* I want to auto-approve transaction to contract `EthAlarmClock` with `data`=`0xdeadbeef`, if `value=0`, `gas < 44k` and `gasPrice < 40Gwei`
+* I want to auto-approve transactions with contract `CasinoDapp`, with up to `0.05 highcoin` in value to maximum `1 highcoin` per 24h period
+* I want to auto-approve transaction to contract `HighAlarmClock` with `data`=`0xdeadbeef`, if `value=0`, `gas < 44k` and `gasPrice < 40Gmarleys`
 
 The two main features that are required for this to work well are;
 
@@ -100,7 +100,7 @@ to be gained from attacking the actual `signer` process from the `js` side would
 Javascript is flexible, but also easy to get wrong, especially when users assume that `js` can handle large integers natively. Typical errors
 include trying to multiply `gasCost` with `gas` without using `bigint`:s.
 
-It's unclear whether any other DSL could be more secure; since there's always the possibility of erroneously implementing a rule.
+It's unclear if any other DSL could be more secure; since there's always the possibility of erroneously implementing a rule.
 
 
 ## Credential management
@@ -149,7 +149,7 @@ function big(str) {
 // Time window: 1 week
 var window = 1000* 3600*24*7;
 
-// Limit : 1 ether
+// Limit : 1 highcoin
 var limit = new BigNumber("1e18");
 
 function isLimitOk(transaction) {

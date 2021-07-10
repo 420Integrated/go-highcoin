@@ -72,7 +72,7 @@ func (w *wizard) deployDashboard() {
 			var port int
 			switch service {
 			case "ethstats":
-				if infos, err := checkEthstats(client, w.network); err == nil {
+				if infos, err := checkHighstats(client, w.network); err == nil {
 					port = infos.port
 				}
 			case "explorer":
@@ -124,7 +124,7 @@ func (w *wizard) deployDashboard() {
 		// Save the users choice
 		switch service {
 		case "ethstats":
-			infos.ethstats = page
+			infos.highstats = page
 		case "explorer":
 			infos.explorer = page
 		case "wallet":
@@ -133,8 +133,8 @@ func (w *wizard) deployDashboard() {
 			infos.faucet = page
 		}
 	}
-	// If we have ethstats running, ask whether to make the secret public or not
-	if w.conf.ethstats != "" {
+	// If we have ethstats running, ask if to make the secret public or not
+	if w.conf.highstats != "" {
 		fmt.Println()
 		fmt.Println("Include ethstats secret on dashboard (y/n)? (default = yes)")
 		infos.trusted = w.readDefaultYesNo(true)

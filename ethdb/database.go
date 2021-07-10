@@ -69,7 +69,7 @@ type KeyValueStore interface {
 
 // AncientReader contains the methods required to read from immutable ancient data.
 type AncientReader interface {
-	// HasAncient returns an indicator whether the specified data exists in the
+	// HasAncient returns an indicator if the specified data exists in the
 	// ancient store.
 	HasAncient(kind string, number uint64) (bool, error)
 

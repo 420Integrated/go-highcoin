@@ -124,7 +124,7 @@ func deploy(ctx *cli.Context) error {
 // sign checkpoint.
 func sign(ctx *cli.Context) error {
 	var (
-		offline bool // The indicator whether we sign checkpoint by offline.
+		offline bool // The indicator if we sign checkpoint by offline.
 		chash   common.Hash
 		cindex  uint64
 		address common.Address
@@ -184,7 +184,7 @@ func sign(ctx *cli.Context) error {
 		signature string
 		signer    string
 	)
-	// isAdmin checks whether the specified signer is admin.
+	// isAdmin checks if the specified signer is admin.
 	isAdmin := func(addr common.Address) error {
 		signers, err := oracle.Contract().GetAllAdmin(nil)
 		if err != nil {

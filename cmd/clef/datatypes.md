@@ -205,7 +205,7 @@ Example:
 ```
 ### ListResponse
 
-Response to list request. The response contains a list of all addresses to show to the caller. Note: the UI is free to respond with any address the caller, regardless of whether it exists or not
+Response to list request. The response contains a list of all addresses to show to the caller. Note: the UI is free to respond with any address the caller, regardless of if it exists or not
 
 Example:
 ```json

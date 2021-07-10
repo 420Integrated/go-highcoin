@@ -77,7 +77,7 @@ func TestWebsocketOriginCheck(t *testing.T) {
 	client.Close()
 }
 
-// This test checks whether calls exceeding the request size limit are rejected.
+// This test checks if calls exceeding the request size limit are rejected.
 func TestWebsocketLargeCall(t *testing.T) {
 	t.Parallel()
 
@@ -130,7 +130,7 @@ func TestClientWebsocketPing(t *testing.T) {
 		t.Fatalf("client dial error: %v", err)
 	}
 	resultChan := make(chan int)
-	sub, err := client.EthSubscribe(ctx, resultChan, "foo")
+	sub, err := client.HighSubscribe(ctx, resultChan, "foo")
 	if err != nil {
 		t.Fatalf("client subscribe error: %v", err)
 	}

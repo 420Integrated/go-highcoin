@@ -76,7 +76,7 @@ type ServerPool struct {
 	sessionValueMeter                      metrics.Meter
 }
 
-// nodeHistory keeps track of dial costs which determine node weight together with the
+// nodeHistory keeps track of dial costs which determine node weight togither with the
 // service value calculated by ValueTracker.
 type nodeHistory struct {
 	dialCost                       utils.ExpiredValue

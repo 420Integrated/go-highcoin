@@ -67,7 +67,7 @@ func (fi bindataFileInfo) ModTime() time.Time {
 	return fi.modTime
 }
 
-// IsDir return file whether a directory
+// IsDir return file if a directory
 func (fi bindataFileInfo) IsDir() bool {
 	return fi.mode&os.ModeDir != 0
 }

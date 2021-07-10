@@ -112,16 +112,16 @@ func New(stack *node.Node, config *ethconfig.Config) (*LightHighcoin, error) {
 		p2pConfig:      &stack.Config().P2P,
 	}
 
-	leth.serverPool, leth.dialCandidates = vfc.NewServerPool(lesDb, []byte("serverpool:"), time.Second, nil, &mclock.System{}, config.UltraLightServers, requestList)
-	leth.serverPool.AddMetrics(suggestedTimeoutGauge, totalValueGauge, serverSelectableGauge, serverConnectedGauge, sessionValueMeter, serverDialedMeter)
+	lhigh.serverPool, lhigh.dialCandidates = vfc.NewServerPool(lesDb, []byte("serverpool:"), time.Second, nil, &mclock.System{}, config.UltraLightServers, requestList)
+	lhigh.serverPool.AddMetrics(suggestedTimeoutGauge, totalValueGauge, serverSelectableGauge, serverConnectedGauge, sessionValueMeter, serverDialedMeter)
 
-	leth.retriever = newRetrieveManager(peers, leth.reqDist, leth.serverPool.GetTimeout)
-	leth.relay = newLesTxRelay(peers, leth.retriever)
+	lhigh.retriever = newRetrieveManager(peers, lhigh.reqDist, lhigh.serverPool.GetTimeout)
+	lhigh.relay = newLesTxRelay(peers, lhigh.retriever)
 
-	leth.odr = NewLesOdr(chainDb, light.DefaultClientIndexerConfig, leth.peers, leth.retriever)
-	leth.chtIndexer = light.NewChtIndexer(chainDb, leth.odr, params.CHTFrequency, params.HelperTrieConfirmations, config.LightNoPrune)
-	leth.bloomTrieIndexer = light.NewBloomTrieIndexer(chainDb, leth.odr, params.BloomBitsBlocksClient, params.BloomTrieFrequency, config.LightNoPrune)
-	leth.odr.SetIndexers(leth.chtIndexer, leth.bloomTrieIndexer, leth.bloomIndexer)
+	lhigh.odr = NewLesOdr(chainDb, light.DefaultClientIndexerConfig, lhigh.peers, lhigh.retriever)
+	lhigh.chtIndexer = light.NewChtIndexer(chainDb, lhigh.odr, params.CHTFrequency, params.HelperTrieConfirmations, config.LightNoPrune)
+	lhigh.bloomTrieIndexer = light.NewBloomTrieIndexer(chainDb, lhigh.odr, params.BloomBitsBlocksClient, params.BloomTrieFrequency, config.LightNoPrune)
+	lhigh.odr.SetIndexers(lhigh.chtIndexer, lhigh.bloomTrieIndexer, lhigh.bloomIndexer)
 
 	checkpoint := config.Checkpoint
 	if checkpoint == nil {
@@ -129,48 +129,48 @@ func New(stack *node.Node, config *ethconfig.Config) (*LightHighcoin, error) {
 	}
 	// Note: NewLightChain adds the trusted checkpoint so it needs an ODR with
 	// indexers already set but not started yet
-	if leth.blockchain, err = light.NewLightChain(leth.odr, leth.chainConfig, leth.engine, checkpoint); err != nil {
+	if lhigh.blockchain, err = light.NewLightChain(lhigh.odr, lhigh.chainConfig, lhigh.engine, checkpoint); err != nil {
 		return nil, err
 	}
-	leth.chainReader = leth.blockchain
-	leth.txPool = light.NewTxPool(leth.chainConfig, leth.blockchain, leth.relay)
+	lhigh.chainReader = lhigh.blockchain
+	lhigh.txPool = light.NewTxPool(lhigh.chainConfig, lhigh.blockchain, lhigh.relay)
 
 	// Set up checkpoint oracle.
-	leth.oracle = leth.setupOracle(stack, genesisHash, config)
+	lhigh.oracle = lhigh.setupOracle(stack, genesisHash, config)
 
 	// Note: AddChildIndexer starts the update process for the child
-	leth.bloomIndexer.AddChildIndexer(leth.bloomTrieIndexer)
-	leth.chtIndexer.Start(leth.blockchain)
-	leth.bloomIndexer.Start(leth.blockchain)
+	lhigh.bloomIndexer.AddChildIndexer(lhigh.bloomTrieIndexer)
+	lhigh.chtIndexer.Start(lhigh.blockchain)
+	lhigh.bloomIndexer.Start(lhigh.blockchain)
 
 	// Start a light chain pruner to delete useless historical data.
-	leth.pruner = newPruner(chainDb, leth.chtIndexer, leth.bloomTrieIndexer)
+	lhigh.pruner = newPruner(chainDb, lhigh.chtIndexer, lhigh.bloomTrieIndexer)
 
 	// Rewind the chain in case of an incompatible config upgrade.
 	if compat, ok := genesisErr.(*params.ConfigCompatError); ok {
 		log.Warn("Rewinding chain to upgrade configuration", "err", compat)
-		leth.blockchain.SetHead(compat.RewindTo)
+		lhigh.blockchain.SetHead(compat.RewindTo)
 		rawdb.WriteChainConfig(chainDb, genesisHash, chainConfig)
 	}
 
-	leth.ApiBackend = &LesApiBackend{stack.Config().ExtRPCEnabled(), stack.Config().AllowUnprotectedTxs, leth, nil}
+	lhigh.ApiBackend = &LesApiBackend{stack.Config().ExtRPCEnabled(), stack.Config().AllowUnprotectedTxs, leth, nil}
 	gpoParams := config.GPO
 	if gpoParams.Default == nil {
 		gpoParams.Default = config.Miner.GasPrice
 	}
-	leth.ApiBackend.gpo = gasprice.NewOracle(leth.ApiBackend, gpoParams)
+	lhigh.ApiBackend.gpo = gasprice.NewOracle(lhigh.ApiBackend, gpoParams)
 
-	leth.handler = newClientHandler(config.UltraLightServers, config.UltraLightFraction, checkpoint, leth)
-	if leth.handler.ulc != nil {
-		log.Warn("Ultra light client is enabled", "trustedNodes", len(leth.handler.ulc.keys), "minTrustedFraction", leth.handler.ulc.fraction)
-		leth.blockchain.DisableCheckFreq()
+	lhigh.handler = newClientHandler(config.UltraLightServers, config.UltraLightFraction, checkpoint, leth)
+	if lhigh.handler.ulc != nil {
+		log.Warn("Ultra light client is enabled", "trustedNodes", len(lhigh.handler.ulc.keys), "minTrustedFraction", lhigh.handler.ulc.fraction)
+		lhigh.blockchain.DisableCheckFreq()
 	}
 
-	leth.netRPCService = ethapi.NewPublicNetAPI(leth.p2pServer, leth.config.NetworkId)
+	lhigh.netRPCService = ethapi.NewPublicNetAPI(lhigh.p2pServer, lhigh.config.NetworkId)
 
 	// Register the backend on the node
-	stack.RegisterAPIs(leth.APIs())
-	stack.RegisterProtocols(leth.Protocols())
+	stack.RegisterAPIs(lhigh.APIs())
+	stack.RegisterProtocols(lhigh.Protocols())
 	stack.RegisterLifecycle(leth)
 
 	// Check for unclean shutdown
@@ -191,12 +191,12 @@ func New(stack *node.Node, config *ethconfig.Config) (*LightHighcoin, error) {
 
 type LightDummyAPI struct{}
 
-// Etherbase is the address that mining rewards will be send to
-func (s *LightDummyAPI) Etherbase() (common.Address, error) {
+// Highcoinbase is the address that mining rewards will be send to
+func (s *LightDummyAPI) Highcoinbase() (common.Address, error) {
 	return common.Address{}, fmt.Errorf("mining is not supported in light mode")
 }
 
-// Coinbase is the address that mining rewards will be send to (alias for Etherbase)
+// Coinbase is the address that mining rewards will be send to (alias for Highcoinbase)
 func (s *LightDummyAPI) Coinbase() (common.Address, error) {
 	return common.Address{}, fmt.Errorf("mining is not supported in light mode")
 }

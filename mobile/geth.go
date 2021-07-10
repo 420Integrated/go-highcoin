@@ -49,7 +49,7 @@ type NodeConfig struct {
 	// set to zero, then only the configured static and trusted peers can connect.
 	MaxPeers int
 
-	// HighcoinEnabled specifies whether the node should run the Highcoin protocol.
+	// HighcoinEnabled specifies if the node should run the Highcoin protocol.
 	HighcoinEnabled bool
 
 	// HighcoinNetworkID is the network identifier used by the Highcoin protocol to

@@ -809,7 +809,7 @@ func TestUnpackTuple(t *testing.T) {
 
 	type T struct {
 		X *big.Int `abi:"x"`
-		Z *big.Int `abi:"y"` // Test whether the abi tag works.
+		Z *big.Int `abi:"y"` // Test if the abi tag works.
 	}
 
 	type S struct {

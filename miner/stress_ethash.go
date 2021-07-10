@@ -31,7 +31,7 @@ import (
 	"github.com/420integrated/go-highcoin/accounts/keystore"
 	"github.com/420integrated/go-highcoin/common"
 	"github.com/420integrated/go-highcoin/common/fdlimit"
-	"github.com/420integrated/go-highcoin/consensus/ethash"
+	"github.com/420integrated/go-highcoin/consensus/othash"
 	"github.com/420integrated/go-highcoin/core"
 	"github.com/420integrated/go-highcoin/core/types"
 	"github.com/420integrated/go-highcoin/crypto"
@@ -54,14 +54,14 @@ func main() {
 	for i := 0; i < len(faucets); i++ {
 		faucets[i], _ = crypto.GenerateKey()
 	}
-	// Pre-generate the ethash mining DAG so we don't race
-	ethash.MakeDataset(1, filepath.Join(os.Getenv("HOME"), ".ethash"))
+	// Pre-generate the othash mining DAG so we don't race
+	othash.MakeDataset(1, filepath.Join(os.Getenv("HOME"), ".othash"))
 
 	// Create an Ethash network based off of the Ropsten config
 	genesis := makeGenesis(faucets)
 
 	var (
-		nodes  []*eth.Highcoin
+		nodes  []*high.Highcoin
 		enodes []*enode.Node
 	)
 	for i := 0; i < 4; i++ {
@@ -142,7 +142,7 @@ func makeGenesis(faucets []*ecdsa.PrivateKey) *core.Genesis {
 	return genesis
 }
 
-func makeMiner(genesis *core.Genesis) (*node.Node, *eth.Highcoin, error) {
+func makeMiner(genesis *core.Genesis) (*node.Node, *high.Highcoin, error) {
 	// Define the basic configurations for the Highcoin node
 	datadir, _ := ioutil.TempDir("", "")
 
@@ -162,15 +162,15 @@ func makeMiner(genesis *core.Genesis) (*node.Node, *eth.Highcoin, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	ethBackend, err := eth.New(stack, &ethconfig.Config{
+	ethBackend, err := high.New(stack, &ethconfig.Config{
 		Genesis:         genesis,
 		NetworkId:       genesis.Config.ChainID.Uint64(),
 		SyncMode:        downloader.FullSync,
 		DatabaseCache:   256,
 		DatabaseHandles: 256,
 		TxPool:          core.DefaultTxPoolConfig,
-		GPO:             eth.DefaultConfig.GPO,
-		Ethash:          eth.DefaultConfig.Ethash,
+		GPO:             high.DefaultConfig.GPO,
+		Ethash:          high.DefaultConfig.Ethash,
 		Miner: miner.Config{
 			GasFloor: genesis.GasLimit * 9 / 10,
 			GasCeil:  genesis.GasLimit * 11 / 10,

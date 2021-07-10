@@ -116,7 +116,7 @@ type txRequest struct {
 type txDelivery struct {
 	origin string        // Identifier of the peer originating the notification
 	hashes []common.Hash // Batch of transaction hashes having been delivered
-	direct bool          // Whether this is a direct reply or a broadcast
+	direct bool          // If this is a direct reply or a broadcast
 }
 
 // txDrop is the notiication that a peer has disconnected.
@@ -731,7 +731,7 @@ func (f *TxFetcher) rescheduleTimeout(timer *mclock.Timer, trigger chan struct{}
 
 	earliest := now
 	for _, req := range f.requests {
-		// If this request already timed out, skip it altogether
+		// If this request already timed out, skip it collectively
 		if req.hashes == nil {
 			continue
 		}

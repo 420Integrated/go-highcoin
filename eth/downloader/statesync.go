@@ -31,7 +31,7 @@ import (
 	"golang.org/x/crypto/sha3"
 )
 
-// stateReq represents a batch of state fetch requests grouped together into
+// stateReq represents a batch of state fetch requests grouped togither into
 // a single data retrieval network packet.
 type stateReq struct {
 	nItems    uint16                    // Number of items requested for download (max is 384, so uint16 is sufficient)
@@ -42,7 +42,7 @@ type stateReq struct {
 	peer      *peerConnection           // Peer that we're requesting from
 	delivered time.Time                 // Time when the packet was delivered (independent when we process it)
 	response  [][]byte                  // Response data of the peer (nil for timeouts)
-	dropped   bool                      // Flag whether the peer dropped off early
+	dropped   bool                      // Flag if the peer dropped off early
 }
 
 // timedOut returns if this request timed out.
@@ -517,7 +517,7 @@ func (s *stateSync) fillTasks(n int, req *stateReq) (nodes []common.Hash, paths 
 
 // process iterates over a batch of delivered state data, injecting each item
 // into a running state sync, re-queuing any items that were requested but not
-// delivered. Returns whether the peer actually managed to deliver anything of
+// delivered. Returns if the peer actually managed to deliver anything of
 // value, and any error that occurred.
 func (s *stateSync) process(req *stateReq) (int, error) {
 	// Collect processing stats and update progress if valid data was received
@@ -584,7 +584,7 @@ func (s *stateSync) process(req *stateReq) (int, error) {
 }
 
 // processNodeData tries to inject a trie node data blob delivered from a remote
-// peer into the state trie, returning whether anything useful was written or any
+// peer into the state trie, returning if anything useful was written or any
 // error occurred.
 func (s *stateSync) processNodeData(blob []byte) (common.Hash, error) {
 	res := trie.SyncResult{Data: blob}

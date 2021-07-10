@@ -85,7 +85,7 @@ func (result *ExecutionResult) Unwrap() error {
 	return result.Err
 }
 
-// Failed returns the indicator whether the execution is successful or not
+// Failed returns the indicator if the execution is successful or not
 func (result *ExecutionResult) Failed() bool { return result.Err != nil }
 
 // Return is a helper function to help caller distinguish between revert reason
@@ -292,7 +292,7 @@ func (st *StateTransition) refundGas() {
 	}
 	st.gas += refund
 
-	// Return ETH for remaining gas, exchanged at the original rate.
+	// Return HIGH for remaining gas, exchanged at the original rate.
 	remaining := new(big.Int).Mul(new(big.Int).SetUint64(st.gas), st.gasPrice)
 	st.state.AddBalance(st.msg.From(), remaining)
 

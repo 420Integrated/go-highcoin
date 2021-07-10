@@ -170,7 +170,7 @@ func (h *handshakeState) readFrame(conn io.Reader) ([]byte, error) {
 // Write writes a message to the connection.
 //
 // Write returns the written size of the message data. This may be less than or equal to
-// len(data) depending on whether snappy compression is enabled.
+// len(data) depending on if snappy compression is enabled.
 func (c *Conn) Write(code uint64, data []byte) (uint32, error) {
 	if c.handshake == nil {
 		panic("can't WriteMsg before handshake")
@@ -349,7 +349,7 @@ type encHandshake struct {
 
 // RLPx v4 handshake auth (defined in EIP-8).
 type authMsgV4 struct {
-	gotPlain bool // whether read packet had plain format.
+	gotPlain bool // if read packet had plain format.
 
 	Signature       [sigLen]byte
 	InitiatorPubkey [pubLen]byte

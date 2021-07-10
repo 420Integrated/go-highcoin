@@ -220,7 +220,7 @@ func (g *G2) Equal(p1, p2 *PointG2) bool {
 	return t[0].equal(t[1]) && t[2].equal(t[3])
 }
 
-// InCorrectSubgroup checks whether given point is in correct subgroup.
+// InCorrectSubgroup checks if given point is in correct subgroup.
 func (g *G2) InCorrectSubgroup(p *PointG2) bool {
 	tmp := &PointG2{}
 	g.MulScalar(tmp, p, q)
@@ -244,7 +244,7 @@ func (g *G2) IsOnCurve(p *PointG2) bool {
 	return t[0].equal(t[1])
 }
 
-// IsAffine checks a G2 point whether it is in affine form.
+// IsAffine checks a G2 point if it is in affine form.
 func (g *G2) IsAffine(p *PointG2) bool {
 	return p[2].isOne()
 }

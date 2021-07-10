@@ -23,7 +23,7 @@ import (
 type (
 	executionFunc func(pc *uint64, interpreter *EVMInterpreter, callContext *callCtx) ([]byte, error)
 	gasFunc       func(*EVM, *Contract, *Stack, *Memory, uint64) (uint64, error) // last parameter is the requested memory size as a uint64
-	// memorySizeFunc returns the required size, and whether the operation overflowed a uint64
+	// memorySizeFunc returns the required size, and if the operation overflowed a uint64
 	memorySizeFunc func(*Stack) (size uint64, overflow bool)
 )
 
@@ -41,11 +41,11 @@ type operation struct {
 	// memorySize returns the memory size required for the operation
 	memorySize memorySizeFunc
 
-	halts   bool // indicates whether the operation should halt further execution
-	jumps   bool // indicates whether the program counter should not increment
-	writes  bool // determines whether this a state modifying operation
-	reverts bool // determines whether the operation reverts state (implicitly halts)
-	returns bool // determines whether the operations sets the return data content
+	halts   bool // indicates if the operation should halt further execution
+	jumps   bool // indicates if the program counter should not increment
+	writes  bool // determines if this a state modifying operation
+	reverts bool // determines if the operation reverts state (implicitly halts)
+	returns bool // determines if the operations sets the return data content
 }
 
 var (

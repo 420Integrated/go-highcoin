@@ -289,11 +289,11 @@ type CheckpointOracleNewCheckpointVoteIterator struct {
 
 	logs chan types.Log        // Log channel receiving the found contract events
 	sub  highcoin.Subscription // Subscription for errors, completion and termination
-	done bool                  // Whether the subscription completed delivering logs
+	done bool                  // If the subscription completed delivering logs
 	fail error                 // Occurred error to stop iteration
 }
 
-// Next advances the iterator to the subsequent event, returning whether there
+// Next advances the iterator to the subsequent event, returning if there
 // are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
 func (it *CheckpointOracleNewCheckpointVoteIterator) Next() bool {

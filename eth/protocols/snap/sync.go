@@ -130,7 +130,7 @@ type accountResponse struct {
 	bounds   map[common.Hash]struct{} // Boundary nodes to avoid persisting incomplete accounts
 	overflow *light.NodeSet           // Overflow nodes to avoid persisting across chunk boundaries
 
-	cont bool // Whether the account range has a continuation
+	cont bool // If the account range has a continuation
 }
 
 // bytecodeRequest tracks a pending bytecode request to ensure responses are to
@@ -207,7 +207,7 @@ type storageResponse struct {
 	// Fields relevant for the last account only
 	bounds   map[common.Hash]struct{} // Boundary nodes to avoid persisting (incomplete)
 	overflow *light.NodeSet           // Overflow nodes to avoid persisting across chunk boundaries
-	cont     bool                     // Whether the last storage range has a continuation
+	cont     bool                     // If the last storage range has a continuation
 }
 
 // trienodeHealRequest tracks a pending state trie request to ensure responses
@@ -283,14 +283,14 @@ type accountTask struct {
 	res  *accountResponse // Validate response filling this task
 	pend int              // Number of pending subtasks for this round
 
-	needCode  []bool // Flags whether the filling accounts need code retrieval
-	needState []bool // Flags whether the filling accounts need storage retrieval
-	needHeal  []bool // Flags whether the filling accounts's state was chunked and need healing
+	needCode  []bool // Flags if the filling accounts need code retrieval
+	needState []bool // Flags if the filling accounts need storage retrieval
+	needHeal  []bool // Flags if the filling accounts's state was chunked and need healing
 
 	codeTasks  map[common.Hash]struct{}    // Code hashes that need retrieval
 	stateTasks map[common.Hash]common.Hash // Account hashes->roots that need full state retrieval
 
-	done bool // Flag whether the task can be removed
+	done bool // Flag if the task can be removed
 }
 
 // storageTask represents the sync task for a chunk of the storage snapshot.
@@ -301,7 +301,7 @@ type storageTask struct {
 	// These fields are internals used during runtime
 	root common.Hash     // Storage root hash for this instance
 	req  *storageRequest // Pending request to fill this task
-	done bool            // Flag whether the task can be removed
+	done bool            // Flag if the task can be removed
 }
 
 // healTask represents the sync task for healing the snap-synced chunk boundaries.
@@ -573,7 +573,7 @@ func (s *Syncer) Sync(root common.Hash, cancel chan struct{}) error {
 	log.Debug("Starting snapshot sync cycle", "root", root)
 	defer s.report(true)
 
-	// Whether sync completed or not, disregard any future packets
+	// If sync completed or not, disregard any future packets
 	defer func() {
 		log.Debug("Terminating snapshot sync cycle", "root", root)
 		s.lock.Lock()
@@ -1089,7 +1089,7 @@ func (s *Syncer) assignTrienodeHealTasks(cancel chan struct{}) {
 	for len(s.healer.trieTasks) > 0 || s.healer.scheduler.Pending() > 0 {
 		// If there are not enough trie tasks queued to fully assign, fill the
 		// queue from the state sync scheduler. The trie synced schedules these
-		// together with bytecodes, so we need to queue them combined.
+		// togither with bytecodes, so we need to queue them combined.
 		var (
 			have = len(s.healer.trieTasks) + len(s.healer.codeTasks)
 			want = maxTrieRequestCount + maxCodeRequestCount
@@ -1195,7 +1195,7 @@ func (s *Syncer) assignBytecodeHealTasks(cancel chan struct{}) {
 	for len(s.healer.codeTasks) > 0 || s.healer.scheduler.Pending() > 0 {
 		// If there are not enough trie tasks queued to fully assign, fill the
 		// queue from the state sync scheduler. The trie synced schedules these
-		// together with trie nodes, so we need to queue them combined.
+		// togither with trie nodes, so we need to queue them combined.
 		var (
 			have = len(s.healer.trieTasks) + len(s.healer.codeTasks)
 			want = maxTrieRequestCount + maxCodeRequestCount
@@ -1993,7 +1993,7 @@ func (s *Syncer) OnAccounts(peer SyncPeer, id uint64, hashes []common.Hash, acco
 	logger := peer.Log().New("reqid", id)
 	logger.Trace("Delivering range of accounts", "hashes", len(hashes), "accounts", len(accounts), "proofs", len(proof), "bytes", size)
 
-	// Whether or not the response is valid, we can mark the peer as idle and
+	// If or not the response is valid, we can mark the peer as idle and
 	// notify the scheduler to assign a new task. If the response is invalid,
 	// we'll drop the peer in a bit.
 	s.lock.Lock()
@@ -2118,7 +2118,7 @@ func (s *Syncer) onByteCodes(peer SyncPeer, id uint64, bytecodes [][]byte) error
 	logger := peer.Log().New("reqid", id)
 	logger.Trace("Delivering set of bytecodes", "bytecodes", len(bytecodes), "bytes", size)
 
-	// Whether or not the response is valid, we can mark the peer as idle and
+	// If or not the response is valid, we can mark the peer as idle and
 	// notify the scheduler to assign a new task. If the response is invalid,
 	// we'll drop the peer in a bit.
 	s.lock.Lock()
@@ -2226,7 +2226,7 @@ func (s *Syncer) OnStorage(peer SyncPeer, id uint64, hashes [][]common.Hash, slo
 	logger := peer.Log().New("reqid", id)
 	logger.Trace("Delivering ranges of storage slots", "accounts", len(hashes), "hashes", hashCount, "slots", slotCount, "proofs", len(proof), "size", size)
 
-	// Whether or not the response is valid, we can mark the peer as idle and
+	// If or not the response is valid, we can mark the peer as idle and
 	// notify the scheduler to assign a new task. If the response is invalid,
 	// we'll drop the peer in a bit.
 	s.lock.Lock()
@@ -2369,7 +2369,7 @@ func (s *Syncer) OnTrieNodes(peer SyncPeer, id uint64, trienodes [][]byte) error
 	logger := peer.Log().New("reqid", id)
 	logger.Trace("Delivering set of healing trienodes", "trienodes", len(trienodes), "bytes", size)
 
-	// Whether or not the response is valid, we can mark the peer as idle and
+	// If or not the response is valid, we can mark the peer as idle and
 	// notify the scheduler to assign a new task. If the response is invalid,
 	// we'll drop the peer in a bit.
 	s.lock.Lock()
@@ -2463,7 +2463,7 @@ func (s *Syncer) onHealByteCodes(peer SyncPeer, id uint64, bytecodes [][]byte) e
 	logger := peer.Log().New("reqid", id)
 	logger.Trace("Delivering set of healing bytecodes", "bytecodes", len(bytecodes), "bytes", size)
 
-	// Whether or not the response is valid, we can mark the peer as idle and
+	// If or not the response is valid, we can mark the peer as idle and
 	// notify the scheduler to assign a new task. If the response is invalid,
 	// we'll drop the peer in a bit.
 	s.lock.Lock()

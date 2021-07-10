@@ -54,8 +54,8 @@ type trezorDriver struct {
 	device         io.ReadWriter // USB device connection to communicate through
 	version        [3]uint32     // Current version of the Trezor firmware
 	label          string        // Current textual label of the Trezor device
-	pinwait        bool          // Flags whether the device is waiting for PIN entry
-	passphrasewait bool          // Flags whether the device is waiting for passphrase entry
+	pinwait        bool          // Flags if the device is waiting for PIN entry
+	passphrasewait bool          // Flags if the device is waiting for passphrase entry
 	failure        error         // Any failure that would make the device unusable
 	log            log.Logger    // Contextual logger to tag the trezor with its id
 }
@@ -67,8 +67,8 @@ func newTrezorDriver(logger log.Logger) driver {
 	}
 }
 
-// Status implements accounts.Wallet, always whether the Trezor is opened, closed
-// or whether the Highcoin app was not started on it.
+// Status implements accounts.Wallet, always if the Trezor is opened, closed
+// or if the Highcoin app was not started on it.
 func (w *trezorDriver) Status() (string, error) {
 	if w.failure != nil {
 		return fmt.Sprintf("Failed: %v", w.failure), w.failure
@@ -188,8 +188,8 @@ func (w *trezorDriver) SignTx(path accounts.DerivationPath, tx *types.Transactio
 // trezorDerive sends a derivation request to the Trezor device and returns the
 // Highcoin address located on that path.
 func (w *trezorDriver) trezorDerive(derivationPath []uint32) (common.Address, error) {
-	address := new(trezor.EthereumAddress)
-	if _, err := w.trezorExchange(&trezor.EthereumGetAddress{AddressN: derivationPath}, address); err != nil {
+	address := new(trezor.HighereumAddress)
+	if _, err := w.trezorExchange(&trezor.HighereumGetAddress{AddressN: derivationPath}, address); err != nil {
 		return common.Address{}, err
 	}
 	if addr := address.GetAddressBin(); len(addr) > 0 { // Older firmwares use binary fomats
@@ -208,7 +208,7 @@ func (w *trezorDriver) trezorSign(derivationPath []uint32, tx *types.Transaction
 	data := tx.Data()
 	length := uint32(len(data))
 
-	request := &trezor.EthereumSignTx{
+	request := &trezor.HighereumSignTx{
 		AddressN:   derivationPath,
 		Nonce:      new(big.Int).SetUint64(tx.Nonce()).Bytes(),
 		GasPrice:   tx.GasPrice().Bytes(),
@@ -232,7 +232,7 @@ func (w *trezorDriver) trezorSign(derivationPath []uint32, tx *types.Transaction
 		request.ChainId = &id
 	}
 	// Send the initiation message and stream content until a signature is returned
-	response := new(trezor.EthereumTxRequest)
+	response := new(trezor.HighereumTxRequest)
 	if _, err := w.trezorExchange(request, response); err != nil {
 		return common.Address{}, nil, err
 	}
@@ -240,7 +240,7 @@ func (w *trezorDriver) trezorSign(derivationPath []uint32, tx *types.Transaction
 		chunk := data[:*response.DataLength]
 		data = data[*response.DataLength:]
 
-		if _, err := w.trezorExchange(&trezor.EthereumTxAck{DataChunk: chunk}, response); err != nil {
+		if _, err := w.trezorExchange(&trezor.HighereumTxAck{DataChunk: chunk}, response); err != nil {
 			return common.Address{}, nil, err
 		}
 	}

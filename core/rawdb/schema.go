@@ -114,7 +114,7 @@ const (
 	freezerDifficultyTable = "diffs"
 )
 
-// freezerNoSnappy configures whether compression is disabled for the ancient-tables.
+// freezerNoSnappy configures if compression is disabled for the ancient-tables.
 // Hashes and difficulties don't compress well.
 var freezerNoSnappy = map[string]bool{
 	freezerHeaderTable:     false,
@@ -214,7 +214,7 @@ func codeKey(hash common.Hash) []byte {
 	return append(CodePrefix, hash.Bytes()...)
 }
 
-// IsCodeKey reports whether the given byte slice is the key of contract code,
+// IsCodeKey reports if the given byte slice is the key of contract code,
 // if so return the raw code hash as well.
 func IsCodeKey(key []byte) (bool, []byte) {
 	if bytes.HasPrefix(key, CodePrefix) && len(key) == common.HashLength+len(CodePrefix) {

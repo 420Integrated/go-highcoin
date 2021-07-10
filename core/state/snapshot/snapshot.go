@@ -141,7 +141,7 @@ type snapshot interface {
 	// flushing legacy journal. Now the only purpose of this function is for testing.
 	LegacyJournal(buffer *bytes.Buffer) (common.Hash, error)
 
-	// Stale return whether this layer has become stale (was flattened across) or
+	// Stale return if this layer has become stale (was flattened across) or
 	// if it's still live.
 	Stale() bool
 
@@ -637,7 +637,7 @@ func (t *Tree) Rebuild(root common.Hash) {
 	// building a brand new snapshot.
 	rawdb.DeleteSnapshotRecoveryNumber(t.diskdb)
 
-	// Track whether there's a wipe currently running and keep it alive if so
+	// Track if there's a wipe currently running and keep it alive if so
 	var wiper chan struct{}
 
 	// Iterate over and mark all layers stale
@@ -765,7 +765,7 @@ func (t *Tree) diskRoot() common.Hash {
 	return disklayer.Root()
 }
 
-// generating is an internal helper function which reports whether the snapshot
+// generating is an internal helper function which reports if the snapshot
 // is still under the construction.
 func (t *Tree) generating() (bool, error) {
 	t.lock.Lock()

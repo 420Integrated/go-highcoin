@@ -642,7 +642,7 @@ func (api *API) standardTraceBlockToFile(ctx context.Context, block *types.Block
 	return dumps, nil
 }
 
-// containsTx reports whether the transaction with a certain hash
+// containsTx reports if the transaction with a certain hash
 // is contained within the specified block.
 func containsTx(block *types.Block, hash common.Hash) bool {
 	for _, tx := range block.Transactions() {

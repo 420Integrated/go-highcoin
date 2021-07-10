@@ -46,15 +46,15 @@ func (s *Suite) TestStatus_66(t *utesting.T) {
 	}
 }
 
-// TestGetBlockHeaders_66 tests whether the given node can respond to
+// TestGetBlockHeaders_66 tests if the given node can respond to
 // an eth66 `GetBlockHeaders` request and that the response is accurate.
 func (s *Suite) TestGetBlockHeaders_66(t *utesting.T) {
 	conn := s.setupConnection66(t)
 	// get block headers
-	req := &eth.GetBlockHeadersPacket66{
+	req := &high.GetBlockHeadersPacket66{
 		RequestId: 3,
-		GetBlockHeadersPacket: &eth.GetBlockHeadersPacket{
-			Origin: eth.HashOrNumber{
+		GetBlockHeadersPacket: &high.GetBlockHeadersPacket{
+			Origin: high.HashOrNumber{
 				Hash: s.chain.blocks[1].Hash(),
 			},
 			Amount:  2,
@@ -75,10 +75,10 @@ func (s *Suite) TestSimultaneousRequests_66(t *utesting.T) {
 	// create two connections
 	conn1, conn2 := s.setupConnection66(t), s.setupConnection66(t)
 	// create two requests
-	req1 := &eth.GetBlockHeadersPacket66{
+	req1 := &high.GetBlockHeadersPacket66{
 		RequestId: 111,
-		GetBlockHeadersPacket: &eth.GetBlockHeadersPacket{
-			Origin: eth.HashOrNumber{
+		GetBlockHeadersPacket: &high.GetBlockHeadersPacket{
+			Origin: high.HashOrNumber{
 				Hash: s.chain.blocks[1].Hash(),
 			},
 			Amount:  2,
@@ -86,10 +86,10 @@ func (s *Suite) TestSimultaneousRequests_66(t *utesting.T) {
 			Reverse: false,
 		},
 	}
-	req2 := &eth.GetBlockHeadersPacket66{
+	req2 := &high.GetBlockHeadersPacket66{
 		RequestId: 222,
-		GetBlockHeadersPacket: &eth.GetBlockHeadersPacket{
-			Origin: eth.HashOrNumber{
+		GetBlockHeadersPacket: &high.GetBlockHeadersPacket{
+			Origin: high.HashOrNumber{
 				Hash: s.chain.blocks[1].Hash(),
 			},
 			Amount:  4,
@@ -108,7 +108,7 @@ func (s *Suite) TestSimultaneousRequests_66(t *utesting.T) {
 	headersMatch(t, s.chain, <-headerChan)
 }
 
-// TestBroadcast_66 tests whether a block announcement is correctly
+// TestBroadcast_66 tests if a block announcement is correctly
 // propagated to the given node's peer(s) on the eth66 protocol.
 func (s *Suite) TestBroadcast_66(t *utesting.T) {
 	sendConn, receiveConn := s.setupConnection66(t), s.setupConnection66(t)
@@ -126,16 +126,16 @@ func (s *Suite) TestBroadcast_66(t *utesting.T) {
 	}
 }
 
-// TestGetBlockBodies_66 tests whether the given node can respond to
+// TestGetBlockBodies_66 tests if the given node can respond to
 // a `GetBlockBodies` request and that the response is accurate over
 // the eth66 protocol.
 func (s *Suite) TestGetBlockBodies_66(t *utesting.T) {
 	conn := s.setupConnection66(t)
 	// create block bodies request
 	id := uint64(55)
-	req := &eth.GetBlockBodiesPacket66{
+	req := &high.GetBlockBodiesPacket66{
 		RequestId: id,
-		GetBlockBodiesPacket: eth.GetBlockBodiesPacket{
+		GetBlockBodiesPacket: high.GetBlockBodiesPacket{
 			s.chain.blocks[54].Hash(),
 			s.chain.blocks[75].Hash(),
 		},
@@ -337,10 +337,10 @@ func (s *Suite) TestMaliciousTx_66(t *utesting.T) {
 // by the node.
 func (s *Suite) TestZeroRequestID_66(t *utesting.T) {
 	conn := s.setupConnection66(t)
-	req := &eth.GetBlockHeadersPacket66{
+	req := &high.GetBlockHeadersPacket66{
 		RequestId: 0,
-		GetBlockHeadersPacket: &eth.GetBlockHeadersPacket{
-			Origin: eth.HashOrNumber{
+		GetBlockHeadersPacket: &high.GetBlockHeadersPacket{
+			Origin: high.HashOrNumber{
 				Number: 0,
 			},
 			Amount: 2,
@@ -355,19 +355,19 @@ func (s *Suite) TestSameRequestID_66(t *utesting.T) {
 	conn := s.setupConnection66(t)
 	// create two separate requests with same ID
 	reqID := uint64(1234)
-	req1 := &eth.GetBlockHeadersPacket66{
+	req1 := &high.GetBlockHeadersPacket66{
 		RequestId: reqID,
-		GetBlockHeadersPacket: &eth.GetBlockHeadersPacket{
-			Origin: eth.HashOrNumber{
+		GetBlockHeadersPacket: &high.GetBlockHeadersPacket{
+			Origin: high.HashOrNumber{
 				Number: 0,
 			},
 			Amount: 2,
 		},
 	}
-	req2 := &eth.GetBlockHeadersPacket66{
+	req2 := &high.GetBlockHeadersPacket66{
 		RequestId: reqID,
-		GetBlockHeadersPacket: &eth.GetBlockHeadersPacket{
-			Origin: eth.HashOrNumber{
+		GetBlockHeadersPacket: &high.GetBlockHeadersPacket{
+			Origin: high.HashOrNumber{
 				Number: 33,
 			},
 			Amount: 2,

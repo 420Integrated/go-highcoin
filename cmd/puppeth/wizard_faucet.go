@@ -63,7 +63,7 @@ func (w *wizard) deployFaucet() {
 	}
 	// Port and proxy settings retrieved, figure out the funding amount per period configurations
 	fmt.Println()
-	fmt.Printf("How many Ethers to release per request? (default = %d)\n", infos.amount)
+	fmt.Printf("How many Highcoins to release per request? (default = %d)\n", infos.amount)
 	infos.amount = w.readDefaultInt(infos.amount)
 
 	fmt.Println()
@@ -133,12 +133,12 @@ func (w *wizard) deployFaucet() {
 
 	// Set a proper name to report on the stats page
 	fmt.Println()
-	if infos.node.ethstats == "" {
+	if infos.node.highstats == "" {
 		fmt.Printf("What should the node be called on the stats page?\n")
-		infos.node.ethstats = w.readString() + ":" + w.conf.ethstats
+		infos.node.highstats = w.readString() + ":" + w.conf.highstats
 	} else {
-		fmt.Printf("What should the node be called on the stats page? (default = %s)\n", infos.node.ethstats)
-		infos.node.ethstats = w.readDefaultString(infos.node.ethstats) + ":" + w.conf.ethstats
+		fmt.Printf("What should the node be called on the stats page? (default = %s)\n", infos.node.highstats)
+		infos.node.highstats = w.readDefaultString(infos.node.highstats) + ":" + w.conf.highstats
 	}
 	// Load up the credential needed to release funds
 	if infos.node.keyJSON != "" {

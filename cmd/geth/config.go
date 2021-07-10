@@ -85,10 +85,10 @@ type whisperDeprecatedConfig struct {
 }
 
 type highcoinConfig struct {
-	Eth      ethconfig.Config
+	High      ethconfig.Config
 	Shh      whisperDeprecatedConfig
 	Node     node.Config
-	Ethstats ethstatsConfig
+	Highstats ethstatsConfig
 	Metrics  metrics.Config
 }
 
@@ -121,7 +121,7 @@ func defaultNodeConfig() node.Config {
 func makeConfigNode(ctx *cli.Context) (*node.Node, highcoinConfig) {
 	// Load defaults.
 	cfg := highcoinConfig{
-		Eth:     ethconfig.Defaults,
+		High:     ethconfig.Defaults,
 		Node:    defaultNodeConfig(),
 		Metrics: metrics.DefaultConfig,
 	}
@@ -142,9 +142,9 @@ func makeConfigNode(ctx *cli.Context) (*node.Node, highcoinConfig) {
 	if err != nil {
 		utils.Fatalf("Failed to create the protocol stack: %v", err)
 	}
-	utils.SetEthConfig(ctx, stack, &cfg.Eth)
-	if ctx.GlobalIsSet(utils.EthStatsURLFlag.Name) {
-		cfg.Ethstats.URL = ctx.GlobalString(utils.EthStatsURLFlag.Name)
+	utils.SetHighConfig(ctx, stack, &cfg.High)
+	if ctx.GlobalIsSet(utils.HighStatsURLFlag.Name) {
+		cfg.Highstats.URL = ctx.GlobalString(utils.HighStatsURLFlag.Name)
 	}
 	utils.SetShhConfig(ctx, stack)
 
@@ -166,7 +166,7 @@ func checkWhisper(ctx *cli.Context) {
 func makeFullNode(ctx *cli.Context) (*node.Node, ethapi.Backend) {
 	stack, cfg := makeConfigNode(ctx)
 
-	backend := utils.RegisterEthService(stack, &cfg.Eth)
+	backend := utils.RegisterHighService(stack, &cfg.High)
 
 	checkWhisper(ctx)
 	// Configure GraphQL if requested
@@ -174,8 +174,8 @@ func makeFullNode(ctx *cli.Context) (*node.Node, ethapi.Backend) {
 		utils.RegisterGraphQLService(stack, backend, cfg.Node)
 	}
 	// Add the Highcoin Stats daemon if requested.
-	if cfg.Ethstats.URL != "" {
-		utils.RegisterEthStatsService(stack, backend, cfg.Ethstats.URL)
+	if cfg.Highstats.URL != "" {
+		utils.RegisterHighStatsService(stack, backend, cfg.Highstats.URL)
 	}
 	return stack, backend
 }
@@ -185,8 +185,8 @@ func dumpConfig(ctx *cli.Context) error {
 	_, cfg := makeConfigNode(ctx)
 	comment := ""
 
-	if cfg.Eth.Genesis != nil {
-		cfg.Eth.Genesis = nil
+	if cfg.High.Genesis != nil {
+		cfg.High.Genesis = nil
 		comment += "# Note: this config doesn't contain the genesis block.\n\n"
 	}
 

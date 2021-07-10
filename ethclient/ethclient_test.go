@@ -28,7 +28,7 @@ import (
 
 	"github.com/420integrated/go-highcoin"
 	"github.com/420integrated/go-highcoin/common"
-	"github.com/420integrated/go-highcoin/consensus/ethash"
+	"github.com/420integrated/go-highcoin/consensus/othash"
 	"github.com/420integrated/go-highcoin/core"
 	"github.com/420integrated/go-highcoin/core/rawdb"
 	"github.com/420integrated/go-highcoin/core/types"
@@ -197,8 +197,8 @@ func newTestBackend(t *testing.T) (*node.Node, []*types.Block) {
 	}
 	// Create Highcoin Service
 	config := &ethconfig.Config{Genesis: genesis}
-	config.Ethash.PowMode = ethash.ModeFake
-	ethservice, err := eth.New(n, config)
+	config.Highash.PowMode = othash.ModeFake
+	ethservice, err := high.New(n, config)
 	if err != nil {
 		t.Fatalf("can't create new highcoin service: %v", err)
 	}
@@ -226,13 +226,13 @@ func generateTestChain() (*core.Genesis, []*types.Block) {
 		g.SetExtra([]byte("test"))
 	}
 	gblock := genesis.ToBlock(db)
-	engine := ethash.NewFaker()
+	engine := othash.NewFaker()
 	blocks, _ := core.GenerateChain(config, gblock, engine, db, 1, generate)
 	blocks = append([]*types.Block{gblock}, blocks...)
 	return genesis, blocks
 }
 
-func TestEthClient(t *testing.T) {
+func TestHighClient(t *testing.T) {
 	backend, chain := newTestBackend(t)
 	client, _ := backend.Attach()
 	defer backend.Close()
@@ -451,7 +451,7 @@ func testStatusFunctions(t *testing.T, client *rpc.Client) {
 	if networkID.Cmp(big.NewInt(0)) != 0 {
 		t.Fatalf("unexpected networkID: %v", networkID)
 	}
-	// SuggestGasPrice (should suggest 1 Gwei)
+	// SuggestGasPrice (should suggest 1 Gmarleys)
 	gasPrice, err := ec.SuggestGasPrice(context.Background())
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)

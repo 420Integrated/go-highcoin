@@ -63,7 +63,7 @@ func (cd decodedCallData) String() string {
 	return fmt.Sprintf("%s(%s)", cd.name, strings.Join(args, ","))
 }
 
-// verifySelector checks whether the ABI encoded data blob matches the requested
+// verifySelector checks if the ABI encoded data blob matches the requested
 // function signature.
 func verifySelector(selector string, calldata []byte) (*decodedCallData, error) {
 	// Parse the selector into an ABI JSON spec

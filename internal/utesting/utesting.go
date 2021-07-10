@@ -288,7 +288,7 @@ func (t *T) Fail() {
 	t.failed = true
 }
 
-// Failed reports whether the test has failed.
+// Failed reports if the test has failed.
 func (t *T) Failed() bool {
 	t.mu.Lock()
 	defer t.mu.Unlock()

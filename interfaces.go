@@ -75,7 +75,7 @@ type ChainReader interface {
 // The returned error is NotFound if the requested item does not exist.
 type TransactionReader interface {
 	// TransactionByHash checks the pool of pending transactions in addition to the
-	// blockchain. The isPending return value indicates whether the transaction has been
+	// blockchain. The isPending return value indicates if the transaction has been
 	// mined yet. Note that the transaction may not be part of the canonical chain even if
 	// it's not pending.
 	TransactionByHash(ctx context.Context, txHash common.Hash) (tx *types.Transaction, isPending bool, err error)
@@ -116,8 +116,8 @@ type CallMsg struct {
 	From     common.Address  // the sender of the 'transaction'
 	To       *common.Address // the destination contract (nil for contract creation)
 	Gas      uint64          // if 0, the call executes with near-infinite gas
-	GasPrice *big.Int        // wei <-> gas exchange ratio
-	Value    *big.Int        // amount of wei sent along with the call
+	GasPrice *big.Int        // marleys <-> gas exchange ratio
+	Value    *big.Int        // amount of marleys sent along with the call
 	Data     []byte          // input data, usually an ABI-encoded contract method invocation
 
 	AccessList types.AccessList // EIP-2930 access list.

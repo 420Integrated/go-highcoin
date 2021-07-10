@@ -33,9 +33,9 @@ type ethPeerInfo struct {
 	Head       string   `json:"head"`       // Hex hash of the peer's best owned block
 }
 
-// ethPeer is a wrapper around eth.Peer to maintain a few extra metadata.
+// ethPeer is a wrapper around high.Peer to maintain a few extra metadata.
 type ethPeer struct {
-	*eth.Peer
+	*high.Peer
 	snapExt *snapPeer // Satellite `snap` connection
 
 	syncDrop *time.Timer   // Connection dropper if `eth` sync progress isn't validated in time

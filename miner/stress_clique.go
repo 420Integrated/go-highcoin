@@ -61,7 +61,7 @@ func main() {
 	genesis := makeGenesis(faucets, sealers)
 
 	var (
-		nodes  []*eth.Highcoin
+		nodes  []*high.Highcoin
 		enodes []*enode.Node
 	)
 
@@ -165,7 +165,7 @@ func makeGenesis(faucets []*ecdsa.PrivateKey, sealers []*ecdsa.PrivateKey) *core
 	return genesis
 }
 
-func makeSealer(genesis *core.Genesis) (*node.Node, *eth.Highcoin, error) {
+func makeSealer(genesis *core.Genesis) (*node.Node, *high.Highcoin, error) {
 	// Define the basic configurations for the Highcoin node
 	datadir, _ := ioutil.TempDir("", "")
 
@@ -185,14 +185,14 @@ func makeSealer(genesis *core.Genesis) (*node.Node, *eth.Highcoin, error) {
 		return nil, nil, err
 	}
 	// Create and register the backend
-	ethBackend, err := eth.New(stack, &ethconfig.Config{
+	ethBackend, err := high.New(stack, &ethconfig.Config{
 		Genesis:         genesis,
 		NetworkId:       genesis.Config.ChainID.Uint64(),
 		SyncMode:        downloader.FullSync,
 		DatabaseCache:   256,
 		DatabaseHandles: 256,
 		TxPool:          core.DefaultTxPoolConfig,
-		GPO:             eth.DefaultConfig.GPO,
+		GPO:             high.DefaultConfig.GPO,
 		Miner: miner.Config{
 			GasFloor: genesis.GasLimit * 9 / 10,
 			GasCeil:  genesis.GasLimit * 11 / 10,

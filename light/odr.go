@@ -120,7 +120,7 @@ func (req *BlockRequest) StoreResult(db ethdb.Database) {
 
 // ReceiptsRequest is the ODR request type for retrieving receipts.
 type ReceiptsRequest struct {
-	Untrusted bool // Indicator whether the result retrieved is trusted or not
+	Untrusted bool // Indicator if the result retrieved is trusted or not
 	Hash      common.Hash
 	Number    uint64
 	Header    *types.Header

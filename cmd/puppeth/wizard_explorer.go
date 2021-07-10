@@ -31,7 +31,7 @@ func (w *wizard) deployExplorer() {
 		log.Error("No genesis block configured")
 		return
 	}
-	if w.conf.ethstats == "" {
+	if w.conf.highstats == "" {
 		log.Error("No ethstats server configured")
 		return
 	}
@@ -91,12 +91,12 @@ func (w *wizard) deployExplorer() {
 
 	// Set a proper name to report on the stats page
 	fmt.Println()
-	if infos.node.ethstats == "" {
+	if infos.node.highstats == "" {
 		fmt.Printf("What should the explorer be called on the stats page?\n")
-		infos.node.ethstats = w.readString() + ":" + w.conf.ethstats
+		infos.node.highstats = w.readString() + ":" + w.conf.highstats
 	} else {
-		fmt.Printf("What should the explorer be called on the stats page? (default = %s)\n", infos.node.ethstats)
-		infos.node.ethstats = w.readDefaultString(infos.node.ethstats) + ":" + w.conf.ethstats
+		fmt.Printf("What should the explorer be called on the stats page? (default = %s)\n", infos.node.highstats)
+		infos.node.highstats = w.readDefaultString(infos.node.highstats) + ":" + w.conf.highstats
 	}
 	// Try to deploy the explorer on the host
 	nocache := false

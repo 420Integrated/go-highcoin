@@ -89,7 +89,7 @@ func TestLegacyReceiptDecoding(t *testing.T) {
 			if err := rlp.DecodeBytes(enc, &dec); err != nil {
 				t.Fatalf("Error decoding RLP receipt: %v", err)
 			}
-			// Check whether all consensus fields are correct.
+			// Check if all consensus fields are correct.
 			if dec.Status != receipt.Status {
 				t.Fatalf("Receipt status mismatch, want %v, have %v", receipt.Status, dec.Status)
 			}

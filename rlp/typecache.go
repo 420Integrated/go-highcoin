@@ -37,14 +37,14 @@ type typeinfo struct {
 
 // tags represents struct tags.
 type tags struct {
-	// rlp:"nil" controls whether empty input results in a nil pointer.
+	// rlp:"nil" controls if empty input results in a nil pointer.
 	nilOK bool
 
-	// This controls whether nil pointers are encoded/decoded as empty strings
+	// This controls if nil pointers are encoded/decoded as empty strings
 	// or empty lists.
 	nilKind Kind
 
-	// rlp:"tail" controls whether this field swallows additional list
+	// rlp:"tail" controls if this field swallows additional list
 	// elements. It can only be set for the last field, which must be
 	// of slice type.
 	tail bool
@@ -196,7 +196,7 @@ func (i *typeinfo) generate(typ reflect.Type, tags tags) {
 	i.writer, i.writerErr = makeWriter(typ, tags)
 }
 
-// defaultNilKind determines whether a nil pointer to typ encodes/decodes
+// defaultNilKind determines if a nil pointer to typ encodes/decodes
 // as an empty string or empty list.
 func defaultNilKind(typ reflect.Type) Kind {
 	k := typ.Kind()

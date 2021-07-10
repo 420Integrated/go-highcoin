@@ -92,7 +92,7 @@ type stateObject struct {
 	deleted   bool
 }
 
-// empty returns whether the account is considered empty.
+// empty returns if the account is considered empty.
 func (s *stateObject) empty() bool {
 	return s.data.Nonce == 0 && s.data.Balance.Sign() == 0 && bytes.Equal(s.data.CodeHash, emptyCodeHash)
 }

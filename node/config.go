@@ -271,7 +271,7 @@ func DefaultWSEndpoint() string {
 	return config.WSEndpoint()
 }
 
-// ExtRPCEnabled returns the indicator whether node enables the external
+// ExtRPCEnabled returns the indicator if node enables the external
 // RPC(http, ws or graphql).
 func (c *Config) ExtRPCEnabled() bool {
 	return c.HTTPHost != "" || c.WSHost != ""

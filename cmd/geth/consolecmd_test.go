@@ -31,7 +31,7 @@ import (
 )
 
 const (
-	ipcAPIs  = "admin:1.0 debug:1.0 eth:1.0 ethash:1.0 miner:1.0 net:1.0 personal:1.0 rpc:1.0 txpool:1.0 web3:1.0"
+	ipcAPIs  = "admin:1.0 debug:1.0 eth:1.0 othash:1.0 miner:1.0 net:1.0 personal:1.0 rpc:1.0 txpool:1.0 web3:1.0"
 	httpAPIs = "eth:1.0 net:1.0 rpc:1.0 web3:1.0"
 )
 
@@ -53,7 +53,7 @@ func TestConsoleWelcome(t *testing.T) {
 	coinbase := "0x8605cdbbdb6d264aa742e77020dcbc58fcdce182"
 
 	// Start a highcoin console, make sure it's cleaned up and terminate the console
-	highcoin := runMinimalHighcoin(t, "--miner.etherbase", coinbase, "console")
+	highcoin := runMinimalHighcoin(t, "--miner.highcoinbase", coinbase, "console")
 
 	// Gather all the infos the welcome message needs to contain
 	highcoin.SetTemplateFunc("goos", func() string { return runtime.GOOS })
@@ -70,7 +70,7 @@ func TestConsoleWelcome(t *testing.T) {
 Welcome to the Highcoin JavaScript console!
 
 instance: Highcoin/v{{highcoinver}}/{{goos}}-{{goarch}}/{{gover}}
-coinbase: {{.Etherbase}}
+coinbase: {{.Highcoinbase}}
 at block: 0 ({{niltime}})
  datadir: {{.Datadir}}
  modules: {{apis}}
@@ -100,7 +100,7 @@ func TestAttachWelcome(t *testing.T) {
 	p := trulyRandInt(1024, 65533) // Yeah, sometimes this will fail, sorry :P
 	httpPort = strconv.Itoa(p)
 	wsPort = strconv.Itoa(p + 1)
-	highcoin := runMinimalHighcoin(t, "--miner.etherbase", "0x8605cdbbdb6d264aa742e77020dcbc58fcdce182",
+	highcoin := runMinimalHighcoin(t, "--miner.highcoinbase", "0x8605cdbbdb6d264aa742e77020dcbc58fcdce182",
 		"--ipcpath", ipc,
 		"--http", "--http.port", httpPort,
 		"--ws", "--ws.port", wsPort)
@@ -131,7 +131,7 @@ func testAttachWelcome(t *testing.T, highcoin *testhighcoin, endpoint, apis stri
 	attach.SetTemplateFunc("goarch", func() string { return runtime.GOARCH })
 	attach.SetTemplateFunc("gover", runtime.Version)
 	attach.SetTemplateFunc("highcoinver", func() string { return params.VersionWithCommit("", "") })
-	attach.SetTemplateFunc("etherbase", func() string { return highcoin.Etherbase })
+	attach.SetTemplateFunc("highcoinbase", func() string { return highcoin.Highcoinbase })
 	attach.SetTemplateFunc("niltime", func() string {
 		return time.Unix(0, 0).Format("Mon Jan 02 2006 15:04:05 GMT-0700 (MST)")
 	})
@@ -144,7 +144,7 @@ func testAttachWelcome(t *testing.T, highcoin *testhighcoin, endpoint, apis stri
 Welcome to the Highcoin JavaScript console!
 
 instance: Highcoin/v{{highcoinver}}/{{goos}}-{{goarch}}/{{gover}}
-coinbase: {{etherbase}}
+coinbase: {{highcoinbase}}
 at block: 0 ({{niltime}}){{if ipc}}
  datadir: {{datadir}}{{end}}
  modules: {{apis}}

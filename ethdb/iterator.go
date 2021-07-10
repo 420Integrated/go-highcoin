@@ -26,7 +26,7 @@ package ethdb
 // iterator until exhaustion. An iterator is not safe for concurrent use, but it
 // is safe to use multiple iterators concurrently.
 type Iterator interface {
-	// Next moves the iterator to the next key/value pair. It returns whether the
+	// Next moves the iterator to the next key/value pair. It returns if the
 	// iterator is exhausted.
 	Next() bool
 

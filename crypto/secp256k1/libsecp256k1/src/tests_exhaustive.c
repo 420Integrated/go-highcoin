@@ -213,7 +213,7 @@ void test_exhaustive_verify(const secp256k1_context *ctx, const secp256k1_ge *gr
 
                     /* Verify by hand */
                     /* Run through every k value that gives us this r and check that *one* works.
-                     * Note there could be none, there could be multiple, ECDSA is weird. */
+                     * Note there could be none, there could be multiple, ECDSA is marleysrd. */
                     should_verify = 0;
                     for (k = 0; k < order; k++) {
                         secp256k1_scalar check_x_s;

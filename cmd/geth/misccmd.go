@@ -24,7 +24,7 @@ import (
 	"strings"
 
 	"github.com/420integrated/go-highcoin/cmd/utils"
-	"github.com/420integrated/go-highcoin/consensus/ethash"
+	"github.com/420integrated/go-highcoin/consensus/othash"
 	"github.com/420integrated/go-highcoin/params"
 	"gopkg.in/urfave/cli.v1"
 )
@@ -45,11 +45,11 @@ var (
 	makecacheCommand = cli.Command{
 		Action:    utils.MigrateFlags(makecache),
 		Name:      "makecache",
-		Usage:     "Generate ethash verification cache (for testing)",
+		Usage:     "Generate othash verification cache (for testing)",
 		ArgsUsage: "<blockNum> <outputDir>",
 		Category:  "MISCELLANEOUS COMMANDS",
 		Description: `
-The makecache command generates an ethash cache in <outputDir>.
+The makecache command generates an othash cache in <outputDir>.
 
 This command exists to support the system testing project.
 Regular users do not need to execute it.
@@ -58,11 +58,11 @@ Regular users do not need to execute it.
 	makedagCommand = cli.Command{
 		Action:    utils.MigrateFlags(makedag),
 		Name:      "makedag",
-		Usage:     "Generate ethash mining DAG (for testing)",
+		Usage:     "Generate othash mining DAG (for testing)",
 		ArgsUsage: "<blockNum> <outputDir>",
 		Category:  "MISCELLANEOUS COMMANDS",
 		Description: `
-The makedag command generates an ethash DAG in <outputDir>.
+The makedag command generates an othash DAG in <outputDir>.
 
 This command exists to support the system testing project.
 Regular users do not need to execute it.
@@ -85,7 +85,7 @@ The output of this command is supposed to be machine-readable.
 			VersionCheckVersionFlag,
 		},
 		Name:      "version-check",
-		Usage:     "Checks (online) whether the current version suffers from any known security vulnerabilities",
+		Usage:     "Checks (online) if the current version suffers from any known security vulnerabilities",
 		ArgsUsage: "<versionstring (optional)>",
 		Category:  "MISCELLANEOUS COMMANDS",
 		Description: `
@@ -102,7 +102,7 @@ and displays information about any security vulnerabilities that affect the curr
 	}
 )
 
-// makecache generates an ethash verification cache into the provided folder.
+// makecache generates an othash verification cache into the provided folder.
 func makecache(ctx *cli.Context) error {
 	args := ctx.Args()
 	if len(args) != 2 {
@@ -112,12 +112,12 @@ func makecache(ctx *cli.Context) error {
 	if err != nil {
 		utils.Fatalf("Invalid block number: %v", err)
 	}
-	ethash.MakeCache(block, args[1])
+	othash.MakeCache(block, args[1])
 
 	return nil
 }
 
-// makedag generates an ethash mining DAG into the provided folder.
+// makedag generates an othash mining DAG into the provided folder.
 func makedag(ctx *cli.Context) error {
 	args := ctx.Args()
 	if len(args) != 2 {
@@ -127,7 +127,7 @@ func makedag(ctx *cli.Context) error {
 	if err != nil {
 		utils.Fatalf("Invalid block number: %v", err)
 	}
-	ethash.MakeDataset(block, args[1])
+	othash.MakeDataset(block, args[1])
 
 	return nil
 }

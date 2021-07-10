@@ -35,19 +35,19 @@ import (
 // attempted to be reexecuted to generate the desired state.
 func (eth *Highcoin) stateAtBlock(block *types.Block, reexec uint64) (statedb *state.StateDB, release func(), err error) {
 	// If we have the state fully available, use that
-	statedb, err = eth.blockchain.StateAt(block.Root())
+	statedb, err = high.blockchain.StateAt(block.Root())
 	if err == nil {
 		return statedb, func() {}, nil
 	}
 	// Otherwise try to reexec blocks until we find a state or reach our limit
 	origin := block.NumberU64()
-	database := state.NewDatabaseWithConfig(eth.chainDb, &trie.Config{Cache: 16, Preimages: true})
+	database := state.NewDatabaseWithConfig(high.chainDb, &trie.Config{Cache: 16, Preimages: true})
 
 	for i := uint64(0); i < reexec; i++ {
 		if block.NumberU64() == 0 {
 			return nil, nil, errors.New("genesis state is missing")
 		}
-		parent := eth.blockchain.GetBlock(block.ParentHash(), block.NumberU64()-1)
+		parent := high.blockchain.GetBlock(block.ParentHash(), block.NumberU64()-1)
 		if parent == nil {
 			return nil, nil, fmt.Errorf("missing block %v %d", block.ParentHash(), block.NumberU64()-1)
 		}
@@ -84,15 +84,15 @@ func (eth *Highcoin) stateAtBlock(block *types.Block, reexec uint64) (statedb *s
 			logged = time.Now()
 		}
 		// Retrieve the next block to regenerate and process it
-		if block = eth.blockchain.GetBlockByNumber(block.NumberU64() + 1); block == nil {
+		if block = high.blockchain.GetBlockByNumber(block.NumberU64() + 1); block == nil {
 			return nil, nil, fmt.Errorf("block #%d not found", block.NumberU64()+1)
 		}
-		_, _, _, err := eth.blockchain.Processor().Process(block, statedb, vm.Config{})
+		_, _, _, err := high.blockchain.Processor().Process(block, statedb, vm.Config{})
 		if err != nil {
 			return nil, nil, fmt.Errorf("processing block %d failed: %v", block.NumberU64(), err)
 		}
 		// Finalize the state so any modifications are written to the trie
-		root, err := statedb.Commit(eth.blockchain.Config().IsEIP158(block.Number()))
+		root, err := statedb.Commit(high.blockchain.Config().IsEIP158(block.Number()))
 		if err != nil {
 			return nil, nil, err
 		}
@@ -115,9 +115,9 @@ func (eth *Highcoin) stateAtBlock(block *types.Block, reexec uint64) (statedb *s
 // block ranges. If no state is locally available for the given range, a number of
 // blocks are attempted to be reexecuted to generate the ancestor state.
 func (eth *Highcoin) statesInRange(fromBlock, toBlock *types.Block, reexec uint64) (states []*state.StateDB, release func(), err error) {
-	statedb, err := eth.blockchain.StateAt(fromBlock.Root())
+	statedb, err := high.blockchain.StateAt(fromBlock.Root())
 	if err != nil {
-		statedb, _, err = eth.stateAtBlock(fromBlock, reexec)
+		statedb, _, err = high.stateAtBlock(fromBlock, reexec)
 	}
 	if err != nil {
 		return nil, nil, err
@@ -129,7 +129,7 @@ func (eth *Highcoin) statesInRange(fromBlock, toBlock *types.Block, reexec uint6
 		parent   common.Hash
 		start    = time.Now()
 		refs     = []common.Hash{fromBlock.Root()}
-		database = state.NewDatabaseWithConfig(eth.chainDb, &trie.Config{Cache: 16, Preimages: true})
+		database = state.NewDatabaseWithConfig(high.chainDb, &trie.Config{Cache: 16, Preimages: true})
 	)
 	// Release all resources(including the states referenced by `stateAtBlock`)
 	// if error is returned.
@@ -147,20 +147,20 @@ func (eth *Highcoin) statesInRange(fromBlock, toBlock *types.Block, reexec uint6
 			log.Info("Regenerating historical state", "block", i, "target", fromBlock.NumberU64(), "remaining", toBlock.NumberU64()-i, "elapsed", time.Since(start))
 		}
 		// Retrieve the next block to regenerate and process it
-		block := eth.blockchain.GetBlockByNumber(i)
+		block := high.blockchain.GetBlockByNumber(i)
 		if block == nil {
 			return nil, nil, fmt.Errorf("block #%d not found", i)
 		}
-		_, _, _, err := eth.blockchain.Processor().Process(block, statedb, vm.Config{})
+		_, _, _, err := high.blockchain.Processor().Process(block, statedb, vm.Config{})
 		if err != nil {
 			return nil, nil, fmt.Errorf("processing block %d failed: %v", block.NumberU64(), err)
 		}
 		// Finalize the state so any modifications are written to the trie
-		root, err := statedb.Commit(eth.blockchain.Config().IsEIP158(block.Number()))
+		root, err := statedb.Commit(high.blockchain.Config().IsEIP158(block.Number()))
 		if err != nil {
 			return nil, nil, err
 		}
-		statedb, err := eth.blockchain.StateAt(root)
+		statedb, err := high.blockchain.StateAt(root)
 		if err != nil {
 			return nil, nil, fmt.Errorf("state reset after block %d failed: %v", block.NumberU64(), err)
 		}
@@ -194,11 +194,11 @@ func (eth *Highcoin) stateAtTransaction(block *types.Block, txIndex int, reexec 
 		return nil, vm.BlockContext{}, nil, nil, errors.New("no transaction in genesis")
 	}
 	// Create the parent state database
-	parent := eth.blockchain.GetBlock(block.ParentHash(), block.NumberU64()-1)
+	parent := high.blockchain.GetBlock(block.ParentHash(), block.NumberU64()-1)
 	if parent == nil {
 		return nil, vm.BlockContext{}, nil, nil, fmt.Errorf("parent %#x not found", block.ParentHash())
 	}
-	statedb, release, err := eth.stateAtBlock(parent, reexec)
+	statedb, release, err := high.stateAtBlock(parent, reexec)
 	if err != nil {
 		return nil, vm.BlockContext{}, nil, nil, err
 	}
@@ -206,17 +206,17 @@ func (eth *Highcoin) stateAtTransaction(block *types.Block, txIndex int, reexec 
 		return nil, vm.BlockContext{}, statedb, release, nil
 	}
 	// Recompute transactions up to the target index.
-	signer := types.MakeSigner(eth.blockchain.Config(), block.Number())
+	signer := types.MakeSigner(high.blockchain.Config(), block.Number())
 	for idx, tx := range block.Transactions() {
 		// Assemble the transaction call message and return if the requested offset
 		msg, _ := tx.AsMessage(signer)
 		txContext := core.NewEVMTxContext(msg)
-		context := core.NewEVMBlockContext(block.Header(), eth.blockchain, nil)
+		context := core.NewEVMBlockContext(block.Header(), high.blockchain, nil)
 		if idx == txIndex {
 			return msg, context, statedb, release, nil
 		}
 		// Not yet the searched for transaction, execute on top of the current state
-		vmenv := vm.NewEVM(context, txContext, statedb, eth.blockchain.Config(), vm.Config{})
+		vmenv := vm.NewEVM(context, txContext, statedb, high.blockchain.Config(), vm.Config{})
 		if _, err := core.ApplyMessage(vmenv, msg, new(core.GasPool).AddGas(tx.Gas())); err != nil {
 			release()
 			return nil, vm.BlockContext{}, nil, nil, fmt.Errorf("transaction %#x failed: %v", tx.Hash(), err)

@@ -22,7 +22,7 @@ import (
 	"github.com/420integrated/go-highcoin/log"
 )
 
-// ensureVirtualHost checks whether a reverse-proxy is running on the specified
+// ensureVirtualHost checks if a reverse-proxy is running on the specified
 // host machine, and if yes requests a virtual host from the user to host a
 // specific web service on. If no proxy exists, the method will offer to deploy
 // one.

@@ -35,13 +35,13 @@ const (
 	// signature and no receive function is specified.
 	Fallback
 	// Receive represents the receive function.
-	// This function is executed on plain Ether transfers.
+	// This function is executed on plain Highcoin transfers.
 	Receive
 	// Function represents a normal function.
 	Function
 )
 
-// Method represents a callable given a `Name` and whether the method is a constant.
+// Method represents a callable given a `Name` and if the method is a constant.
 // If the method is `Const` no transaction needs to be created for this
 // particular Method call. It can easily be simulated using a local VM.
 // For example a `Balance()` method only needs to retrieve something
@@ -62,7 +62,7 @@ type Method struct {
 	Name    string
 	RawName string // RawName is the raw method name parsed from ABI
 
-	// Type indicates whether the method is a
+	// Type indicates if the method is a
 	// special fallback introduced in solidity v0.6.0
 	Type FunctionType
 
@@ -155,13 +155,13 @@ func (method Method) String() string {
 	return method.str
 }
 
-// IsConstant returns the indicator whether the method is read-only.
+// IsConstant returns the indicator if the method is read-only.
 func (method Method) IsConstant() bool {
 	return method.StateMutability == "view" || method.StateMutability == "pure" || method.Constant
 }
 
-// IsPayable returns the indicator whether the method can process
-// plain ether transfers.
+// IsPayable returns the indicator if the method can process
+// plain highcoin transfers.
 func (method Method) IsPayable() bool {
 	return method.StateMutability == "payable" || method.Payable
 }

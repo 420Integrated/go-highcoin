@@ -290,7 +290,7 @@ func (cm *ClientManager) updateRecharge(now mclock.AbsTime) {
 		dt := now - lastUpdate
 		// fetch the client that finishes first
 		rcqNode := cm.rcQueue.PopItem().(*ClientNode) // if sumRecharge > 0 then the queue cannot be empty
-		// check whether it has already finished
+		// check if it has already finished
 		dtNext := mclock.AbsTime(float64(rcqNode.rcFullIntValue-cm.rcLastIntValue) / bonusRatio)
 		if dt < dtNext {
 			// not finished yet, put it back, update integrator according

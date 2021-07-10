@@ -54,7 +54,7 @@ func (dl *diskLayer) Parent() snapshot {
 	return nil
 }
 
-// Stale return whether this layer has become stale (was flattened across) or if
+// Stale return if this layer has become stale (was flattened across) or if
 // it's still live.
 func (dl *diskLayer) Stale() bool {
 	dl.lock.RLock()

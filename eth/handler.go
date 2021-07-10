@@ -53,7 +53,7 @@ var (
 // txPool defines the methods needed from a transaction pool implementation to
 // support all the operations needed by the Highcoin chain protocols.
 type txPool interface {
-	// Has returns an indicator whether txpool has a transaction
+	// Has returns an indicator if txpool has a transaction
 	// cached with the given hash.
 	Has(hash common.Hash) bool
 
@@ -80,7 +80,7 @@ type handlerConfig struct {
 	Chain      *core.BlockChain          // Blockchain to serve data from
 	TxPool     txPool                    // Transaction pool to propagate from
 	Network    uint64                    // Network identifier to adfvertise
-	Sync       downloader.SyncMode       // Whether to fast or full sync
+	Sync       downloader.SyncMode       // If to fast or full sync
 	BloomCache uint64                    // Megabytes to alloc for fast sync bloom
 	EventMux   *event.TypeMux            // Legacy event mux, deprecate for `feed`
 	Checkpoint *params.TrustedCheckpoint // Hard coded checkpoint for sync challenges
@@ -91,9 +91,9 @@ type handler struct {
 	networkID  uint64
 	forkFilter forkid.Filter // Fork ID filter, constant across the lifetime of the node
 
-	fastSync  uint32 // Flag whether fast sync is enabled (gets disabled if we already have blocks)
-	snapSync  uint32 // Flag whether fast sync should operate on top of the snap protocol
-	acceptTxs uint32 // Flag whether we're considered synchronised (enables transaction processing)
+	fastSync  uint32 // Flag if fast sync is enabled (gets disabled if we already have blocks)
+	snapSync  uint32 // Flag if fast sync should operate on top of the snap protocol
+	acceptTxs uint32 // Flag if we're considered synchronised (enables transaction processing)
 
 	checkpointNumber uint64      // Block number for the sync progress validator to cross reference
 	checkpointHash   common.Hash // Block hash for the sync progress validator to cross reference
@@ -203,7 +203,7 @@ func newHandler(config *handlerConfig) (*handler, error) {
 		// If fast sync is running, deny importing weird blocks. This is a problematic
 		// clause when starting up a new network, because fast-syncing miners might not
 		// accept each others' blocks until a restart. Unfortunately we haven't figured
-		// out a way yet where nodes can decide unilaterally whether the network is new
+		// out a way yet where nodes can decide unilaterally if the network is new
 		// or not. This should be fixed if we figure out a solution.
 		if atomic.LoadUint32(&h.fastSync) == 1 {
 			log.Warn("Fast syncing, discarded propagated block", "number", blocks[0].Number(), "hash", blocks[0].Hash())
@@ -229,9 +229,9 @@ func newHandler(config *handlerConfig) (*handler, error) {
 	return h, nil
 }
 
-// runEthPeer registers an eth peer into the joint eth/snap peerset, adds it to
+// runHighPeer registers an eth peer into the joint eth/snap peerset, adds it to
 // various subsistems and starts handling messages.
-func (h *handler) runEthPeer(peer *eth.Peer, handler eth.Handler) error {
+func (h *handler) runHighPeer(peer *high.Peer, handler high.Handler) error {
 	// If the peer has a `snap` extension, wait for it to connect so we can have
 	// a uniform initialization/teardown mechanism
 	snap, err := h.peers.waitSnapExtension(peer)
@@ -492,7 +492,7 @@ func (h *handler) BroadcastTransactions(txs types.Transactions) {
 	for peer, hashes := range annos {
 		annoPeers++
 		annoCount += len(hashes)
-		if peer.Version() >= eth.ETH65 {
+		if peer.Version() >= high.HIGH65 {
 			peer.AsyncSendPooledTransactionHashes(hashes)
 		} else {
 			peer.AsyncSendTransactions(hashes)

@@ -431,7 +431,7 @@ func TestDiskPartialMerge(t *testing.T) {
 }
 
 // Tests that when the bottom-most diff layer is merged into the disk
-// layer whether the corresponding generator is persisted correctly.
+// layer if the corresponding generator is persisted correctly.
 func TestDiskGeneratorPersistence(t *testing.T) {
 	var (
 		accOne        = randomHash()

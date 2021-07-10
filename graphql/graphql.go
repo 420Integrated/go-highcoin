@@ -798,7 +798,7 @@ type CallData struct {
 	From     *common.Address // The Highcoin address the call is from.
 	To       *common.Address // The Highcoin address the call is to.
 	Gas      *hexutil.Uint64 // The amount of gas provided for the call.
-	GasPrice *hexutil.Big    // The price of each unit of gas, in wei.
+	GasPrice *hexutil.Big    // The price of each unit of gas, in marleys.
 	Value    *hexutil.Big    // The value sent along with the call.
 	Data     *hexutil.Bytes  // Any data sent with the call.
 }

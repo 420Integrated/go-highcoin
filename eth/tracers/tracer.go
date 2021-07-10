@@ -287,7 +287,7 @@ func (cw *contractWrapper) pushObject(vm *duktape.Context) {
 // Tracer provides an implementation of Tracer that evaluates a Javascript
 // function for each VM execution step.
 type Tracer struct {
-	inited bool // Flag whether the context was already inited from the EVM
+	inited bool // Flag if the context was already inited from the EVM
 
 	vm *duktape.Context // Javascript VM instance
 

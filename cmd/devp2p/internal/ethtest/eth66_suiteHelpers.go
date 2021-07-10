@@ -49,7 +49,7 @@ func (s *Suite) dial66(t *utesting.T) *Conn {
 	return conn
 }
 
-func (c *Conn) write66(req eth.Packet, code int) error {
+func (c *Conn) write66(req high.Packet, code int) error {
 	payload, err := rlp.EncodeToBytes(req)
 	if err != nil {
 		return err
@@ -79,25 +79,25 @@ func (c *Conn) read66() (uint64, Message) {
 	case (Status{}).Code():
 		msg = new(Status)
 	case (GetBlockHeaders{}).Code():
-		ethMsg := new(eth.GetBlockHeadersPacket66)
+		ethMsg := new(high.GetBlockHeadersPacket66)
 		if err := rlp.DecodeBytes(rawData, ethMsg); err != nil {
 			return 0, errorf("could not rlp decode message: %v", err)
 		}
 		return ethMsg.RequestId, GetBlockHeaders(*ethMsg.GetBlockHeadersPacket)
 	case (BlockHeaders{}).Code():
-		ethMsg := new(eth.BlockHeadersPacket66)
+		ethMsg := new(high.BlockHeadersPacket66)
 		if err := rlp.DecodeBytes(rawData, ethMsg); err != nil {
 			return 0, errorf("could not rlp decode message: %v", err)
 		}
 		return ethMsg.RequestId, BlockHeaders(ethMsg.BlockHeadersPacket)
 	case (GetBlockBodies{}).Code():
-		ethMsg := new(eth.GetBlockBodiesPacket66)
+		ethMsg := new(high.GetBlockBodiesPacket66)
 		if err := rlp.DecodeBytes(rawData, ethMsg); err != nil {
 			return 0, errorf("could not rlp decode message: %v", err)
 		}
 		return ethMsg.RequestId, GetBlockBodies(ethMsg.GetBlockBodiesPacket)
 	case (BlockBodies{}).Code():
-		ethMsg := new(eth.BlockBodiesPacket66)
+		ethMsg := new(high.BlockBodiesPacket66)
 		if err := rlp.DecodeBytes(rawData, ethMsg); err != nil {
 			return 0, errorf("could not rlp decode message: %v", err)
 		}
@@ -201,10 +201,10 @@ func (c *Conn) waitForBlock66(block *types.Block) error {
 	timeout := time.Now().Add(20 * time.Second)
 	c.SetReadDeadline(timeout)
 	for {
-		req := eth.GetBlockHeadersPacket66{
+		req := high.GetBlockHeadersPacket66{
 			RequestId: 54,
-			GetBlockHeadersPacket: &eth.GetBlockHeadersPacket{
-				Origin: eth.HashOrNumber{
+			GetBlockHeadersPacket: &high.GetBlockHeadersPacket{
+				Origin: high.HashOrNumber{
 					Hash: block.Hash(),
 				},
 				Amount: 1,
@@ -242,7 +242,7 @@ func sendFailingTx66(t *utesting.T, s *Suite, tx *types.Transaction) {
 	sendFailingTxWithConns(t, s, tx, sendConn, recvConn)
 }
 
-func (s *Suite) getBlockHeaders66(t *utesting.T, conn *Conn, req eth.Packet, expectedID uint64) BlockHeaders {
+func (s *Suite) getBlockHeaders66(t *utesting.T, conn *Conn, req high.Packet, expectedID uint64) BlockHeaders {
 	if err := conn.write66(req, GetBlockHeaders{}.Code()); err != nil {
 		t.Fatalf("could not write to connection: %v", err)
 	}

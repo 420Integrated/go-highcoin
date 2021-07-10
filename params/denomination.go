@@ -16,13 +16,13 @@
 
 package params
 
-// These are the multipliers for ether denominations.
-// Example: To get the wei value of an amount in 'gwei', use
+// These are the multipliers for highcoin denominations.
+// Example: To get the marleys value of an amount in 'gmarleys', use
 //
-//    new(big.Int).Mul(value, big.NewInt(params.GWei))
+//    new(big.Int).Mul(value, big.NewInt(params.GMarleys))
 //
 const (
-	Wei   = 1
-	GWei  = 1e9
-	Ether = 1e18
+	Marleys   = 1
+	GMarleys  = 1e9
+	Highcoin = 1e18
 )

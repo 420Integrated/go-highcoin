@@ -334,8 +334,8 @@ func goToolSetEnv(cmd *exec.Cmd) {
 // "tests" also includes static analysis tools such as vet.
 
 func doTest(cmdline []string) {
-	coverage := flag.Bool("coverage", false, "Whether to record code coverage")
-	verbose := flag.Bool("v", false, "Whether to log verbosely")
+	coverage := flag.Bool("coverage", false, "If to record code coverage")
+	verbose := flag.Bool("v", false, "If to log verbosely")
 	flag.CommandLine.Parse(cmdline)
 	env := build.Env()
 
@@ -719,7 +719,7 @@ func (d debExecutable) Package() string {
 func newDebMetadata(distro, goboot, author string, env build.Environment, t time.Time, name string, version string, exes []debExecutable) debMetadata {
 	if author == "" {
 		// No signing key, use default author.
-		author = "Ethereum Builds <fjl@ethereum.org>"
+		author = "Highcoin Builds <abvhiael@420integrated.com>"
 	}
 	return debMetadata{
 		GoBootPackage: goboot,
@@ -892,7 +892,7 @@ func doWindowsInstaller(cmdline []string) {
 
 func doAndroidArchive(cmdline []string) {
 	var (
-		local   = flag.Bool("local", false, `Flag whether we're only doing a local build (skip Maven artifacts)`)
+		local   = flag.Bool("local", false, `Flag if we're only doing a local build (skip Maven artifacts)`)
 		signer  = flag.String("signer", "", `Environment variable holding the signing key (e.g. ANDROID_SIGNING_KEY)`)
 		signify = flag.String("signify", "", `Environment variable holding the signify signing key (e.g. ANDROID_SIGNIFY_KEY)`)
 		deploy  = flag.String("deploy", "", `Destination to deploy the archive (usually "https://oss.sonatype.org")`)
@@ -1018,7 +1018,7 @@ func newMavenMetadata(env build.Environment) mavenMetadata {
 
 func doXCodeFramework(cmdline []string) {
 	var (
-		local   = flag.Bool("local", false, `Flag whether we're only doing a local build (skip Maven artifacts)`)
+		local   = flag.Bool("local", false, `Flag if we're only doing a local build (skip Maven artifacts)`)
 		signer  = flag.String("signer", "", `Environment variable holding the signing key (e.g. IOS_SIGNING_KEY)`)
 		signify = flag.String("signify", "", `Environment variable holding the signify signing key (e.g. IOS_SIGNIFY_KEY)`)
 		deploy  = flag.String("deploy", "", `Destination to deploy the archive (usually "trunk")`)
@@ -1110,7 +1110,7 @@ func newPodMetadata(env build.Environment, archive string) podMetadata {
 
 func doXgo(cmdline []string) {
 	var (
-		alltools = flag.Bool("alltools", false, `Flag whether we're building all known tools, or only on in particular`)
+		alltools = flag.Bool("alltools", false, `Flag if we're building all known tools, or only on in particular`)
 	)
 	flag.CommandLine.Parse(cmdline)
 	env := build.Env()

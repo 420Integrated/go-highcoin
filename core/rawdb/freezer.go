@@ -154,7 +154,7 @@ func (f *freezer) Close() error {
 	return nil
 }
 
-// HasAncient returns an indicator whether the specified ancient data exists
+// HasAncient returns an indicator if the specified ancient data exists
 // in the freezer.
 func (f *freezer) HasAncient(kind string, number uint64) (bool, error) {
 	if table := f.tables[kind]; table != nil {

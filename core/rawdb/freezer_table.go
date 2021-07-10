@@ -602,7 +602,7 @@ func (t *freezerTable) Retrieve(item uint64) ([]byte, error) {
 	return snappy.Decode(nil, blob)
 }
 
-// has returns an indicator whether the specified number data
+// has returns an indicator if the specified number data
 // exists in the freezer table.
 func (t *freezerTable) has(number uint64) bool {
 	return atomic.LoadUint64(&t.items) > number

@@ -36,7 +36,7 @@ func (w *wizard) networkStats() {
 		return
 	}
 	// Clear out some previous configs to refill from current scan
-	w.conf.ethstats = ""
+	w.conf.highstats = ""
 	w.conf.bootnodes = w.conf.bootnodes[:0]
 
 	// Iterate over all the specified hosts and check their status
@@ -105,7 +105,7 @@ func (w *wizard) gatherStats(server string, pubkey []byte, client *sshClient) *s
 		stat.services["nginx"] = infos.Report()
 	}
 	logger.Debug("Checking for ethstats availability")
-	if infos, err := checkEthstats(client, w.network); err != nil {
+	if infos, err := checkHighstats(client, w.network); err != nil {
 		if err != ErrServiceUnknown {
 			stat.services["ethstats"] = map[string]string{"offline": err.Error()}
 		}
@@ -178,7 +178,7 @@ func (w *wizard) gatherStats(server string, pubkey []byte, client *sshClient) *s
 		}
 	}
 	if ethstats != "" {
-		w.conf.ethstats = ethstats
+		w.conf.highstats = ethstats
 	}
 	w.conf.bootnodes = append(w.conf.bootnodes, bootnodes...)
 

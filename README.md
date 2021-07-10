@@ -78,7 +78,7 @@ Transitioning towards developers, if you'd like to play around with creating Hig
 contracts, you almost certainly would like to do that without any real money involved until
 you get the hang of the entire system. In other words, instead of attaching to the main
 network, you want to join the **test** network with your node, which is fully equivalent to
-the main network, but with play-Ether only.
+the main network, but with play-Highcoin only.
 
 ```shell
 $ highcoin --goerli console
@@ -303,9 +303,7 @@ also need to configure a miner to process transactions and create new blocks for
 #### Running a private miner
 
 Mining on the public HighCoin network is a complex task as it's only feasible using GPUs,
-requiring an OpenCL or CUDA enabled `ethminer` instance. For information on such a
-setup, please consult the [EtherMining subreddit](https://www.reddit.com/r/EtherMining/)
-and the [ethminer](https://github.com/420integrated-mining/ethminer) repository.
+requiring an OpenCL or CUDA enabled `ethminer` instance.and the [ethminer](https://github.com/420integrated-mining/ethminer) repository.
 
 In a private network setting, however a single CPU miner instance is more than enough for
 practical purposes as it can produce a stable stream of blocks at the correct intervals
@@ -314,11 +312,11 @@ ones either). To start a `highcoin` instance for mining, run it with all your us
 by:
 
 ```shell
-$ highcoin <usual-flags> --mine --miner.threads=1 --miner.etherbase=0x0000000000000000000000000000000000000000
+$ highcoin <usual-flags> --mine --miner.threads=1 --miner.highcoinbase=0x0000000000000000000000000000000000000000
 ```
 
 Which will start mining blocks and transactions on a single CPU thread, crediting all
-proceedings to the account specified by `--miner.etherbase`. You can further tune the mining
+proceedings to the account specified by `--miner.highcoinbase`. You can further tune the mining
 by changing the default gas limit blocks converge to (`--miner.targetgaslimit`) and the price
 transactions are accepted at (`--miner.gasprice`).
 

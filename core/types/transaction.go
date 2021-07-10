@@ -226,7 +226,7 @@ func isProtectedV(V *big.Int) bool {
 	return true
 }
 
-// Protected says whether the transaction is replay-protected.
+// Protected says if the transaction is replay-protected.
 func (tx *Transaction) Protected() bool {
 	switch tx := tx.inner.(type) {
 	case *LegacyTx:
@@ -260,7 +260,7 @@ func (tx *Transaction) Gas() uint64 { return tx.inner.gas() }
 // GasPrice returns the gas price of the transaction.
 func (tx *Transaction) GasPrice() *big.Int { return new(big.Int).Set(tx.inner.gasPrice()) }
 
-// Value returns the ether amount of the transaction.
+// Value returns the highcoin amount of the transaction.
 func (tx *Transaction) Value() *big.Int { return new(big.Int).Set(tx.inner.value()) }
 
 // Nonce returns the sender account nonce of the transaction.

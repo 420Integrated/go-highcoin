@@ -74,7 +74,7 @@ type Backend interface {
 	// TxPool retrieves the transaction pool object to serve data.
 	TxPool() TxPool
 
-	// AcceptTxs retrieves whether transaction processing is enabled on the node
+	// AcceptTxs retrieves if transaction processing is enabled on the node
 	// or if inbound transactions should simply be dropped.
 	AcceptTxs() bool
 
@@ -236,9 +236,9 @@ func handleMessage(backend Backend, peer *Peer) error {
 	defer msg.Discard()
 
 	var handlers = eth64
-	if peer.Version() == ETH65 {
+	if peer.Version() == HIGH65 {
 		handlers = eth65
-	} else if peer.Version() >= ETH66 {
+	} else if peer.Version() >= HIGH66 {
 		handlers = eth66
 	}
 

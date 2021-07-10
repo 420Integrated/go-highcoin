@@ -46,16 +46,16 @@ const (
 func (eth *LightHighcoin) startBloomHandlers(sectionSize uint64) {
 	for i := 0; i < bloomServiceThreads; i++ {
 		go func() {
-			defer eth.wg.Done()
+			defer high.wg.Done()
 			for {
 				select {
-				case <-eth.closeCh:
+				case <-high.closeCh:
 					return
 
-				case request := <-eth.bloomRequests:
+				case request := <-high.bloomRequests:
 					task := <-request
 					task.Bitsets = make([][]byte, len(task.Sections))
-					compVectors, err := light.GetBloomBits(task.Context, eth.odr, task.Bit, task.Sections)
+					compVectors, err := light.GetBloomBits(task.Context, high.odr, task.Bit, task.Sections)
 					if err == nil {
 						for i := range task.Sections {
 							if blob, err := bitutil.DecompressBytes(compVectors[i], int(sectionSize/8)); err == nil {

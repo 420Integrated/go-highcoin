@@ -140,7 +140,7 @@ func signCheckpoint(addr common.Address, privateKey *ecdsa.PrivateKey, index uin
 	return sig
 }
 
-// assertSignature verifies whether the recovered signers are equal with expected.
+// assertSignature verifies if the recovered signers are equal with expected.
 func assertSignature(addr common.Address, index uint64, hash [32]byte, r, s [32]byte, v uint8, expect common.Address) bool {
 	buf := make([]byte, 8)
 	binary.BigEndian.PutUint64(buf, index)
@@ -212,7 +212,7 @@ func TestCheckpointRegister(t *testing.T) {
 			contractBackend.Commit()
 		}
 	}
-	// assert checks whether the current contract status is same with
+	// assert checks if the current contract status is same with
 	// the expected.
 	assert := func(index uint64, hash [32]byte, height *big.Int) error {
 		lindex, lhash, lheight, err := c.GetLatestCheckpoint(nil)

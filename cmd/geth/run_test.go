@@ -42,7 +42,7 @@ type testhighcoin struct {
 
 	// template variables for expect
 	Datadir   string
-	Etherbase string
+	Highcoinbase string
 }
 
 func init() {
@@ -75,9 +75,9 @@ func runHighcoin(t *testing.T, args ...string) *testhighcoin {
 			if i < len(args)-1 {
 				tt.Datadir = args[i+1]
 			}
-		case "--miner.etherbase":
+		case "--miner.highcoinbase":
 			if i < len(args)-1 {
-				tt.Etherbase = args[i+1]
+				tt.Highcoinbase = args[i+1]
 			}
 		}
 	}

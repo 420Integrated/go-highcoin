@@ -26,9 +26,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// TestEthProtocolNegotiation tests whether the test suite
+// TestHighProtocolNegotiation tests if the test suite
 // can negotiate the highest eth protocol in a status message exchange
-func TestEthProtocolNegotiation(t *testing.T) {
+func TestHighProtocolNegotiation(t *testing.T) {
 	var tests = []struct {
 		conn     *Conn
 		caps     []p2p.Cap
@@ -65,13 +65,13 @@ func TestEthProtocolNegotiation(t *testing.T) {
 
 	for i, tt := range tests {
 		t.Run(strconv.Itoa(i), func(t *testing.T) {
-			tt.conn.negotiateEthProtocol(tt.caps)
-			assert.Equal(t, tt.expected, uint32(tt.conn.ethProtocolVersion))
+			tt.conn.negotiateHighProtocol(tt.caps)
+			assert.Equal(t, tt.expected, uint32(tt.conn.highProtocolVersion))
 		})
 	}
 }
 
-// TestChain_GetHeaders tests whether the test suite can correctly
+// TestChain_GetHeaders tests if the test suite can correctly
 // respond to a GetBlockHeaders request from a node.
 func TestChain_GetHeaders(t *testing.T) {
 	chainFile, err := filepath.Abs("./testdata/chain.rlp")
@@ -94,7 +94,7 @@ func TestChain_GetHeaders(t *testing.T) {
 	}{
 		{
 			req: GetBlockHeaders{
-				Origin: eth.HashOrNumber{
+				Origin: high.HashOrNumber{
 					Number: uint64(2),
 				},
 				Amount:  uint64(5),
@@ -111,7 +111,7 @@ func TestChain_GetHeaders(t *testing.T) {
 		},
 		{
 			req: GetBlockHeaders{
-				Origin: eth.HashOrNumber{
+				Origin: high.HashOrNumber{
 					Number: uint64(chain.Len() - 1),
 				},
 				Amount:  uint64(3),
@@ -126,7 +126,7 @@ func TestChain_GetHeaders(t *testing.T) {
 		},
 		{
 			req: GetBlockHeaders{
-				Origin: eth.HashOrNumber{
+				Origin: high.HashOrNumber{
 					Hash: chain.Head().Hash(),
 				},
 				Amount:  uint64(1),

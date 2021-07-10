@@ -82,7 +82,7 @@ func (abi ABI) Pack(name string, args ...interface{}) ([]byte, error) {
 
 func (abi ABI) getArguments(name string, data []byte) (Arguments, error) {
 	// since there can't be naming collisions with contracts and events,
-	// we need to decide whether we're calling a method or an event
+	// we need to decide if we're calling a method or an event
 	var args Arguments
 	if method, ok := abi.Methods[name]; ok {
 		if len(data)%32 != 0 {
@@ -246,12 +246,12 @@ func (abi *ABI) EventByID(topic common.Hash) (*Event, error) {
 	return nil, fmt.Errorf("no event with id: %#x", topic.Hex())
 }
 
-// HasFallback returns an indicator whether a fallback function is included.
+// HasFallback returns an indicator if a fallback function is included.
 func (abi *ABI) HasFallback() bool {
 	return abi.Fallback.Type == Fallback
 }
 
-// HasReceive returns an indicator whether a receive function is included.
+// HasReceive returns an indicator if a receive function is included.
 func (abi *ABI) HasReceive() bool {
 	return abi.Receive.Type == Receive
 }

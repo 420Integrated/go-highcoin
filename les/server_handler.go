@@ -73,7 +73,7 @@ type serverHandler struct {
 
 	closeCh chan struct{}  // Channel used to exit all background routines of handler.
 	wg      sync.WaitGroup // WaitGroup used to track all background routines of handler.
-	synced  func() bool    // Callback function used to determine whether local node is synced.
+	synced  func() bool    // Callback function used to determine if local node is synced.
 
 	// Testing fields
 	addTxsSync bool

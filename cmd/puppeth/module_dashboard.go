@@ -78,7 +78,7 @@ var dashboardContent = `
 						<div id="sidebar-menu" class="main_menu_side hidden-print main_menu">
 							<div class="menu_section">
 								<ul class="nav side-menu">
-									{{if .EthstatsPage}}<li id="stats_menu"><a onclick="load('#stats')"><i class="fa fa-tachometer"></i> Network Stats</a></li>{{end}}
+									{{if .HighstatsPage}}<li id="stats_menu"><a onclick="load('#stats')"><i class="fa fa-tachometer"></i> Network Stats</a></li>{{end}}
 									{{if .ExplorerPage}}<li id="explorer_menu"><a onclick="load('#explorer')"><i class="fa fa-database"></i> Block Explorer</a></li>{{end}}
 									{{if .WalletPage}}<li id="wallet_menu"><a onclick="load('#wallet')"><i class="fa fa-address-book-o"></i> Browser Wallet</a></li>{{end}}
 									{{if .FaucetPage}}<li id="faucet_menu"><a onclick="load('#faucet')"><i class="fa fa-bath"></i> Crypto Faucet</a></li>{{end}}
@@ -117,7 +117,7 @@ var dashboardContent = `
 										<br/>
 										<p>To run an archive node, download <a href="/{{.HighcoinGenesis}}"><code>{{.HighcoinGenesis}}</code></a> and start Highcoin with:
 											<pre>highcoin --datadir=$HOME/.{{.Network}} init {{.HighcoinGenesis}}</pre>
-											<pre>highcoin --networkid={{.NetworkID}} --datadir=$HOME/.{{.Network}} --cache=1024 --syncmode=full{{if .Ethstats}} --ethstats='{{.Ethstats}}'{{end}} --bootnodes={{.BootnodesFlat}}</pre>
+											<pre>highcoin --networkid={{.NetworkID}} --datadir=$HOME/.{{.Network}} --cache=1024 --syncmode=full{{if .Highstats}} --ethstats='{{.Highstats}}'{{end}} --bootnodes={{.BootnodesFlat}}</pre>
 										</p>
 										<br/>
 										<p>You can download Highcoin from <a href="https://highcoin.420integrated.com/downloads/" target="about:blank">https://highcoin.420integrated.com/downloads/</a>.</p>
@@ -136,7 +136,7 @@ var dashboardContent = `
 										<br/>
 										<p>To run a full node, download <a href="/{{.HighcoinGenesis}}"><code>{{.HighcoinGenesis}}</code></a> and start Highcoin with:
 											<pre>highcoin --datadir=$HOME/.{{.Network}} init {{.HighcoinGenesis}}</pre>
-											<pre>highcoin --networkid={{.NetworkID}} --datadir=$HOME/.{{.Network}} --cache=512{{if .Ethstats}} --ethstats='{{.Ethstats}}'{{end}} --bootnodes={{.BootnodesFlat}}</pre>
+											<pre>highcoin --networkid={{.NetworkID}} --datadir=$HOME/.{{.Network}} --cache=512{{if .Highstats}} --ethstats='{{.Highstats}}'{{end}} --bootnodes={{.BootnodesFlat}}</pre>
 										</p>
 										<br/>
 										<p>You can download Highcoin from <a href="https://highcoin.420integrated.com/downloads/" target="about:blank">https://highcoin.420integrated.com/downloads/</a>.</p>
@@ -158,7 +158,7 @@ var dashboardContent = `
 										<br/>
 										<p>To run a light node, download <a href="/{{.HighcoinGenesis}}"><code>{{.HighcoinGenesis}}</code></a> and start Highcoin with:
 											<pre>highcoin --datadir=$HOME/.{{.Network}} init {{.HighcoinGenesis}}</pre>
-											<pre>highcoin --networkid={{.NetworkID}} --datadir=$HOME/.{{.Network}} --syncmode=light{{if .Ethstats}} --ethstats='{{.Ethstats}}'{{end}} --bootnodes={{.BootnodesFlat}}</pre>
+											<pre>highcoin --networkid={{.NetworkID}} --datadir=$HOME/.{{.Network}} --syncmode=light{{if .Highstats}} --ethstats='{{.Highstats}}'{{end}} --bootnodes={{.BootnodesFlat}}</pre>
 										</p>
 										<br/>
 										<p>You can download Highcoin from <a href="https://highcoin.420integrated.com/downloads/" target="about:blank">https://highcoin.420integrated.com/downloads/</a>.</p>
@@ -177,7 +177,7 @@ var dashboardContent = `
 										<br/>
 										<p>To run an embedded node, download <a href="/{{.HighcoinGenesis}}"><code>{{.HighcoinGenesis}}</code></a> and start Highcoin with:
 											<pre>highcoin --datadir=$HOME/.{{.Network}} init {{.HighcoinGenesis}}</pre>
-											<pre>highcoin --networkid={{.NetworkID}} --datadir=$HOME/.{{.Network}} --cache=16 --ethash.cachesinmem=1 --syncmode=light{{if .Ethstats}} --ethstats='{{.Ethstats}}'{{end}} --bootnodes={{.BootnodesFlat}}</pre>
+											<pre>highcoin --networkid={{.NetworkID}} --datadir=$HOME/.{{.Network}} --cache=16 --othash.cachesinmem=1 --syncmode=light{{if .Highstats}} --ethstats='{{.Highstats}}'{{end}} --bootnodes={{.BootnodesFlat}}</pre>
 										</p>
 										<br/>
 										<p>You can download Highcoin from <a href="https://highcoin.420integrated.com/downloads/" target="about:blank">https://highcoin.420integrated.com/downloads/</a>.</p>
@@ -208,7 +208,7 @@ var dashboardContent = `
 											<pre>highcoin --datadir=$HOME/.{{.Network}} init {{.HighcoinGenesis}}</pre>
 										</p>
 										<p>With your local chain initialized, you can start the Highcoin Wallet:
-											<pre>highcoinwallet --rpc $HOME/.{{.Network}}/highcoin.ipc --node-networkid={{.NetworkID}} --node-datadir=$HOME/.{{.Network}}{{if .Ethstats}} --node-ethstats='{{.Ethstats}}'{{end}} --node-bootnodes={{.BootnodesFlat}}</pre>
+											<pre>highcoinwallet --rpc $HOME/.{{.Network}}/highcoin.ipc --node-networkid={{.NetworkID}} --node-datadir=$HOME/.{{.Network}}{{if .Highstats}} --node-ethstats='{{.Highstats}}'{{end}} --node-bootnodes={{.BootnodesFlat}}</pre>
 										<p>
 										<br/>
 										<p>You can download the Highcoin Wallet from <a href="https://github.com/420integrated/mist/releases" target="about:blank">https://github.com/420integrated/mist/releases</a>.</p>
@@ -229,7 +229,7 @@ var dashboardContent = `
 											<pre>highcoin --datadir=$HOME/.{{.Network}} init {{.HighcoinGenesis}}</pre>
 										</p>
 										<p>With your local chain initialized, you can start Mist:
-											<pre>mist --rpc $HOME/.{{.Network}}/highcoin.ipc --node-networkid={{.NetworkID}} --node-datadir=$HOME/.{{.Network}}{{if .Ethstats}} --node-ethstats='{{.Ethstats}}'{{end}} --node-bootnodes={{.BootnodesFlat}}</pre>
+											<pre>mist --rpc $HOME/.{{.Network}}/highcoin.ipc --node-networkid={{.NetworkID}} --node-datadir=$HOME/.{{.Network}}{{if .Highstats}} --node-ethstats='{{.Highstats}}'{{end}} --node-bootnodes={{.BootnodesFlat}}</pre>
 										<p>
 										<br/>
 										<p>You can download the Mist browser from <a href="https://github.com/420integrated/mist/releases" target="about:blank">https://github.com/420integrated/mist/releases</a>.</p>
@@ -267,8 +267,8 @@ bootnodes.append(new Enode("{{.}}"));{{end}}
 NodeConfig config = new NodeConfig();
 config.setBootstrapNodes(bootnodes);
 config.setHighcoinNetworkID({{.NetworkID}});
-config.setHighcoinGenesis(genesis);{{if .Ethstats}}
-config.setHighcoinNetStats("{{.Ethstats}}");{{end}}
+config.setHighcoinGenesis(genesis);{{if .Highstats}}
+config.setHighcoinNetStats("{{.Highstats}}");{{end}}
 
 Node node = new Node(getFilesDir() + "/.{{.Network}}", config);
 node.start();
@@ -300,8 +300,8 @@ bootnodes?.append(HighcoinNewEnode("{{.}}", &error)){{end}}
 let config = HighcoinNewNodeConfig()
 config?.setBootstrapNodes(bootnodes)
 config?.setHighcoinNetworkID({{.NetworkID}})
-config?.setHighcoinGenesis(genesis){{if .Ethstats}}
-config?.setHighcoinNetStats("{{.Ethstats}}"){{end}}
+config?.setHighcoinGenesis(genesis){{if .Highstats}}
+config?.setHighcoinNetStats("{{.Highstats}}"){{end}}
 
 let datadir = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0]
 let node = HighcoinNewNode(datadir + "/.{{.Network}}", config, &error);
@@ -346,7 +346,7 @@ try! node?.start();
 									<div class="x_title">
 										<h2>
 											<svg height="14px" version="1.1" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><path d="M46.42,13.07S24.51,18.54,35,30.6c3.09,3.55-.81,6.75-0.81,6.75s7.84-4,4.24-9.11C35,23.51,32.46,21.17,46.42,13.07ZM32.1,16.88C45.05,6.65,38.4,0,38.4,0c2.68,10.57-9.46,13.76-13.84,20.34-3,4.48,1.46,9.3,7.53,14.77C29.73,29.77,21.71,25.09,32.1,16.88Z" transform="translate(-8.4)" fill="#e57125"/><path d="M23.6,49.49c-9.84,2.75,6,8.43,18.51,3.06a23.06,23.06,0,0,1-3.52-1.72,36.62,36.62,0,0,1-13.25.56C21.16,50.92,23.6,49.49,23.6,49.49Zm17-5.36a51.7,51.7,0,0,1-17.1.82c-4.19-.43-1.45-2.46-1.45-2.46-10.84,3.6,6,7.68,21.18,3.25A7.59,7.59,0,0,1,40.62,44.13ZM51.55,54.68s1.81,1.49-2,2.64c-7.23,2.19-30.1,2.85-36.45.09-2.28-1,2-2.37,3.35-2.66a8.69,8.69,0,0,1,2.21-.25c-2.54-1.79-16.41,3.51-7,5C37.15,63.67,58.17,57.67,51.55,54.68ZM42.77,39.12a20.42,20.42,0,0,1,2.93-1.57s-4.83.86-9.65,1.27A87.37,87.37,0,0,1,20.66,39c-7.51-1,4.12-3.77,4.12-3.77A22,22,0,0,0,14.7,37.61C8.14,40.79,31,42.23,42.77,39.12Zm2.88,7.77a1,1,0,0,1-.24.31C61.44,43,55.54,32.35,47.88,35a2.19,2.19,0,0,0-1,.79,9,9,0,0,1,1.37-.37C52.1,34.66,57.65,40.65,45.64,46.89Zm0.43,14.75a94.76,94.76,0,0,1-29.17.45s1.47,1.22,9,1.7c11.53,0.74,29.22-.41,29.64-5.86C55.6,57.94,54.79,60,46.08,61.65Z" transform="translate(-8.4)" fill="#5482a2"/></svg>
-											Highcoin Harmony<small>Third party Java client from EtherCamp</small>
+											Highcoin Harmony<small>Third party Java client from HighcoinCamp</small>
 										</h2>
 										<div class="clearfix"></div>
 									</div>
@@ -389,7 +389,7 @@ try! node?.start();
 									<div class="x_title">
 										<h2>
 											<svg height="14px" version="1.1" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="a" x1="13.79" y1="38.21" x2="75.87" y2="-15.2" gradientTransform="matrix(0.56, 0, 0, -0.57, -8.96, 23.53)" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#5c9fd3"/><stop offset="1" stop-color="#316a99"/></linearGradient><linearGradient id="b" x1="99.87" y1="-47.53" x2="77.7" y2="-16.16" gradientTransform="matrix(0.56, 0, 0, -0.57, -8.96, 23.53)" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#ffd43d"/><stop offset="1" stop-color="#fee875"/></linearGradient></defs><g><path d="M31.62,0a43.6,43.6,0,0,0-7.3.62c-6.46,1.14-7.63,3.53-7.63,7.94v5.82H32v1.94H11a9.53,9.53,0,0,0-9.54,7.74,28.54,28.54,0,0,0,0,15.52c1.09,4.52,3.68,7.74,8.11,7.74h5.25v-7a9.7,9.7,0,0,1,9.54-9.48H39.58a7.69,7.69,0,0,0,7.63-7.76V8.56c0-4.14-3.49-7.25-7.63-7.94A47.62,47.62,0,0,0,31.62,0ZM23.37,4.68A2.91,2.91,0,1,1,20.5,7.6,2.9,2.9,0,0,1,23.37,4.68Z" transform="translate(-0.35)" fill="url(#a)"/><path d="M49.12,16.32V23.1a9.79,9.79,0,0,1-9.54,9.68H24.33a7.79,7.79,0,0,0-7.63,7.76V55.08c0,4.14,3.6,6.57,7.63,7.76a25.55,25.55,0,0,0,15.25,0c3.84-1.11,7.63-3.35,7.63-7.76V49.26H32V47.32H54.85c4.44,0,6.09-3.1,7.63-7.74s1.53-9.38,0-15.52c-1.1-4.42-3.19-7.74-7.63-7.74H49.12ZM40.54,53.14A2.91,2.91,0,1,1,37.67,56,2.88,2.88,0,0,1,40.54,53.14Z" transform="translate(-0.35)" fill="url(#b)"/></g></svg>
-											PyEthApp<small>Official Python client from the Highcoin Foundation</small>
+											PyHighApp<small>Official Python client from the Highcoin Foundation</small>
 										</h2>
 										<div class="clearfix"></div>
 									</div>
@@ -398,7 +398,7 @@ try! node?.start();
 										<br/>
 										<p>To run a pyethapp node, download <a href="/{{.PythonGenesis}}"><code>{{.PythonGenesis}}</code></a> and start the node with:
 											<pre>mkdir -p $HOME/.config/pyethapp/{{.Network}}</pre>
-											<pre>pyethapp -c eth.genesis="$(cat {{.PythonGenesis}})" -c eth.network_id={{.NetworkID}} -c data_dir=$HOME/.config/pyethapp/{{.Network}} -c discovery.bootstrap_nodes="[{{.PythonBootnodes}}]" -c eth.block.HOMESTEAD_FORK_BLKNUM={{.Homestead}} -c eth.block.ANTI_DOS_FORK_BLKNUM={{.Tangerine}} -c eth.block.SPURIOUS_DRAGON_FORK_BLKNUM={{.Spurious}} -c eth.block.METROPOLIS_FORK_BLKNUM={{.Byzantium}} -c eth.block.DAO_FORK_BLKNUM=18446744073709551615 run --console</pre>
+											<pre>pyethapp -c high.genesis="$(cat {{.PythonGenesis}})" -c high.network_id={{.NetworkID}} -c data_dir=$HOME/.config/pyethapp/{{.Network}} -c discovery.bootstrap_nodes="[{{.PythonBootnodes}}]" -c high.block.HOMESTEAD_FORK_BLKNUM={{.Homestead}} -c high.block.ANTI_DOS_FORK_BLKNUM={{.Tangerine}} -c high.block.SPURIOUS_DRAGON_FORK_BLKNUM={{.Spurious}} -c high.block.METROPOLIS_FORK_BLKNUM={{.Byzantium}} -c high.block.DAO_FORK_BLKNUM=18446744073709551615 run --console</pre>
 										</p>
 										<br/>
 										<p>You can find pyethapp at <a href="https://github.com/420integrated/pyethapp/" target="about:blank">https://github.com/420integrated/pyethapp/</a>.</p>
@@ -456,7 +456,7 @@ try! node?.start();
 				var url = hash;
 				switch (hash) {
 					case "#stats":
-						url = "//{{.EthstatsPage}}";
+						url = "//{{.HighstatsPage}}";
 						break;
 					case "#explorer":
 						url = "//{{.ExplorerPage}}";
@@ -551,7 +551,7 @@ services:
     ports:
       - "{{.Port}}:80"{{end}}
     environment:
-      - ETHSTATS_PAGE={{.EthstatsPage}}
+      - HIGHSTATS_PAGE={{.HighstatsPage}}
       - EXPLORER_PAGE={{.ExplorerPage}}
       - WALLET_PAGE={{.WalletPage}}
       - FAUCET_PAGE={{.FaucetPage}}{{if .VHost}}
@@ -583,14 +583,14 @@ func deployDashboard(client *sshClient, network string, conf *config, config *da
 		"Network":      network,
 		"Port":         config.port,
 		"VHost":        config.host,
-		"EthstatsPage": config.ethstats,
+		"HighstatsPage": config.highstats,
 		"ExplorerPage": config.explorer,
 		"WalletPage":   config.wallet,
 		"FaucetPage":   config.faucet,
 	})
 	files[filepath.Join(workdir, "docker-compose.yaml")] = composefile.Bytes()
 
-	statsLogin := fmt.Sprintf("yournode:%s", conf.ethstats)
+	statsLogin := fmt.Sprintf("yournode:%s", conf.highstats)
 	if !config.trusted {
 		statsLogin = ""
 	}
@@ -611,14 +611,14 @@ func deployDashboard(client *sshClient, network string, conf *config, config *da
 		"Network":           network,
 		"NetworkID":         conf.Genesis.Config.ChainID,
 		"NetworkTitle":      strings.Title(network),
-		"EthstatsPage":      config.ethstats,
+		"HighstatsPage":      config.highstats,
 		"ExplorerPage":      config.explorer,
 		"WalletPage":        config.wallet,
 		"FaucetPage":        config.faucet,
 		"HighcoinGenesis":       network + ".json",
 		"Bootnodes":         conf.bootnodes,
 		"BootnodesFlat":     strings.Join(conf.bootnodes, ","),
-		"Ethstats":          statsLogin,
+		"Highstats":          statsLogin,
 		"Ethash":            conf.Genesis.Config.Ethash != nil,
 		"CppGenesis":        network + "-cpp.json",
 		"CppBootnodes":      strings.Join(bootCpp, " "),
@@ -703,7 +703,7 @@ func (info *dashboardInfos) Report() map[string]string {
 	return map[string]string{
 		"Website address":       info.host,
 		"Website listener port": strconv.Itoa(info.port),
-		"Ethstats service":      info.ethstats,
+		"Highstats service":      info.highstats,
 		"Explorer service":      info.explorer,
 		"Wallet service":        info.wallet,
 		"Faucet service":        info.faucet,
@@ -744,7 +744,7 @@ func checkDashboard(client *sshClient, network string) (*dashboardInfos, error) 
 	return &dashboardInfos{
 		host:     host,
 		port:     port,
-		ethstats: infos.envvars["ETHSTATS_PAGE"],
+		ethstats: infos.envvars["HIGHSTATS_PAGE"],
 		explorer: infos.envvars["EXPLORER_PAGE"],
 		wallet:   infos.envvars["WALLET_PAGE"],
 		faucet:   infos.envvars["FAUCET_PAGE"],

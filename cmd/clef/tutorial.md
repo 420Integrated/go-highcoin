@@ -90,7 +90,7 @@ Approve? [y/N]:
 >
 ```
 
-Depending on whether we approve or deny the request, the original NetCat process will get:
+Depending on if we approve or deny the request, the original NetCat process will get:
 
 ```text
 {"jsonrpc":"2.0","id":1,"result":["0xd9c9cd5f6779558b6e0ed4e6acf6b1947e7fa1f3","0x086278a6c067775f71d6b2bb1856db6e28c30418"]}
@@ -305,7 +305,7 @@ In a different window we can start Highcoin, list our accounts, even list our wa
 ```text
 $ highcoin --rinkeby --signer=~/.clef/clef.ipc console
 
-> eth.accounts
+> high.accounts
 ["0xd9c9cd5f6779558b6e0ed4e6acf6b1947e7fa1f3", "0x086278a6c067775f71d6b2bb1856db6e28c30418"]
 
 > personal.listWallets
@@ -321,7 +321,7 @@ $ highcoin --rinkeby --signer=~/.clef/clef.ipc console
     url: "extapi://$HOME/.clef/clef.ipc"
 }]
 
-> eth.sendTransaction({from: eth.accounts[0], to: eth.accounts[0]})
+> high.sendTransaction({from: high.accounts[0], to: high.accounts[0]})
 ```
 
 Lastly, when we requested a transaction to be sent, Clef prompted us in the original window to approve it:
@@ -330,9 +330,9 @@ Lastly, when we requested a transaction to be sent, Clef prompted us in the orig
 --------- Transaction request-------------
 to:       0xD9C9Cd5f6779558b6e0eD4e6Acf6b1947E7fA1F3
 from:     0xD9C9Cd5f6779558b6e0eD4e6Acf6b1947E7fA1F3 [chksum ok]
-value:    0 wei
+value:    0 marleys
 gas:      0x5208 (21000)
-gasprice: 1000000000 wei
+gasprice: 1000000000 marleys
 nonce:    0x2366 (9062)
 
 Request context:

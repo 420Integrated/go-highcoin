@@ -65,7 +65,7 @@ func NewSuite(dest *enode.Node, chainfile string, genesisfile string) (*Suite, e
 	}, nil
 }
 
-func (s *Suite) EthTests() []utesting.Test {
+func (s *Suite) HighTests() []utesting.Test {
 	return []utesting.Test{
 		// status
 		{Name: "Status", Fn: s.TestStatus},
@@ -125,7 +125,7 @@ func (s *Suite) TestMaliciousStatus(t *utesting.T) {
 	// get protoHandshake
 	conn.handshake(t)
 	status := &Status{
-		ProtocolVersion: uint32(conn.ethProtocolVersion),
+		ProtocolVersion: uint32(conn.highProtocolVersion),
 		NetworkID:       s.chain.chainConfig.ChainID.Uint64(),
 		TD:              largeNumber(2),
 		Head:            s.chain.blocks[s.chain.Len()-1].Hash(),
@@ -149,7 +149,7 @@ func (s *Suite) TestMaliciousStatus(t *utesting.T) {
 	}
 }
 
-// TestGetBlockHeaders tests whether the given node can respond to
+// TestGetBlockHeaders tests if the given node can respond to
 // a `GetBlockHeaders` request and that the response is accurate.
 func (s *Suite) TestGetBlockHeaders(t *utesting.T) {
 	conn, err := s.dial()
@@ -162,7 +162,7 @@ func (s *Suite) TestGetBlockHeaders(t *utesting.T) {
 
 	// get block headers
 	req := &GetBlockHeaders{
-		Origin: eth.HashOrNumber{
+		Origin: high.HashOrNumber{
 			Hash: s.chain.blocks[1].Hash(),
 		},
 		Amount:  2,
@@ -187,7 +187,7 @@ func (s *Suite) TestGetBlockHeaders(t *utesting.T) {
 	}
 }
 
-// TestGetBlockBodies tests whether the given node can respond to
+// TestGetBlockBodies tests if the given node can respond to
 // a `GetBlockBodies` request and that the response is accurate.
 func (s *Suite) TestGetBlockBodies(t *utesting.T) {
 	conn, err := s.dial()
@@ -214,7 +214,7 @@ func (s *Suite) TestGetBlockBodies(t *utesting.T) {
 	}
 }
 
-// TestBroadcast tests whether a block announcement is correctly
+// TestBroadcast tests if a block announcement is correctly
 // propagated to the given node's peer(s).
 func (s *Suite) TestBroadcast(t *utesting.T) {
 	sendConn, receiveConn := s.setupConnection(t), s.setupConnection(t)

@@ -39,7 +39,7 @@ type tmplContract struct {
 	Receive     *tmplMethod            // Additional special receive function
 	Events      map[string]*tmplEvent  // Contract events accessors
 	Libraries   map[string]string      // Same as tmplData, but filtered to only keep what the contract needs
-	Library     bool                   // Indicator whether the contract is a library
+	Library     bool                   // Indicator if the contract is a library
 }
 
 // tmplMethod is a wrapper around an abi.Method that contains a few preprocessed
@@ -47,7 +47,7 @@ type tmplContract struct {
 type tmplMethod struct {
 	Original   abi.Method // Original method as parsed by the abi package
 	Normalized abi.Method // Normalized version of the parsed method (capitalized names, non-anonymous args/returns)
-	Structured bool       // Whether the returns should be accumulated into a struct
+	Structured bool       // If the returns should be accumulated into a struct
 }
 
 // tmplEvent is a wrapper around an abi.Event that contains a few preprocessed
@@ -416,10 +416,10 @@ var (
 
 			logs chan types.Log        // Log channel receiving the found contract events
 			sub  highcoin.Subscription // Subscription for errors, completion and termination
-			done bool                  // Whether the subscription completed delivering logs
+			done bool                  // If the subscription completed delivering logs
 			fail error                 // Occurred error to stop iteration
 		}
-		// Next advances the iterator to the subsequent event, returning whether there
+		// Next advances the iterator to the subsequent event, returning if there
 		// are any more events found. In case of a retrieval or parsing error, false is
 		// returned and Error() can be queried for the exact failure.
 		func (it *{{$contract.Type}}{{.Normalized.Name}}Iterator) Next() bool {

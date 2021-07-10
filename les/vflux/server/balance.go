@@ -420,7 +420,7 @@ func (n *NodeBalance) removeCallback(id int) bool {
 	return true
 }
 
-// checkCallbacks checks whether the threshold of any of the active callbacks
+// checkCallbacks checks if the threshold of any of the active callbacks
 // have been reached and returns triggered callbacks.
 // Note: checkCallbacks assumes that the balance has been recently updated.
 func (n *NodeBalance) checkCallbacks(now mclock.AbsTime) (callbacks []func()) {
@@ -501,7 +501,7 @@ func (n *NodeBalance) balanceExhausted() {
 	n.bt.ns.SetStateSub(n.node, nodestate.Flags{}, n.bt.PriorityFlag, 0)
 }
 
-// checkPriorityStatus checks whether the node has gained priority status and sets the priority
+// checkPriorityStatus checks if the node has gained priority status and sets the priority
 // callback and flag if necessary. It assumes that the balance has been recently updated.
 // Note that the priority flag has to be set by the caller after the mutex has been released.
 func (n *NodeBalance) checkPriorityStatus() bool {

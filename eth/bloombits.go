@@ -48,15 +48,15 @@ func (eth *Highcoin) startBloomHandlers(sectionSize uint64) {
 		go func() {
 			for {
 				select {
-				case <-eth.closeBloomHandler:
+				case <-high.closeBloomHandler:
 					return
 
-				case request := <-eth.bloomRequests:
+				case request := <-high.bloomRequests:
 					task := <-request
 					task.Bitsets = make([][]byte, len(task.Sections))
 					for i, section := range task.Sections {
-						head := rawdb.ReadCanonicalHash(eth.chainDb, (section+1)*sectionSize-1)
-						if compVector, err := rawdb.ReadBloomBits(eth.chainDb, task.Bit, section, head); err == nil {
+						head := rawdb.ReadCanonicalHash(high.chainDb, (section+1)*sectionSize-1)
+						if compVector, err := rawdb.ReadBloomBits(high.chainDb, task.Bit, section, head); err == nil {
 							if blob, err := bitutil.DecompressBytes(compVector, int(sectionSize/8)); err == nil {
 								task.Bitsets[i] = blob
 							} else {

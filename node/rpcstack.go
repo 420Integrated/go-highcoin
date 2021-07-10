@@ -210,7 +210,7 @@ func (h *httpServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotFound)
 }
 
-// checkPath checks whether a given request URL matches a given path prefix.
+// checkPath checks if a given request URL matches a given path prefix.
 func checkPath(r *http.Request, path string) bool {
 	// if no prefix has been specified, request URL must be on root
 	if path == "" {

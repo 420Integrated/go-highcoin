@@ -416,10 +416,10 @@ func bindStructTypeGo(kind abi.Type, structs map[string]*tmplStruct) string {
 	switch kind.T {
 	case abi.TupleTy:
 		// We compose a raw struct name and a canonical parameter expression
-		// together here. The reason is before solidity v0.5.11, kind.TupleRawName
+		// togither here. The reason is before solidity v0.5.11, kind.TupleRawName
 		// is empty, so we use canonical parameter expression to distinguish
 		// different struct definition. From the consideration of backward
-		// compatibility, we concat these two together so that if kind.TupleRawName
+		// compatibility, we concat these two togither so that if kind.TupleRawName
 		// is not empty, it can have unique id.
 		id := kind.TupleRawName + kind.String()
 		if s, exist := structs[id]; exist {
@@ -455,10 +455,10 @@ func bindStructTypeJava(kind abi.Type, structs map[string]*tmplStruct) string {
 	switch kind.T {
 	case abi.TupleTy:
 		// We compose a raw struct name and a canonical parameter expression
-		// together here. The reason is before solidity v0.5.11, kind.TupleRawName
+		// togither here. The reason is before solidity v0.5.11, kind.TupleRawName
 		// is empty, so we use canonical parameter expression to distinguish
 		// different struct definition. From the consideration of backward
-		// compatibility, we concat these two together so that if kind.TupleRawName
+		// compatibility, we concat these two togither so that if kind.TupleRawName
 		// is not empty, it can have unique id.
 		id := kind.TupleRawName + kind.String()
 		if s, exist := structs[id]; exist {
@@ -547,7 +547,7 @@ func decapitalise(input string) string {
 	return strings.ToLower(goForm[:1]) + goForm[1:]
 }
 
-// structured checks whether a list of ABI data types has enough information to
+// structured checks if a list of ABI data types has enough information to
 // operate through a proper Go struct or if flat returns are needed.
 func structured(args abi.Arguments) bool {
 	if len(args) < 2 {
@@ -570,7 +570,7 @@ func structured(args abi.Arguments) bool {
 	return true
 }
 
-// hasStruct returns an indicator whether the given type is struct, struct slice
+// hasStruct returns an indicator if the given type is struct, struct slice
 // or struct array.
 func hasStruct(t abi.Type) bool {
 	switch t.T {

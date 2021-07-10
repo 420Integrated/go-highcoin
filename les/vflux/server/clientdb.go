@@ -60,7 +60,7 @@ type nodeDB struct {
 	cache         *lru.Cache
 	auxbuf        []byte                                              // 37-byte auxiliary buffer for key encoding
 	verbuf        [2]byte                                             // 2-byte auxiliary buffer for db version
-	evictCallBack func(mclock.AbsTime, bool, utils.ExpiredValue) bool // Callback to determine whether the balance can be evicted.
+	evictCallBack func(mclock.AbsTime, bool, utils.ExpiredValue) bool // Callback to determine if the balance can be evicted.
 	clock         mclock.Clock
 	closeCh       chan struct{}
 	cleanupHook   func() // Test hook used for testing
@@ -220,7 +220,7 @@ func (db *nodeDB) expirer() {
 	}
 }
 
-// expireNodes iterates the whole node db and checks whether the
+// expireNodes iterates the whole node db and checks if the
 // token balances can be deleted.
 func (db *nodeDB) expireNodes() {
 	var (

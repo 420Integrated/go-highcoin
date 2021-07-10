@@ -70,7 +70,7 @@ type peerConnection struct {
 
 	peer Peer
 
-	version uint       // Eth protocol version number to switch strategies
+	version uint       // High protocol version number to switch strategies
 	log     log.Logger // Contextual logger to add extra infos to peer logs
 	lock    sync.RWMutex
 }
@@ -317,8 +317,8 @@ func (p *peerConnection) MarkLacking(hash common.Hash) {
 	p.lacking[hash] = struct{}{}
 }
 
-// Lacks retrieves whether the hash of a blockchain item is on the peers lacking
-// list (i.e. whether we know that the peer does not have it).
+// Lacks retrieves if the hash of a blockchain item is on the peers lacking
+// list (i.e. if we know that the peer does not have it).
 func (p *peerConnection) Lacks(hash common.Hash) bool {
 	p.lock.RLock()
 	defer p.lock.RUnlock()
@@ -458,7 +458,7 @@ func (ps *peerSet) HeaderIdlePeers() ([]*peerConnection, int) {
 		defer p.lock.RUnlock()
 		return p.headerThroughput
 	}
-	return ps.idlePeers(eth.ETH64, eth.ETH66, idle, throughput)
+	return ps.idlePeers(high.HIGH64, high.HIGH66, idle, throughput)
 }
 
 // BodyIdlePeers retrieves a flat list of all the currently body-idle peers within
@@ -472,7 +472,7 @@ func (ps *peerSet) BodyIdlePeers() ([]*peerConnection, int) {
 		defer p.lock.RUnlock()
 		return p.blockThroughput
 	}
-	return ps.idlePeers(eth.ETH64, eth.ETH66, idle, throughput)
+	return ps.idlePeers(high.HIGH64, high.HIGH66, idle, throughput)
 }
 
 // ReceiptIdlePeers retrieves a flat list of all the currently receipt-idle peers
@@ -486,7 +486,7 @@ func (ps *peerSet) ReceiptIdlePeers() ([]*peerConnection, int) {
 		defer p.lock.RUnlock()
 		return p.receiptThroughput
 	}
-	return ps.idlePeers(eth.ETH64, eth.ETH66, idle, throughput)
+	return ps.idlePeers(high.HIGH64, high.HIGH66, idle, throughput)
 }
 
 // NodeDataIdlePeers retrieves a flat list of all the currently node-data-idle
@@ -500,7 +500,7 @@ func (ps *peerSet) NodeDataIdlePeers() ([]*peerConnection, int) {
 		defer p.lock.RUnlock()
 		return p.stateThroughput
 	}
-	return ps.idlePeers(eth.ETH64, eth.ETH66, idle, throughput)
+	return ps.idlePeers(high.HIGH64, high.HIGH66, idle, throughput)
 }
 
 // idlePeers retrieves a flat list of all currently idle peers satisfying the

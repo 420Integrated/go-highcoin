@@ -37,8 +37,8 @@ const journalVersion uint64 = 0
 
 // journalGenerator is a disk layer entry containing the generator progress marker.
 type journalGenerator struct {
-	Wiping   bool // Whether the database was in progress of being wiped
-	Done     bool // Whether the generator finished creating the snapshot
+	Wiping   bool // If the database was in progress of being wiped
+	Done     bool // If the generator finished creating the snapshot
 	Marker   []byte
 	Accounts uint64
 	Slots    uint64
@@ -66,7 +66,7 @@ type journalStorage struct {
 // loadAndParseLegacyJournal tries to parse the snapshot journal in legacy format.
 func loadAndParseLegacyJournal(db ethdb.KeyValueStore, base *diskLayer) (snapshot, journalGenerator, error) {
 	// Retrieve the journal, for legacy journal it must exist since even for
-	// 0 layer it stores whether we've already generated the snapshot or are
+	// 0 layer it stores if we've already generated the snapshot or are
 	// in progress only.
 	journal := rawdb.ReadSnapshotJournal(db)
 	if len(journal) == 0 {
@@ -201,7 +201,7 @@ func loadSnapshot(diskdb ethdb.KeyValueStore, triedb *trie.Database, cache int, 
 			log.Info("Resuming previous snapshot wipe")
 			wiper = wipeSnapshot(diskdb, false)
 		}
-		// Whether or not wiping was in progress, load any generator progress too
+		// If or not wiping was in progress, load any generator progress too
 		base.genMarker = generator.Marker
 		if base.genMarker == nil {
 			base.genMarker = []byte{}

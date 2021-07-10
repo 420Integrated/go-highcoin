@@ -174,11 +174,11 @@ func NewPriorityPool(ns *nodestate.NodeStateMachine, setup PriorityPoolSetup, cl
 	return pp
 }
 
-// RequestCapacity checks whether changing the capacity of a node to the given target
+// RequestCapacity checks if changing the capacity of a node to the given target
 // is possible (bias is applied in favor of other active nodes if the target is higher
 // than the current capacity).
 // If setCap is true then it also performs the change if possible. The function returns
-// the minimum priority needed to do the change and whether it is currently allowed.
+// the minimum priority needed to do the change and if it is currently allowed.
 // If setCap and allowed are both true then the caller can assume that the change was
 // successful.
 // Note: priorityField should always be set before calling RequestCapacity. If setCap

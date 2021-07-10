@@ -405,7 +405,7 @@ func unset(parent node, child node, key []byte, pos int, removeLeft bool) error 
 	}
 }
 
-// hasRightElement returns the indicator whether there exists more elements
+// hasRightElement returns the indicator if there exists more elements
 // in the right side of the given path. The given path can point to an existent
 // key or a non-existent one. This function has the assumption that the whole
 // path should already be resolved.
@@ -434,7 +434,7 @@ func hasRightElement(node node, key []byte) bool {
 	return false
 }
 
-// VerifyRangeProof checks whether the given leaf nodes and edge proof
+// VerifyRangeProof checks if the given leaf nodes and edge proof
 // can prove the given trie leaves range is matched with the specific root.
 // Besides, the range should be consecutive (no gap inside) and monotonic
 // increasing.
@@ -463,7 +463,7 @@ func hasRightElement(node node, key []byte) bool {
 //   an error will be returned.
 //
 // Except returning the error to indicate the proof is valid or not, the function will
-// also return a flag to indicate whether there exists more accounts/slots in the trie.
+// also return a flag to indicate if there exists more accounts/slots in the trie.
 func VerifyRangeProof(rootHash common.Hash, firstKey []byte, lastKey []byte, keys [][]byte, values [][]byte, proof ethdb.KeyValueReader) (ethdb.KeyValueStore, *Trie, *KeyValueNotary, bool, error) {
 	if len(keys) != len(values) {
 		return nil, nil, nil, false, fmt.Errorf("inconsistent proof data, keys: %d, values: %d", len(keys), len(values))

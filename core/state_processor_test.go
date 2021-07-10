@@ -22,7 +22,7 @@ import (
 
 	"github.com/420integrated/go-highcoin/common"
 	"github.com/420integrated/go-highcoin/consensus"
-	"github.com/420integrated/go-highcoin/consensus/ethash"
+	"github.com/420integrated/go-highcoin/consensus/othash"
 	"github.com/420integrated/go-highcoin/core/rawdb"
 	"github.com/420integrated/go-highcoin/core/types"
 	"github.com/420integrated/go-highcoin/core/vm"
@@ -45,7 +45,7 @@ func TestStateProcessorErrors(t *testing.T) {
 			Config: params.TestChainConfig,
 		}
 		genesis       = gspec.MustCommit(db)
-		blockchain, _ = NewBlockChain(db, nil, gspec.Config, ethash.NewFaker(), vm.Config{}, nil, nil)
+		blockchain, _ = NewBlockChain(db, nil, gspec.Config, othash.NewFaker(), vm.Config{}, nil, nil)
 	)
 	defer blockchain.Stop()
 	var makeTx = func(nonce uint64, to common.Address, amount *big.Int, gasLimit uint64, gasPrice *big.Int, data []byte) *types.Transaction {
@@ -100,7 +100,7 @@ func TestStateProcessorErrors(t *testing.T) {
 		// trigger that one, we'd have to allocate a _huge_ chunk of data, such that the
 		// multiplication len(data) +gas_per_byte overflows uint64. Not testable at the moment
 	} {
-		block := GenerateBadBlock(genesis, ethash.NewFaker(), tt.txs)
+		block := GenerateBadBlock(genesis, othash.NewFaker(), tt.txs)
 		_, err := blockchain.InsertChain(types.Blocks{block})
 		if err == nil {
 			t.Fatal("block imported without errors")

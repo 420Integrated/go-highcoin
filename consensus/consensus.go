@@ -62,7 +62,7 @@ type Engine interface {
 	// engine is based on signatures.
 	Author(header *types.Header) (common.Address, error)
 
-	// VerifyHeader checks whether a header conforms to the consensus rules of a
+	// VerifyHeader checks if a header conforms to the consensus rules of a
 	// given engine. Verifying the seal may be done optionally here, or explicitly
 	// via the VerifySeal method.
 	VerifyHeader(chain ChainHeaderReader, header *types.Header, seal bool) error

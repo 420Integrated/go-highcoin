@@ -101,7 +101,7 @@ type replyMatcher struct {
 	deadline time.Time
 
 	// callback is called when a matching reply arrives. If it returns matched == true, the
-	// reply was acceptable. The second return value indicates whether the callback should
+	// reply was acceptable. The second return value indicates if the callback should
 	// be removed from the pending reply queue. If it returns false, the reply is considered
 	// incomplete and the callback will be invoked again for the next matching reply.
 	callback replyMatchFunc
@@ -122,7 +122,7 @@ type reply struct {
 	from enode.ID
 	ip   net.IP
 	data v4wire.Packet
-	// loop indicates whether there was
+	// loop indicates if there was
 	// a matching request by sending on this channel.
 	matched chan<- bool
 }
@@ -392,7 +392,7 @@ func (t *UDPv4) pending(id enode.ID, ip net.IP, ptype byte, callback replyMatchF
 }
 
 // handleReply dispatches a reply packet, invoking reply matchers. It returns
-// whether any matcher considered the packet acceptable.
+// if any matcher considered the packet acceptable.
 func (t *UDPv4) handleReply(from enode.ID, fromIP net.IP, req v4wire.Packet) bool {
 	matched := make(chan bool, 1)
 	select {
@@ -456,7 +456,7 @@ func (t *UDPv4) loop() {
 			plist.PushBack(p)
 
 		case r := <-t.gotreply:
-			var matched bool // whether any replyMatcher considered the reply acceptable.
+			var matched bool // if any replyMatcher considered the reply acceptable.
 			for el := plist.Front(); el != nil; el = el.Next() {
 				p := el.Value.(*replyMatcher)
 				if p.from == r.from && p.ptype == r.data.Kind() && p.ip.Equal(r.ip) {
@@ -634,7 +634,7 @@ type packetHandlerV4 struct {
 	v4wire.Packet
 	senderKey *ecdsa.PublicKey // used for ping
 
-	// preverify checks whether the packet is valid and should be handled at all.
+	// preverify checks if the packet is valid and should be handled at all.
 	preverify func(p *packetHandlerV4, from *net.UDPAddr, fromID enode.ID, fromKey v4wire.Pubkey) error
 	// handle handles the packet.
 	handle func(req *packetHandlerV4, from *net.UDPAddr, fromID enode.ID, mac []byte)

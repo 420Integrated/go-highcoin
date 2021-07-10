@@ -123,7 +123,7 @@ type peerCommons struct {
 	id           string    // Peer identity.
 	version      int       // Protocol version negotiated.
 	network      uint64    // Network ID being on.
-	frozen       uint32    // Flag whether the peer is frozen.
+	frozen       uint32    // Flag if the peer is frozen.
 	announceType uint64    // New block announcement type.
 	serving      uint32    // The status indicates the peer is served.
 	headInfo     blockInfo // Last announced block information.
@@ -145,7 +145,7 @@ func (p *peerCommons) isFrozen() bool {
 	return atomic.LoadUint32(&p.frozen) != 0
 }
 
-// canQueue returns an indicator whether the peer can queue an operation.
+// canQueue returns an indicator if the peer can queue an operation.
 func (p *peerCommons) canQueue() bool {
 	return p.sendQueue.CanQueue() && !p.isFrozen()
 }
@@ -336,8 +336,8 @@ type serverPeer struct {
 	peerCommons
 
 	// Status fields
-	trusted                 bool   // The flag whether the server is selected as trusted server.
-	onlyAnnounce            bool   // The flag whether the server sends announcement only.
+	trusted                 bool   // The flag if the server is selected as trusted server.
+	onlyAnnounce            bool   // The flag if the server sends announcement only.
 	chainSince, chainRecent uint64 // The range of chain server peer can serve.
 	stateSince, stateRecent uint64 // The range of state server peer can serve.
 	txHistory               uint64 // The length of available tx history, 0 means all, 1 means disabled
@@ -357,7 +357,7 @@ type serverPeer struct {
 	updateTime  mclock.AbsTime
 
 	// Test callback hooks
-	hasBlockHook func(common.Hash, uint64, bool) bool // Used to determine whether the server has the specified block.
+	hasBlockHook func(common.Hash, uint64, bool) bool // Used to determine if the server has the specified block.
 }
 
 func newServerPeer(version int, network uint64, trusted bool, p *p2p.Peer, rw p2p.MsgReadWriter) *serverPeer {

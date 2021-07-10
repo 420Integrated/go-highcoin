@@ -56,7 +56,7 @@ import (
 	"github.com/420integrated/go-highcoin/rpc"
 )
 
-// Config contains the configuration options of the ETH protocol.
+// Config contains the configuration options of the HIGH protocol.
 // Deprecated: use ethconfig.Config instead.
 type Config = ethconfig.Config
 
@@ -82,18 +82,18 @@ type Highcoin struct {
 	bloomIndexer      *core.ChainIndexer             // Bloom indexer operating during block imports
 	closeBloomHandler chan struct{}
 
-	APIBackend *EthAPIBackend
+	APIBackend *HighAPIBackend
 
 	miner     *miner.Miner
 	gasPrice  *big.Int
-	etherbase common.Address
+	highcoinbase common.Address
 
 	networkID     uint64
 	netRPCService *ethapi.PublicNetAPI
 
 	p2pServer *p2p.Server
 
-	lock sync.RWMutex // Protects the variadic fields (e.g. gas price and etherbase)
+	lock sync.RWMutex // Protects the variadic fields (e.g. gas price and highcoinbase)
 }
 
 // New creates a new Highcoin object (including the
@@ -101,7 +101,7 @@ type Highcoin struct {
 func New(stack *node.Node, config *ethconfig.Config) (*Highcoin, error) {
 	// Ensure configuration values are compatible and sane
 	if config.SyncMode == downloader.LightSync {
-		return nil, errors.New("can't run eth.Highcoin in light sync mode, use les.LightHighcoin")
+		return nil, errors.New("can't run high.Highcoin in light sync mode, use les.LightHighcoin")
 	}
 	if !config.SyncMode.IsValid() {
 		return nil, fmt.Errorf("invalid sync mode %d", config.SyncMode)
@@ -144,7 +144,7 @@ func New(stack *node.Node, config *ethconfig.Config) (*Highcoin, error) {
 		closeBloomHandler: make(chan struct{}),
 		networkID:         config.NetworkId,
 		gasPrice:          config.Miner.GasPrice,
-		etherbase:         config.Miner.Etherbase,
+		highcoinbase:         config.Miner.Highcoinbase,
 		bloomRequests:     make(chan chan *bloombits.Retrieval),
 		bloomIndexer:      core.NewBloomIndexer(chainDb, params.BloomBitsBlocks, params.BloomConfirms),
 		p2pServer:         stack.Server(),
@@ -183,22 +183,22 @@ func New(stack *node.Node, config *ethconfig.Config) (*Highcoin, error) {
 			Preimages:           config.Preimages,
 		}
 	)
-	eth.blockchain, err = core.NewBlockChain(chainDb, cacheConfig, chainConfig, eth.engine, vmConfig, eth.shouldPreserve, &config.TxLookupLimit)
+	high.blockchain, err = core.NewBlockChain(chainDb, cacheConfig, chainConfig, high.engine, vmConfig, high.shouldPreserve, &config.TxLookupLimit)
 	if err != nil {
 		return nil, err
 	}
 	// Rewind the chain in case of an incompatible config upgrade.
 	if compat, ok := genesisErr.(*params.ConfigCompatError); ok {
 		log.Warn("Rewinding chain to upgrade configuration", "err", compat)
-		eth.blockchain.SetHead(compat.RewindTo)
+		high.blockchain.SetHead(compat.RewindTo)
 		rawdb.WriteChainConfig(chainDb, genesisHash, chainConfig)
 	}
-	eth.bloomIndexer.Start(eth.blockchain)
+	high.bloomIndexer.Start(high.blockchain)
 
 	if config.TxPool.Journal != "" {
 		config.TxPool.Journal = stack.ResolvePath(config.TxPool.Journal)
 	}
-	eth.txPool = core.NewTxPool(config.TxPool, chainConfig, eth.blockchain)
+	high.txPool = core.NewTxPool(config.TxPool, chainConfig, high.blockchain)
 
 	// Permit the downloader to use the trie cache allowance during fast sync
 	cacheLimit := cacheConfig.TrieCleanLimit + cacheConfig.TrieDirtyLimit + cacheConfig.SnapshotLimit
@@ -206,46 +206,46 @@ func New(stack *node.Node, config *ethconfig.Config) (*Highcoin, error) {
 	if checkpoint == nil {
 		checkpoint = params.TrustedCheckpoints[genesisHash]
 	}
-	if eth.handler, err = newHandler(&handlerConfig{
+	if high.handler, err = newHandler(&handlerConfig{
 		Database:   chainDb,
-		Chain:      eth.blockchain,
-		TxPool:     eth.txPool,
+		Chain:      high.blockchain,
+		TxPool:     high.txPool,
 		Network:    config.NetworkId,
 		Sync:       config.SyncMode,
 		BloomCache: uint64(cacheLimit),
-		EventMux:   eth.eventMux,
+		EventMux:   high.eventMux,
 		Checkpoint: checkpoint,
 		Whitelist:  config.Whitelist,
 	}); err != nil {
 		return nil, err
 	}
-	eth.miner = miner.New(eth, &config.Miner, chainConfig, eth.EventMux(), eth.engine, eth.isLocalBlock)
-	eth.miner.SetExtra(makeExtraData(config.Miner.ExtraData))
+	high.miner = miner.New(eth, &config.Miner, chainConfig, high.EventMux(), high.engine, high.isLocalBlock)
+	high.miner.SetExtra(makeExtraData(config.Miner.ExtraData))
 
-	eth.APIBackend = &EthAPIBackend{stack.Config().ExtRPCEnabled(), stack.Config().AllowUnprotectedTxs, eth, nil}
-	if eth.APIBackend.allowUnprotectedTxs {
+	high.APIBackend = &HighAPIBackend{stack.Config().ExtRPCEnabled(), stack.Config().AllowUnprotectedTxs, eth, nil}
+	if high.APIBackend.allowUnprotectedTxs {
 		log.Info("Unprotected transactions allowed")
 	}
 	gpoParams := config.GPO
 	if gpoParams.Default == nil {
 		gpoParams.Default = config.Miner.GasPrice
 	}
-	eth.APIBackend.gpo = gasprice.NewOracle(eth.APIBackend, gpoParams)
+	high.APIBackend.gpo = gasprice.NewOracle(high.APIBackend, gpoParams)
 
-	eth.ethDialCandidates, err = setupDiscovery(eth.config.EthDiscoveryURLs)
+	high.highDialCandidates, err = setupDiscovery(high.config.HighDiscoveryURLs)
 	if err != nil {
 		return nil, err
 	}
-	eth.snapDialCandidates, err = setupDiscovery(eth.config.SnapDiscoveryURLs)
+	high.snapDialCandidates, err = setupDiscovery(high.config.SnapDiscoveryURLs)
 	if err != nil {
 		return nil, err
 	}
 	// Start the RPC service
-	eth.netRPCService = ethapi.NewPublicNetAPI(eth.p2pServer, config.NetworkId)
+	high.netRPCService = ethapi.NewPublicNetAPI(high.p2pServer, config.NetworkId)
 
 	// Register the backend on the node
-	stack.RegisterAPIs(eth.APIs())
-	stack.RegisterProtocols(eth.Protocols())
+	stack.RegisterAPIs(high.APIs())
+	stack.RegisterProtocols(high.Protocols())
 	stack.RegisterLifecycle(eth)
 	// Check for unclean shutdown
 	if uncleanShutdowns, discards, err := rawdb.PushUncleanShutdownMarker(chainDb); err != nil {
@@ -341,33 +341,33 @@ func (s *Highcoin) ResetWithGenesisBlock(gb *types.Block) {
 	s.blockchain.ResetWithGenesisBlock(gb)
 }
 
-func (s *Highcoin) Etherbase() (eb common.Address, err error) {
+func (s *Highcoin) Highcoinbase() (eb common.Address, err error) {
 	s.lock.RLock()
-	etherbase := s.etherbase
+	highcoinbase := s.highcoinbase
 	s.lock.RUnlock()
 
-	if etherbase != (common.Address{}) {
-		return etherbase, nil
+	if highcoinbase != (common.Address{}) {
+		return highcoinbase, nil
 	}
 	if wallets := s.AccountManager().Wallets(); len(wallets) > 0 {
 		if accounts := wallets[0].Accounts(); len(accounts) > 0 {
-			etherbase := accounts[0].Address
+			highcoinbase := accounts[0].Address
 
 			s.lock.Lock()
-			s.etherbase = etherbase
+			s.highcoinbase = highcoinbase
 			s.lock.Unlock()
 
-			log.Info("Etherbase automatically configured", "address", etherbase)
-			return etherbase, nil
+			log.Info("Highcoinbase automatically configured", "address", highcoinbase)
+			return highcoinbase, nil
 		}
 	}
-	return common.Address{}, fmt.Errorf("etherbase must be explicitly specified")
+	return common.Address{}, fmt.Errorf("highcoinbase must be explicitly specified")
 }
 
-// isLocalBlock checks whether the specified block is mined
+// isLocalBlock checks if the specified block is mined
 // by local miner accounts.
 //
-// We regard two types of accounts as local miner account: etherbase
+// We regard two types of accounts as local miner account: highcoinbase
 // and accounts specified via `txpool.locals` flag.
 func (s *Highcoin) isLocalBlock(block *types.Block) bool {
 	author, err := s.engine.Author(block.Header())
@@ -375,14 +375,14 @@ func (s *Highcoin) isLocalBlock(block *types.Block) bool {
 		log.Warn("Failed to retrieve block author", "number", block.NumberU64(), "hash", block.Hash(), "err", err)
 		return false
 	}
-	// Check whether the given address is etherbase.
+	// Check if the given address is highcoinbase.
 	s.lock.RLock()
-	etherbase := s.etherbase
+	highcoinbase := s.highcoinbase
 	s.lock.RUnlock()
-	if author == etherbase {
+	if author == highcoinbase {
 		return true
 	}
-	// Check whether the given address is specified by `txpool.local`
+	// Check if the given address is specified by `txpool.local`
 	// CLI flag.
 	for _, account := range s.config.TxPool.Locals {
 		if account == author {
@@ -392,8 +392,8 @@ func (s *Highcoin) isLocalBlock(block *types.Block) bool {
 	return false
 }
 
-// shouldPreserve checks whether we should preserve the given block
-// during the chain reorg depending on whether the author of block
+// shouldPreserve checks if we should preserve the given block
+// during the chain reorg depending on if the author of block
 // is a local account.
 func (s *Highcoin) shouldPreserve(block *types.Block) bool {
 	// The reason we need to disable the self-reorg preserving for clique
@@ -418,13 +418,13 @@ func (s *Highcoin) shouldPreserve(block *types.Block) bool {
 	return s.isLocalBlock(block)
 }
 
-// SetEtherbase sets the mining reward address.
-func (s *Highcoin) SetEtherbase(etherbase common.Address) {
+// SetHighcoinbase sets the mining reward address.
+func (s *Highcoin) SetHighcoinbase(highcoinbase common.Address) {
 	s.lock.Lock()
-	s.etherbase = etherbase
+	s.highcoinbase = highcoinbase
 	s.lock.Unlock()
 
-	s.miner.SetEtherbase(etherbase)
+	s.miner.SetHighcoinbase(highcoinbase)
 }
 
 // StartMining starts the miner with the given number of CPU threads. If mining
@@ -451,15 +451,15 @@ func (s *Highcoin) StartMining(threads int) error {
 		s.txPool.SetGasPrice(price)
 
 		// Configure the local mining address
-		eb, err := s.Etherbase()
+		eb, err := s.Highcoinbase()
 		if err != nil {
-			log.Error("Cannot start mining without etherbase", "err", err)
-			return fmt.Errorf("etherbase missing: %v", err)
+			log.Error("Cannot start mining without highcoinbase", "err", err)
+			return fmt.Errorf("highcoinbase missing: %v", err)
 		}
 		if clique, ok := s.engine.(*clique.Clique); ok {
 			wallet, err := s.accountManager.Find(accounts.Account{Address: eb})
 			if wallet == nil || err != nil {
-				log.Error("Etherbase account unavailable locally", "err", err)
+				log.Error("Highcoinbase account unavailable locally", "err", err)
 				return fmt.Errorf("signer missing: %v", err)
 			}
 			clique.Authorize(eb, wallet.SignData)
@@ -505,7 +505,7 @@ func (s *Highcoin) BloomIndexer() *core.ChainIndexer   { return s.bloomIndexer }
 // Protocols returns all the currently configured
 // network protocols to start.
 func (s *Highcoin) Protocols() []p2p.Protocol {
-	protos := eth.MakeProtocols((*ethHandler)(s.handler), s.networkID, s.ethDialCandidates)
+	protos := high.MakeProtocols((*ethHandler)(s.handler), s.networkID, s.highDialCandidates)
 	if s.config.SnapshotCache > 0 {
 		protos = append(protos, snap.MakeProtocols((*snapHandler)(s.handler), s.snapDialCandidates)...)
 	}
@@ -515,7 +515,7 @@ func (s *Highcoin) Protocols() []p2p.Protocol {
 // Start implements node.Lifecycle, starting all internal goroutines needed by the
 // Highcoin protocol implementation.
 func (s *Highcoin) Start() error {
-	eth.StartENRUpdater(s.blockchain, s.p2pServer.LocalNode())
+	high.StartENRUpdater(s.blockchain, s.p2pServer.LocalNode())
 
 	// Start the bloom bits servicing goroutines
 	s.startBloomHandlers(params.BloomBitsBlocks)

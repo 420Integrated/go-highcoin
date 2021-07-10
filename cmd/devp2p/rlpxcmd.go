@@ -34,7 +34,7 @@ var (
 		Usage: "RLPx Commands",
 		Subcommands: []cli.Command{
 			rlpxPingCommand,
-			rlpxEthTestCommand,
+			rlpxHighTestCommand,
 		},
 	}
 	rlpxPingCommand = cli.Command{
@@ -42,11 +42,11 @@ var (
 		Usage:  "ping <node>",
 		Action: rlpxPing,
 	}
-	rlpxEthTestCommand = cli.Command{
+	rlpxHighTestCommand = cli.Command{
 		Name:      "eth-test",
 		Usage:     "Runs tests against a node",
 		ArgsUsage: "<node> <chain.rlp> <genesis.json>",
-		Action:    rlpxEthTest,
+		Action:    rlpxHighTest,
 		Flags: []cli.Flag{
 			testPatternFlag,
 			testTAPFlag,
@@ -89,8 +89,8 @@ func rlpxPing(ctx *cli.Context) error {
 	return nil
 }
 
-// rlpxEthTest runs the eth protocol test suite.
-func rlpxEthTest(ctx *cli.Context) error {
+// rlpxHighTest runs the eth protocol test suite.
+func rlpxHighTest(ctx *cli.Context) error {
 	if ctx.NArg() < 3 {
 		exit("missing path to chain.rlp as command-line argument")
 	}
@@ -98,5 +98,5 @@ func rlpxEthTest(ctx *cli.Context) error {
 	if err != nil {
 		exit(err)
 	}
-	return runTests(ctx, suite.EthTests())
+	return runTests(ctx, suite.HighTests())
 }

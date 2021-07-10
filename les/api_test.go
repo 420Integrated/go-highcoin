@@ -30,7 +30,7 @@ import (
 
 	"github.com/420integrated/go-highcoin/common"
 	"github.com/420integrated/go-highcoin/common/hexutil"
-	"github.com/420integrated/go-highcoin/consensus/ethash"
+	"github.com/420integrated/go-highcoin/consensus/othash"
 	"github.com/420integrated/go-highcoin/eth"
 	"github.com/420integrated/go-highcoin/eth/downloader"
 	"github.com/420integrated/go-highcoin/eth/ethconfig"
@@ -87,7 +87,7 @@ func TestCapacityAPI10(t *testing.T) {
 // testCapacityAPI runs an end-to-end simulation test connecting one server with
 // a given number of clients. It sets different priority capacities to all clients
 // except a randomly selected one which runs in free client mode. All clients send
-// similar requests at the maximum allowed rate and the test verifies whether the
+// similar requests at the maximum allowed rate and the test verifies if the
 // ratio of processed requests is close enough to the ratio of assigned capacities.
 // Running multiple rounds with different settings ensures that changing capacity
 // while connected and going back and forth between free and priority mode with
@@ -495,7 +495,7 @@ func testSim(t *testing.T, serverCount, clientCount int, serverDir, clientDir []
 func newLesClientService(ctx *adapters.ServiceContext, stack *node.Node) (node.Lifecycle, error) {
 	config := ethconfig.Defaults
 	config.SyncMode = downloader.LightSync
-	config.Ethash.PowMode = ethash.ModeFake
+	config.Ethash.PowMode = othash.ModeFake
 	return New(stack, &config)
 }
 
@@ -504,7 +504,7 @@ func newLesServerService(ctx *adapters.ServiceContext, stack *node.Node) (node.L
 	config.SyncMode = downloader.FullSync
 	config.LightServ = testServerCapacity
 	config.LightPeers = testMaxClients
-	highcoin, err := eth.New(stack, &config)
+	highcoin, err := high.New(stack, &config)
 	if err != nil {
 		return nil, err
 	}

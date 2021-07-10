@@ -111,7 +111,7 @@ func TestNodeUsedDataDir(t *testing.T) {
 	}
 }
 
-// Tests whether a Lifecycle can be registered.
+// Tests if a Lifecycle can be registered.
 func TestLifecycleRegistry_Successful(t *testing.T) {
 	stack, err := New(testNodeConfig())
 	if err != nil {
@@ -127,7 +127,7 @@ func TestLifecycleRegistry_Successful(t *testing.T) {
 	}
 }
 
-// Tests whether a service's protocols can be registered properly on the node's p2p server.
+// Tests if a service's protocols can be registered properly on the node's p2p server.
 func TestRegisterProtocols(t *testing.T) {
 	stack, err := New(testNodeConfig())
 	if err != nil {
@@ -389,7 +389,7 @@ func TestLifecycleTerminationGuarantee(t *testing.T) {
 	stack.server.PrivateKey = testNodeKey
 }
 
-// Tests whether a handler can be successfully mounted on the canonical HTTP server
+// Tests if a handler can be successfully mounted on the canonical HTTP server
 // on the given prefix
 func TestRegisterHandler_Successful(t *testing.T) {
 	node := createNode(t, 7878, 7979)
@@ -436,7 +436,7 @@ func TestRegisterHandler_Unsuccessful(t *testing.T) {
 	node.RegisterHandler("test", "/test", handler)
 }
 
-// Tests whether websocket requests can be handled on the same port as a regular http server.
+// Tests if websocket requests can be handled on the same port as a regular http server.
 func TestWebsocketHTTPOnSamePort_WebsocketRequest(t *testing.T) {
 	node := startHTTP(t, 0, 0)
 	defer node.Close()

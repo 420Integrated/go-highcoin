@@ -78,45 +78,45 @@ type Pong struct{}
 func (p Pong) Code() int { return 0x03 }
 
 // Status is the network packet for the status message for eth/64 and later.
-type Status eth.StatusPacket
+type Status high.StatusPacket
 
 func (s Status) Code() int { return 16 }
 
 // NewBlockHashes is the network packet for the block announcements.
-type NewBlockHashes eth.NewBlockHashesPacket
+type NewBlockHashes high.NewBlockHashesPacket
 
 func (nbh NewBlockHashes) Code() int { return 17 }
 
-type Transactions eth.TransactionsPacket
+type Transactions high.TransactionsPacket
 
 func (t Transactions) Code() int { return 18 }
 
 // GetBlockHeaders represents a block header query.
-type GetBlockHeaders eth.GetBlockHeadersPacket
+type GetBlockHeaders high.GetBlockHeadersPacket
 
 func (g GetBlockHeaders) Code() int { return 19 }
 
-type BlockHeaders eth.BlockHeadersPacket
+type BlockHeaders high.BlockHeadersPacket
 
 func (bh BlockHeaders) Code() int { return 20 }
 
 // GetBlockBodies represents a GetBlockBodies request
-type GetBlockBodies eth.GetBlockBodiesPacket
+type GetBlockBodies high.GetBlockBodiesPacket
 
 func (gbb GetBlockBodies) Code() int { return 21 }
 
 // BlockBodies is the network packet for block content distribution.
-type BlockBodies eth.BlockBodiesPacket
+type BlockBodies high.BlockBodiesPacket
 
 func (bb BlockBodies) Code() int { return 22 }
 
 // NewBlock is the network packet for the block propagation message.
-type NewBlock eth.NewBlockPacket
+type NewBlock high.NewBlockPacket
 
 func (nb NewBlock) Code() int { return 23 }
 
 // NewPooledTransactionHashes is the network packet for the tx hash propagation message.
-type NewPooledTransactionHashes eth.NewPooledTransactionHashesPacket
+type NewPooledTransactionHashes high.NewPooledTransactionHashesPacket
 
 func (nb NewPooledTransactionHashes) Code() int { return 24 }
 
@@ -235,8 +235,8 @@ func (c *Conn) handshake(t *utesting.T) Message {
 		if msg.Version >= 5 {
 			c.SetSnappy(true)
 		}
-		c.negotiateEthProtocol(msg.Caps)
-		if c.ethProtocolVersion == 0 {
+		c.negotiateHighProtocol(msg.Caps)
+		if c.highProtocolVersion == 0 {
 			t.Fatalf("unexpected eth protocol version")
 		}
 		return msg
@@ -246,19 +246,19 @@ func (c *Conn) handshake(t *utesting.T) Message {
 	}
 }
 
-// negotiateEthProtocol sets the Conn's eth protocol version
+// negotiateHighProtocol sets the Conn's eth protocol version
 // to highest advertised capability from peer
-func (c *Conn) negotiateEthProtocol(caps []p2p.Cap) {
-	var highestEthVersion uint
+func (c *Conn) negotiateHighProtocol(caps []p2p.Cap) {
+	var highestHighVersion uint
 	for _, capability := range caps {
 		if capability.Name != "eth" {
 			continue
 		}
-		if capability.Version > highestEthVersion && capability.Version <= 65 {
-			highestEthVersion = capability.Version
+		if capability.Version > highestHighVersion && capability.Version <= 65 {
+			highestHighVersion = capability.Version
 		}
 	}
-	c.ethProtocolVersion = highestEthVersion
+	c.highProtocolVersion = highestHighVersion
 }
 
 // statusExchange performs a `Status` message exchange with the given
@@ -294,13 +294,13 @@ loop:
 		}
 	}
 	// make sure eth protocol version is set for negotiation
-	if c.ethProtocolVersion == 0 {
+	if c.highProtocolVersion == 0 {
 		t.Fatalf("eth protocol version must be set in Conn")
 	}
 	if status == nil {
 		// write status message to client
 		status = &Status{
-			ProtocolVersion: uint32(c.ethProtocolVersion),
+			ProtocolVersion: uint32(c.highProtocolVersion),
 			NetworkID:       chain.chainConfig.ChainID.Uint64(),
 			TD:              chain.TD(chain.Len()),
 			Head:            chain.blocks[chain.Len()-1].Hash(),
@@ -324,7 +324,7 @@ func (c *Conn) waitForBlock(block *types.Block) error {
 	timeout := time.Now().Add(20 * time.Second)
 	c.SetReadDeadline(timeout)
 	for {
-		req := &GetBlockHeaders{Origin: eth.HashOrNumber{Hash: block.Hash()}, Amount: 1}
+		req := &GetBlockHeaders{Origin: high.HashOrNumber{Hash: block.Hash()}, Amount: 1}
 		if err := c.Write(req); err != nil {
 			return err
 		}

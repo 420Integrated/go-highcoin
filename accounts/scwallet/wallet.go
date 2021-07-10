@@ -362,12 +362,12 @@ func (w *Wallet) Open(passphrase string) error {
 				return err
 			}
 			// Pairing succeeded, fall through to PIN checks. This will of course fail,
-			// but we can't return ErrPINNeeded directly here because we don't know whether
+			// but we can't return ErrPINNeeded directly here because we don't know if
 			// a PIN check or a PIN reset is needed.
 			passphrase = ""
 		}
 	}
-	// The smart card was successfully paired, retrieve its status to check whether
+	// The smart card was successfully paired, retrieve its status to check if
 	// PIN verification or unblocking is needed.
 	status, err := w.session.walletStatus()
 	if err != nil {
@@ -593,7 +593,7 @@ func (w *Wallet) makeAccount(address common.Address, path accounts.DerivationPat
 	}
 }
 
-// Contains returns whether an account is part of this particular wallet or not.
+// Contains returns if an account is part of this particular wallet or not.
 func (w *Wallet) Contains(account accounts.Account) bool {
 	if pairing := w.Hub.pairing(w); pairing != nil {
 		_, ok := pairing.Accounts[account.Address]
@@ -792,7 +792,7 @@ func (w *Wallet) findAccountPath(account accounts.Account) (accounts.DerivationP
 type Session struct {
 	Wallet   *Wallet               // A handle to the wallet that opened the session
 	Channel  *SecureChannelSession // A secure channel for encrypted messages
-	verified bool                  // Whether the pin has been verified in this session.
+	verified bool                  // If the pin has been verified in this session.
 }
 
 // pair establishes a new pairing over this channel, using the provided secret.
@@ -861,7 +861,7 @@ func (s *Session) authenticate(pairing smartcardPairing) error {
 type walletStatus struct {
 	PinRetryCount int  // Number of remaining PIN retries
 	PukRetryCount int  // Number of remaining PUK retries
-	Initialized   bool // Whether the card has been initialized with a private key
+	Initialized   bool // If the card has been initialized with a private key
 }
 
 // walletStatus fetches the wallet's status from the card.

@@ -32,7 +32,7 @@ type lesEntry struct {
 
 func (lesEntry) ENRKey() string { return "les" }
 
-// ethEntry is the "eth" ENR entry. This is redeclared here to avoid depending on package eth.
+// ethEntry is the "eth" ENR entry. This is redeclared here to avoid depending on package high.
 type ethEntry struct {
 	ForkID forkid.ID
 	_      []rlp.RawValue `rlp:"tail"`
@@ -45,9 +45,9 @@ func (eth *LightHighcoin) setupDiscovery(cfg *p2p.Config) (enode.Iterator, error
 	it := enode.NewFairMix(0)
 
 	// Enable DNS discovery.
-	if len(eth.config.EthDiscoveryURLs) != 0 {
+	if len(high.config.HighDiscoveryURLs) != 0 {
 		client := dnsdisc.NewClient(dnsdisc.Config{})
-		dns, err := client.NewIterator(eth.config.EthDiscoveryURLs...)
+		dns, err := client.NewIterator(high.config.HighDiscoveryURLs...)
 		if err != nil {
 			return nil, err
 		}
@@ -55,18 +55,18 @@ func (eth *LightHighcoin) setupDiscovery(cfg *p2p.Config) (enode.Iterator, error
 	}
 
 	// Enable DHT.
-	if cfg.DiscoveryV5 && eth.p2pServer.DiscV5 != nil {
-		it.AddSource(eth.p2pServer.DiscV5.RandomNodes())
+	if cfg.DiscoveryV5 && high.p2pServer.DiscV5 != nil {
+		it.AddSource(high.p2pServer.DiscV5.RandomNodes())
 	}
 
-	forkFilter := forkid.NewFilter(eth.blockchain)
+	forkFilter := forkid.NewFilter(high.blockchain)
 	iterator := enode.Filter(it, func(n *enode.Node) bool { return nodeIsServer(forkFilter, n) })
 	return iterator, nil
 }
 
-// nodeIsServer checks whether n is an LES server node.
+// nodeIsServer checks if n is an LES server node.
 func nodeIsServer(forkFilter forkid.Filter, n *enode.Node) bool {
 	var les lesEntry
 	var eth ethEntry
-	return n.Load(&les) == nil && n.Load(&eth) == nil && forkFilter(eth.ForkID) == nil
+	return n.Load(&les) == nil && n.Load(&eth) == nil && forkFilter(high.ForkID) == nil
 }

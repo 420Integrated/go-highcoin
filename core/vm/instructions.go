@@ -403,7 +403,7 @@ func opExtCodeCopy(pc *uint64, interpreter *EVMInterpreter, callContext *callCtx
 // should be zero or emptyCodeHash.
 //
 // It is worth noting that in order to avoid unnecessary create and clean,
-// all precompile accounts on mainnet have been transferred 1 wei, so the return
+// all precompile accounts on mainnet have been transferred 1 marley, so the return
 // here should be emptyCodeHash.
 // If the precompile account is not transferred any amount on a private or
 // customized chain, the return value will be zero.
@@ -685,7 +685,7 @@ func opCall(pc *uint64, interpreter *EVMInterpreter, callContext *callCtx) ([]by
 
 	var bigVal = big0
 	//TODO: use uint256.Int instead of converting with toBig()
-	// By using big0 here, we save an alloc for the most common case (non-ether-transferring contract calls),
+	// By using big0 here, we save an alloc for the most common case (non-highcoin-transferring contract calls),
 	// but it would make more sense to extend the usage of uint256.Int
 	if !value.IsZero() {
 		gas += params.CallStipend

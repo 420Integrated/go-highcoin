@@ -30,7 +30,7 @@ import (
 
 // stateAtBlock retrieves the state database associated with a certain block.
 func (leth *LightHighcoin) stateAtBlock(ctx context.Context, block *types.Block, reexec uint64) (*state.StateDB, func(), error) {
-	return light.NewState(ctx, block.Header(), leth.odr), func() {}, nil
+	return light.NewState(ctx, block.Header(), lhigh.odr), func() {}, nil
 }
 
 // statesInRange retrieves a batch of state databases associated with the specific
@@ -38,11 +38,11 @@ func (leth *LightHighcoin) stateAtBlock(ctx context.Context, block *types.Block,
 func (leth *LightHighcoin) statesInRange(ctx context.Context, fromBlock *types.Block, toBlock *types.Block, reexec uint64) ([]*state.StateDB, func(), error) {
 	var states []*state.StateDB
 	for number := fromBlock.NumberU64(); number <= toBlock.NumberU64(); number++ {
-		header, err := leth.blockchain.GetHeaderByNumberOdr(ctx, number)
+		header, err := lhigh.blockchain.GetHeaderByNumberOdr(ctx, number)
 		if err != nil {
 			return nil, nil, err
 		}
-		states = append(states, light.NewState(ctx, header, leth.odr))
+		states = append(states, light.NewState(ctx, header, lhigh.odr))
 	}
 	return states, nil, nil
 }
@@ -54,11 +54,11 @@ func (leth *LightHighcoin) stateAtTransaction(ctx context.Context, block *types.
 		return nil, vm.BlockContext{}, nil, nil, errors.New("no transaction in genesis")
 	}
 	// Create the parent state database
-	parent, err := leth.blockchain.GetBlock(ctx, block.ParentHash(), block.NumberU64()-1)
+	parent, err := lhigh.blockchain.GetBlock(ctx, block.ParentHash(), block.NumberU64()-1)
 	if err != nil {
 		return nil, vm.BlockContext{}, nil, nil, err
 	}
-	statedb, _, err := leth.stateAtBlock(ctx, parent, reexec)
+	statedb, _, err := lhigh.stateAtBlock(ctx, parent, reexec)
 	if err != nil {
 		return nil, vm.BlockContext{}, nil, nil, err
 	}
@@ -66,17 +66,17 @@ func (leth *LightHighcoin) stateAtTransaction(ctx context.Context, block *types.
 		return nil, vm.BlockContext{}, statedb, func() {}, nil
 	}
 	// Recompute transactions up to the target index.
-	signer := types.MakeSigner(leth.blockchain.Config(), block.Number())
+	signer := types.MakeSigner(lhigh.blockchain.Config(), block.Number())
 	for idx, tx := range block.Transactions() {
 		// Assemble the transaction call message and return if the requested offset
 		msg, _ := tx.AsMessage(signer)
 		txContext := core.NewEVMTxContext(msg)
-		context := core.NewEVMBlockContext(block.Header(), leth.blockchain, nil)
+		context := core.NewEVMBlockContext(block.Header(), lhigh.blockchain, nil)
 		if idx == txIndex {
 			return msg, context, statedb, func() {}, nil
 		}
 		// Not yet the searched for transaction, execute on top of the current state
-		vmenv := vm.NewEVM(context, txContext, statedb, leth.blockchain.Config(), vm.Config{})
+		vmenv := vm.NewEVM(context, txContext, statedb, lhigh.blockchain.Config(), vm.Config{})
 		if _, err := core.ApplyMessage(vmenv, msg, new(core.GasPool).AddGas(tx.Gas())); err != nil {
 			return nil, vm.BlockContext{}, nil, nil, fmt.Errorf("transaction %#x failed: %v", tx.Hash(), err)
 		}

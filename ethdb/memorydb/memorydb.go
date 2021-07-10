@@ -266,7 +266,7 @@ type iterator struct {
 	values [][]byte
 }
 
-// Next moves the iterator to the next key/value pair. It returns whether the
+// Next moves the iterator to the next key/value pair. It returns if the
 // iterator is exhausted.
 func (it *iterator) Next() bool {
 	// If the iterator was not yet initialized, do it now

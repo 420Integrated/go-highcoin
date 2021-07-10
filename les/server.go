@@ -65,7 +65,7 @@ type LesServer struct {
 	lesCommons
 
 	ns          *nodestate.NodeStateMachine
-	archiveMode bool // Flag whether the highcoin node runs in archive mode.
+	archiveMode bool // Flag if the highcoin node runs in archive mode.
 	handler     *serverHandler
 	broadcaster *broadcaster
 	privateKey  *ecdsa.PrivateKey

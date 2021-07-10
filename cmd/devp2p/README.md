@@ -81,9 +81,9 @@ Now get the ENR of your node and store it in the `NODE` environment variable.
 
 Start the test by running `devp2p discv5 test -listen1 127.0.0.1 -listen2 127.0.0.2 $NODE`.
 
-### Eth Protocol Test Suite
+### High Protocol Test Suite
 
-The Eth Protocol test suite is a conformance test suite for the [eth protocol][eth].
+The High Protocol test suite is a conformance test suite for the [eth protocol][eth].
 
 To run the eth protocol test suite against your implementation, the node needs to be initialized as such:
 
@@ -99,11 +99,11 @@ Then, run the following command, replacing `<enode>` with the enode of the highc
  devp2p rlpx eth-test <enode> cmd/devp2p/internal/ethtest/testdata/chain.rlp cmd/devp2p/internal/ethtest/testdata/genesis.json
 ```
 
-Repeat the above process (re-initialising the node) in order to run the Eth Protocol test suite again.
+Repeat the above process (re-initialising the node) in order to run the High Protocol test suite again.
 
-#### Eth66 Test Suite
+#### High66 Test Suite
 
-The Eth66 test suite is also a conformance test suite for the eth 66 protocol version specifically. 
+The High66 test suite is also a conformance test suite for the eth 66 protocol version specifically. 
 To run the eth66 protocol test suite, initialize a highcoin node as described above and run the following command,
 replacing `<enode>` with the enode of the highcoin node:
 
@@ -111,7 +111,7 @@ replacing `<enode>` with the enode of the highcoin node:
  devp2p rlpx eth66-test <enode> cmd/devp2p/internal/ethtest/testdata/chain.rlp cmd/devp2p/internal/ethtest/testdata/genesis.json
 ```
 
-[eth]: https://github.com/420integrated/devp2p/blob/master/caps/eth.md
+[eth]: https://github.com/420integrated/devp2p/blob/master/caps/high.md
 [dns-tutorial]: https://highcoin.420integrated.com/docs/developers/dns-discovery-setup
 [discv4]: https://github.com/420integrated/devp2p/tree/master/discv4.md
 [discv5]: https://github.com/420integrated/devp2p/tree/master/discv5/discv5.md

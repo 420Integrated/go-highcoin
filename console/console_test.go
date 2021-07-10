@@ -27,7 +27,7 @@ import (
 	"time"
 
 	"github.com/420integrated/go-highcoin/common"
-	"github.com/420integrated/go-highcoin/consensus/ethash"
+	"github.com/420integrated/go-highcoin/consensus/othash"
 	"github.com/420integrated/go-highcoin/console/prompt"
 	"github.com/420integrated/go-highcoin/core"
 	"github.com/420integrated/go-highcoin/eth"
@@ -78,7 +78,7 @@ func (p *hookedPrompter) SetWordCompleter(completer prompt.WordCompleter) {}
 type tester struct {
 	workspace string
 	stack     *node.Node
-	highcoin  *eth.Highcoin
+	highcoin  *high.Highcoin
 	console   *Console
 	input     *hookedPrompter
 	output    *bytes.Buffer
@@ -101,16 +101,16 @@ func newTester(t *testing.T, confOverride func(*ethconfig.Config)) *tester {
 	ethConf := &ethconfig.Config{
 		Genesis: core.DeveloperGenesisBlock(15, common.Address{}),
 		Miner: miner.Config{
-			Etherbase: common.HexToAddress(testAddress),
+			Highcoinbase: common.HexToAddress(testAddress),
 		},
-		Ethash: ethash.Config{
-			PowMode: ethash.ModeTest,
+		Ethash: othash.Config{
+			PowMode: othash.ModeTest,
 		},
 	}
 	if confOverride != nil {
 		confOverride(ethConf)
 	}
-	ethBackend, err := eth.New(stack, ethConf)
+	ethBackend, err := high.New(stack, ethConf)
 	if err != nil {
 		t.Fatalf("failed to register Highcoin protocol: %v", err)
 	}

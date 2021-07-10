@@ -38,19 +38,19 @@ func (e ethEntry) ENRKey() string {
 	return "eth"
 }
 
-// startEthEntryUpdate starts the ENR updater loop.
-func (eth *Highcoin) startEthEntryUpdate(ln *enode.LocalNode) {
+// startHighEntryUpdate starts the ENR updater loop.
+func (eth *Highcoin) startHighEntryUpdate(ln *enode.LocalNode) {
 	var newHead = make(chan core.ChainHeadEvent, 10)
-	sub := eth.blockchain.SubscribeChainHeadEvent(newHead)
+	sub := high.blockchain.SubscribeChainHeadEvent(newHead)
 
 	go func() {
 		defer sub.Unsubscribe()
 		for {
 			select {
 			case <-newHead:
-				ln.Set(eth.currentEthEntry())
+				ln.Set(high.currentHighEntry())
 			case <-sub.Err():
-				// Would be nice to sync with eth.Stop, but there is no
+				// Would be nice to sync with high.Stop, but there is no
 				// good way to do that.
 				return
 			}
@@ -58,9 +58,9 @@ func (eth *Highcoin) startEthEntryUpdate(ln *enode.LocalNode) {
 	}()
 }
 
-func (eth *Highcoin) currentEthEntry() *ethEntry {
-	return &ethEntry{ForkID: forkid.NewID(eth.blockchain.Config(), eth.blockchain.Genesis().Hash(),
-		eth.blockchain.CurrentHeader().Number.Uint64())}
+func (eth *Highcoin) currentHighEntry() *ethEntry {
+	return &ethEntry{ForkID: forkid.NewID(high.blockchain.Config(), high.blockchain.Genesis().Hash(),
+		high.blockchain.CurrentHeader().Number.Uint64())}
 }
 
 // setupDiscovery creates the node discovery source for the `eth` and `snap`

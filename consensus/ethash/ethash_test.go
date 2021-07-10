@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-highcoin library. If not, see <http://www.gnu.org/licenses/>.
 
-package ethash
+package othash
 
 import (
 	"io/ioutil"
@@ -30,15 +30,15 @@ import (
 	"github.com/420integrated/go-highcoin/core/types"
 )
 
-// Tests that ethash works correctly in test mode.
+// Tests that othash works correctly in test mode.
 func TestTestMode(t *testing.T) {
 	header := &types.Header{Number: big.NewInt(1), Difficulty: big.NewInt(100)}
 
-	ethash := NewTester(nil, false)
-	defer ethash.Close()
+	othash := NewTester(nil, false)
+	defer othash.Close()
 
 	results := make(chan *types.Block)
-	err := ethash.Seal(nil, types.NewBlockWithHeader(header), results, nil)
+	err := othash.Seal(nil, types.NewBlockWithHeader(header), results, nil)
 	if err != nil {
 		t.Fatalf("failed to seal block: %v", err)
 	}
@@ -46,7 +46,7 @@ func TestTestMode(t *testing.T) {
 	case block := <-results:
 		header.Nonce = types.EncodeNonce(block.Nonce())
 		header.MixDigest = block.MixDigest()
-		if err := ethash.verifySeal(nil, header, false); err != nil {
+		if err := othash.verifySeal(nil, header, false); err != nil {
 			t.Fatalf("unexpected verification error: %v", err)
 		}
 	case <-time.NewTimer(4 * time.Second).C:
@@ -57,7 +57,7 @@ func TestTestMode(t *testing.T) {
 // This test checks that cache lru logic doesn't crash under load.
 // It reproduces https://github.com/420integrated/go-highcoin/issues/14943
 func TestCacheFileEvict(t *testing.T) {
-	tmpdir, err := ioutil.TempDir("", "ethash-test")
+	tmpdir, err := ioutil.TempDir("", "othash-test")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -91,20 +91,20 @@ func verifyTest(wg *sync.WaitGroup, e *Ethash, workerIndex, epochs int) {
 }
 
 func TestRemoteSealer(t *testing.T) {
-	ethash := NewTester(nil, false)
-	defer ethash.Close()
+	othash := NewTester(nil, false)
+	defer othash.Close()
 
-	api := &API{ethash}
+	api := &API{othash}
 	if _, err := api.GetWork(); err != errNoMiningWork {
 		t.Error("expect to return an error indicate there is no mining work")
 	}
 	header := &types.Header{Number: big.NewInt(1), Difficulty: big.NewInt(100)}
 	block := types.NewBlockWithHeader(header)
-	sealhash := ethash.SealHash(header)
+	sealhash := othash.SealHash(header)
 
 	// Push new work.
 	results := make(chan *types.Block)
-	ethash.Seal(nil, block, results, nil)
+	othash.Seal(nil, block, results, nil)
 
 	var (
 		work [4]string
@@ -120,8 +120,8 @@ func TestRemoteSealer(t *testing.T) {
 	// Push new block with same block number to replace the original one.
 	header = &types.Header{Number: big.NewInt(1), Difficulty: big.NewInt(1000)}
 	block = types.NewBlockWithHeader(header)
-	sealhash = ethash.SealHash(header)
-	ethash.Seal(nil, block, results, nil)
+	sealhash = othash.SealHash(header)
+	othash.Seal(nil, block, results, nil)
 
 	if work, err = api.GetWork(); err != nil || work[0] != sealhash.Hex() {
 		t.Error("expect to return the latest pushed work")
@@ -134,36 +134,36 @@ func TestHashRate(t *testing.T) {
 		expect   uint64
 		ids      = []common.Hash{common.HexToHash("a"), common.HexToHash("b"), common.HexToHash("c")}
 	)
-	ethash := NewTester(nil, false)
-	defer ethash.Close()
+	othash := NewTester(nil, false)
+	defer othash.Close()
 
-	if tot := ethash.Hashrate(); tot != 0 {
+	if tot := othash.Hashrate(); tot != 0 {
 		t.Error("expect the result should be zero")
 	}
 
-	api := &API{ethash}
+	api := &API{othash}
 	for i := 0; i < len(hashrate); i += 1 {
 		if res := api.SubmitHashRate(hashrate[i], ids[i]); !res {
 			t.Error("remote miner submit hashrate failed")
 		}
 		expect += uint64(hashrate[i])
 	}
-	if tot := ethash.Hashrate(); tot != float64(expect) {
+	if tot := othash.Hashrate(); tot != float64(expect) {
 		t.Error("expect total hashrate should be same")
 	}
 }
 
 func TestClosedRemoteSealer(t *testing.T) {
-	ethash := NewTester(nil, false)
+	othash := NewTester(nil, false)
 	time.Sleep(1 * time.Second) // ensure exit channel is listening
-	ethash.Close()
+	othash.Close()
 
-	api := &API{ethash}
+	api := &API{othash}
 	if _, err := api.GetWork(); err != errEthashStopped {
-		t.Error("expect to return an error to indicate ethash is stopped")
+		t.Error("expect to return an error to indicate othash is stopped")
 	}
 
 	if res := api.SubmitHashRate(hexutil.Uint64(100), common.HexToHash("a")); res {
-		t.Error("expect to return false when submit hashrate to a stopped ethash")
+		t.Error("expect to return false when submit hashrate to a stopped othash")
 	}
 }

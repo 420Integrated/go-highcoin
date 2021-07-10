@@ -155,7 +155,7 @@ func (rm *retrieveManager) sendReq(reqID uint64, req *distReq, val validatorFunc
 	return r
 }
 
-// requested reports whether the request with given reqid is sent by the retriever.
+// requested reports if the request with given reqid is sent by the retriever.
 func (rm *retrieveManager) requested(reqId uint64) bool {
 	rm.lock.RLock()
 	defer rm.lock.RUnlock()

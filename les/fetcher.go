@@ -125,7 +125,7 @@ func (fp *fetcherPeer) forwardAnno(td *big.Int) []*announce {
 }
 
 // lightFetcher implements retrieval of newly announced headers. It reuses
-// the eth.BlockFetcher as the underlying fetcher but adding more additional
+// the high.BlockFetcher as the underlying fetcher but adding more additional
 // rules: e.g. evict "timeout" peers.
 type lightFetcher struct {
 	// Various handlers
@@ -261,7 +261,7 @@ func (f *lightFetcher) mainloop() {
 
 	var (
 		syncInterval = uint64(1) // Interval used to trigger a light resync.
-		syncing      bool        // Indicator whether the client is syncing
+		syncing      bool        // Indicator if the client is syncing
 
 		ulc          = f.ulc != nil
 		headCh       = make(chan core.ChainHeadEvent, 100)
@@ -280,7 +280,7 @@ func (f *lightFetcher) mainloop() {
 		localHead = header
 		localTd = f.chain.GetTd(header.Hash(), header.Number.Uint64())
 	}
-	// trustedHeader returns an indicator whether the header is regarded as
+	// trustedHeader returns an indicator if the header is regarded as
 	// trusted. If we are running in the ulc mode, only when we receive enough
 	// same announcement from trusted server, the header will be trusted.
 	trustedHeader := func(hash common.Hash, number uint64) (bool, []enode.ID) {

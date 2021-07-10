@@ -162,7 +162,7 @@ func (m *txSortedMap) Cap(threshold int) types.Transactions {
 	return drops
 }
 
-// Remove deletes a transaction from the maintained map, returning whether the
+// Remove deletes a transaction from the maintained map, returning if the
 // transaction was found.
 func (m *txSortedMap) Remove(nonce uint64) bool {
 	// Short circuit if no transaction is present
@@ -247,7 +247,7 @@ func (m *txSortedMap) LastElement() *types.Transaction {
 // the executable/pending queue; and for storing gapped transactions for the non-
 // executable/future queue, with minor behavioral changes.
 type txList struct {
-	strict bool         // Whether nonces are strictly continuous or not
+	strict bool         // If nonces are strictly continuous or not
 	txs    *txSortedMap // Heap indexed sorted hash map of the transactions
 
 	costcap *big.Int // Price of the highest costing transaction (reset only if exceeds balance)
@@ -264,13 +264,13 @@ func newTxList(strict bool) *txList {
 	}
 }
 
-// Overlaps returns whether the transaction specified has the same nonce as one
+// Overlaps returns if the transaction specified has the same nonce as one
 // already contained within the list.
 func (l *txList) Overlaps(tx *types.Transaction) bool {
 	return l.txs.Get(tx.Nonce()) != nil
 }
 
-// Add tries to insert a new transaction into the list, returning whether the
+// Add tries to insert a new transaction into the list, returning if the
 // transaction was accepted, and if yes, any previous transaction it replaced.
 //
 // If the new transaction is accepted into the list, the lists' cost and gas
@@ -286,7 +286,7 @@ func (l *txList) Add(tx *types.Transaction, priceBump uint64) (bool, *types.Tran
 		threshold := a.Div(a, b)
 		// Have to ensure that the new gas price is higher than the old gas
 		// price as well as checking the percentage threshold to ensure that
-		// this is accurate for low (Wei-level) gas price replacements
+		// this is accurate for low (Marleys-level) gas price replacements
 		if old.GasPriceCmp(tx) >= 0 || tx.GasPriceIntCmp(threshold) < 0 {
 			return false, nil
 		}
@@ -355,7 +355,7 @@ func (l *txList) Cap(threshold int) types.Transactions {
 	return l.txs.Cap(threshold)
 }
 
-// Remove deletes a transaction from the maintained list, returning whether the
+// Remove deletes a transaction from the maintained list, returning if the
 // transaction was found, and also returning any transaction invalidated due to
 // the deletion (strict mode only).
 func (l *txList) Remove(tx *types.Transaction) (bool, types.Transactions) {
@@ -387,7 +387,7 @@ func (l *txList) Len() int {
 	return l.txs.Len()
 }
 
-// Empty returns whether the list of transactions is empty or not.
+// Empty returns if the list of transactions is empty or not.
 func (l *txList) Empty() bool {
 	return l.Len() == 0
 }
@@ -500,7 +500,7 @@ func (l *txPricedList) Cap(threshold *big.Int) types.Transactions {
 	return drop
 }
 
-// Underpriced checks whether a transaction is cheaper than (or as cheap as) the
+// Underpriced checks if a transaction is cheaper than (or as cheap as) the
 // lowest priced (remote) transaction currently being tracked.
 func (l *txPricedList) Underpriced(tx *types.Transaction) bool {
 	// Discard stale price points if found at the heap start

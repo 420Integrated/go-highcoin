@@ -25,20 +25,20 @@ import (
 	"github.com/420integrated/go-highcoin/internal/cmdtest"
 )
 
-type testEthkey struct {
+type testHighkey struct {
 	*cmdtest.TestCmd
 }
 
 // spawns ethkey with the given command line args.
-func runEthkey(t *testing.T, args ...string) *testEthkey {
-	tt := new(testEthkey)
+func runHighkey(t *testing.T, args ...string) *testHighkey {
+	tt := new(testHighkey)
 	tt.TestCmd = cmdtest.NewTestCmd(t, tt)
 	tt.Run("ethkey-test", args...)
 	return tt
 }
 
 func TestMain(m *testing.M) {
-	// Run the app if we've been exec'd as "ethkey-test" in runEthkey.
+	// Run the app if we've been exec'd as "ethkey-test" in runHighkey.
 	reexec.Register("ethkey-test", func() {
 		if err := app.Run(os.Args); err != nil {
 			fmt.Fprintln(os.Stderr, err)

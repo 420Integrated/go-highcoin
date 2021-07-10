@@ -178,7 +178,7 @@ func ethFilter(args []string) (nodeFilter, error) {
 		if n.N.Load(enr.WithEntry("eth", &eth)) != nil {
 			return false
 		}
-		return filter(eth.ForkID) == nil
+		return filter(high.ForkID) == nil
 	}
 	return f, nil
 }

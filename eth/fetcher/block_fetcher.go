@@ -154,7 +154,7 @@ func (inject *blockOrHeaderInject) hash() common.Hash {
 // BlockFetcher is responsible for accumulating block announcements from various peers
 // and scheduling them for retrieval.
 type BlockFetcher struct {
-	light bool // The indicator whether it's a light fetcher or normal one.
+	light bool // The indicator if it's a light fetcher or normal one.
 
 	// Various event channels
 	notify chan *blockAnnounce

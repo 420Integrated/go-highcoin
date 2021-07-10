@@ -260,7 +260,7 @@ func (bt *BalanceTracker) storeBalance(id []byte, neg bool, value utils.ExpiredV
 	}
 }
 
-// canDropBalance tells whether a positive or negative balance is below the threshold
+// canDropBalance tells if a positive or negative balance is below the threshold
 // and therefore can be dropped from the database
 func (bt *BalanceTracker) canDropBalance(now mclock.AbsTime, neg bool, b utils.ExpiredValue) bool {
 	if neg {

@@ -36,7 +36,7 @@ func PrintOrigins(print bool) {
 	}
 }
 
-// locationEnabled is an atomic flag controlling whether the terminal formatter
+// locationEnabled is an atomic flag controlling if the terminal formatter
 // should append the log locations too when printing entries.
 var locationEnabled uint32
 

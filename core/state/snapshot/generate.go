@@ -60,7 +60,7 @@ func (gs *generatorStats) Log(msg string, root common.Hash, marker []byte) {
 	if root != (common.Hash{}) {
 		ctx = append(ctx, []interface{}{"root", root}...)
 	}
-	// Figure out whether we're after or within an account
+	// Figure out if we're after or within an account
 	switch len(marker) {
 	case common.HashLength:
 		ctx = append(ctx, []interface{}{"at", common.BytesToHash(marker)}...)
