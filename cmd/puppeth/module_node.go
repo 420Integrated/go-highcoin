@@ -42,7 +42,7 @@ ADD genesis.json /genesis.json
 RUN \
   echo 'highcoin --cache 512 init /genesis.json' > highcoin.sh && \{{if .Unlock}}
 	echo 'mkdir -p /root/.highcoin/keystore/ && cp /signer.json /root/.highcoin/keystore/' >> highcoin.sh && \{{end}}
-	echo $'exec highcoin --networkid {{.NetworkID}} --cache 512 --port {{.Port}} --nat extip:{{.IP}} --maxpeers {{.Peers}} {{.LightFlag}} --ethstats \'{{.Highstats}}\' {{if .Bootnodes}}--bootnodes {{.Bootnodes}}{{end}} {{if .Highcoinbase}}--miner.highcoinbase {{.Highcoinbase}} --mine --miner.threads 1{{end}} {{if .Unlock}}--unlock 0 --password /signer.pass --mine{{end}} --miner.gastarget {{.GasTarget}} --miner.gaslimit {{.GasLimit}} --miner.gasprice {{.GasPrice}}' >> highcoin.sh
+	echo $'exec highcoin --networkid {{.NetworkID}} --cache 512 --port {{.Port}} --nat extip:{{.IP}} --maxpeers {{.Peers}} {{.LightFlag}} --highstats \'{{.Highstats}}\' {{if .Bootnodes}}--bootnodes {{.Bootnodes}}{{end}} {{if .Highcoinbase}}--miner.highcoinbase {{.Highcoinbase}} --mine --miner.threads 1{{end}} {{if .Unlock}}--unlock 0 --password /signer.pass --mine{{end}} --miner.smoketarget {{.SmokeTarget}} --miner.smokelimit {{.SmokeLimit}} --miner.smokeprice {{.SmokePrice}}' >> highcoin.sh
 
 ENTRYPOINT ["/bin/sh", "highcoin.sh"]
 `
@@ -61,16 +61,16 @@ services:
       - "{{.Port}}:{{.Port}}/udp"
     volumes:
       - {{.Datadir}}:/root/.highcoin{{if .Ethashdir}}
-      - {{.Ethashdir}}:/root/.othash{{end}}
+      - {{.Ethashdir}}:/root/.ethash{{end}}
     environment:
       - PORT={{.Port}}/tcp
       - TOTAL_PEERS={{.TotalPeers}}
       - LIGHT_PEERS={{.LightPeers}}
       - STATS_NAME={{.Highstats}}
       - MINER_NAME={{.Highcoinbase}}
-      - GAS_TARGET={{.GasTarget}}
-      - GAS_LIMIT={{.GasLimit}}
-      - GAS_PRICE={{.GasPrice}}
+      - SMOKE_TARGET={{.SmokeTarget}}
+      - SMOKE_LIMIT={{.SmokeLimit}}
+      - SMOKE_PRICE={{.SmokePrice}}
     logging:
       driver: "json-file"
       options:
@@ -106,9 +106,9 @@ func deployNode(client *sshClient, network string, bootnodes []string, config *n
 		"Bootnodes": strings.Join(bootnodes, ","),
 		"Highstats":  config.highstats,
 		"Highcoinbase": config.highcoinbase,
-		"GasTarget": uint64(1000000 * config.gasTarget),
-		"GasLimit":  uint64(1000000 * config.gasLimit),
-		"GasPrice":  uint64(1000000000 * config.gasPrice),
+		"SmokeTarget": uint64(1000000 * config.smokeTarget),
+		"SmokeLimit":  uint64(1000000 * config.smokeLimit),
+		"SmokePrice":  uint64(1000000000 * config.smokePrice),
 		"Unlock":    config.keyJSON != "",
 	})
 	files[filepath.Join(workdir, "Dockerfile")] = dockerfile.Bytes()
@@ -117,7 +117,7 @@ func deployNode(client *sshClient, network string, bootnodes []string, config *n
 	template.Must(template.New("").Parse(nodeComposefile)).Execute(composefile, map[string]interface{}{
 		"Type":       kind,
 		"Datadir":    config.datadir,
-		"Ethashdir":  config.othashdir,
+		"Ethashdir":  config.ethashdir,
 		"Network":    network,
 		"Port":       config.port,
 		"TotalPeers": config.peersTotal,
@@ -125,9 +125,9 @@ func deployNode(client *sshClient, network string, bootnodes []string, config *n
 		"LightPeers": config.peersLight,
 		"Highstats":   config.highstats[:strings.Index(config.highstats, ":")],
 		"Highcoinbase":  config.highcoinbase,
-		"GasTarget":  config.gasTarget,
-		"GasLimit":   config.gasLimit,
-		"GasPrice":   config.gasPrice,
+		"SmokeTarget":  config.smokeTarget,
+		"SmokeLimit":   config.smokeLimit,
+		"SmokePrice":   config.smokePrice,
 	})
 	files[filepath.Join(workdir, "docker-compose.yaml")] = composefile.Bytes()
 
@@ -155,8 +155,8 @@ type nodeInfos struct {
 	genesis    []byte
 	network    int64
 	datadir    string
-	othashdir  string
-	ethstats   string
+	ethashdir  string
+	highstats   string
 	port       int
 	enode      string
 	peersTotal int
@@ -164,9 +164,9 @@ type nodeInfos struct {
 	highcoinbase  string
 	keyJSON    string
 	keyPass    string
-	gasTarget  float64
-	gasLimit   float64
-	gasPrice   float64
+	smokeTarget  float64
+	smokeLimit   float64
+	smokePrice   float64
 }
 
 // Report converts the typed struct into a plain string->string map, containing
@@ -179,15 +179,15 @@ func (info *nodeInfos) Report() map[string]string {
 		"Peer count (light nodes)": strconv.Itoa(info.peersLight),
 		"Highstats username":        info.highstats,
 	}
-	if info.gasTarget > 0 {
+	if info.smokeTarget > 0 {
 		// Miner or signer node
-		report["Gas price (minimum accepted)"] = fmt.Sprintf("%0.3f GMarleys", info.gasPrice)
-		report["Gas floor (baseline target)"] = fmt.Sprintf("%0.3f MGas", info.gasTarget)
-		report["Gas ceil  (target maximum)"] = fmt.Sprintf("%0.3f MGas", info.gasLimit)
+		report["Smoke price (minimum accepted)"] = fmt.Sprintf("%0.3f GMarleys", info.smokePrice)
+		report["Smoke floor (baseline target)"] = fmt.Sprintf("%0.3f MSmoke", info.smokeTarget)
+		report["Smoke ceil  (target maximum)"] = fmt.Sprintf("%0.3f MSmoke", info.smokeLimit)
 
 		if info.highcoinbase != "" {
 			// Ethash proof-of-work miner
-			report["Ethash directory"] = info.othashdir
+			report["Ethash directory"] = info.ethashdir
 			report["Miner account"] = info.highcoinbase
 		}
 		if info.keyJSON != "" {
@@ -223,9 +223,9 @@ func checkNode(client *sshClient, network string, boot bool) (*nodeInfos, error)
 	// Resolve a few types from the environmental variables
 	totalPeers, _ := strconv.Atoi(infos.envvars["TOTAL_PEERS"])
 	lightPeers, _ := strconv.Atoi(infos.envvars["LIGHT_PEERS"])
-	gasTarget, _ := strconv.ParseFloat(infos.envvars["GAS_TARGET"], 64)
-	gasLimit, _ := strconv.ParseFloat(infos.envvars["GAS_LIMIT"], 64)
-	gasPrice, _ := strconv.ParseFloat(infos.envvars["GAS_PRICE"], 64)
+	smokeTarget, _ := strconv.ParseFloat(infos.envvars["SMOKE_TARGET"], 64)
+	smokeLimit, _ := strconv.ParseFloat(infos.envvars["SMOKE_LIMIT"], 64)
+	smokePrice, _ := strconv.ParseFloat(infos.envvars["SMOKE_PRICE"], 64)
 
 	// Container available, retrieve its node ID and its genesis json
 	var out []byte
@@ -255,17 +255,17 @@ func checkNode(client *sshClient, network string, boot bool) (*nodeInfos, error)
 	stats := &nodeInfos{
 		genesis:    genesis,
 		datadir:    infos.volumes["/root/.highcoin"],
-		othashdir:  infos.volumes["/root/.othash"],
+		ethashdir:  infos.volumes["/root/.ethash"],
 		port:       port,
 		peersTotal: totalPeers,
 		peersLight: lightPeers,
-		ethstats:   infos.envvars["STATS_NAME"],
+		highstats:   infos.envvars["STATS_NAME"],
 		highcoinbase:  infos.envvars["MINER_NAME"],
 		keyJSON:    keyJSON,
 		keyPass:    keyPass,
-		gasTarget:  gasTarget,
-		gasLimit:   gasLimit,
-		gasPrice:   gasPrice,
+		smokeTarget:  smokeTarget,
+		smokeLimit:   smokeLimit,
+		smokePrice:   smokePrice,
 	}
 	stats.enode = string(enode)
 

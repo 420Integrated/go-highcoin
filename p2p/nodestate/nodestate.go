@@ -24,7 +24,7 @@ import (
 	"unsafe"
 
 	"github.com/420integrated/go-highcoin/common/mclock"
-	"github.com/420integrated/go-highcoin/ethdb"
+	"github.com/420integrated/go-highcoin/highdb"
 	"github.com/420integrated/go-highcoin/log"
 	"github.com/420integrated/go-highcoin/metrics"
 	"github.com/420integrated/go-highcoin/p2p/enode"
@@ -65,7 +65,7 @@ type (
 		started, closed     bool
 		lock                sync.Mutex
 		clock               mclock.Clock
-		db                  ethdb.KeyValueStore
+		db                  highdb.KeyValueStore
 		dbNodeKey           []byte
 		nodes               map[enode.ID]*nodeInfo
 		offlineCallbackList []offlineCallback
@@ -317,7 +317,7 @@ func (f Flags) String() string {
 // NewNodeStateMachine creates a new node state machine.
 // If db is not nil then the node states, fields and active timeouts are persisted.
 // Persistence can be enabled or disabled for each state flag and field.
-func NewNodeStateMachine(db ethdb.KeyValueStore, dbKey []byte, clock mclock.Clock, setup *Setup) *NodeStateMachine {
+func NewNodeStateMachine(db highdb.KeyValueStore, dbKey []byte, clock mclock.Clock, setup *Setup) *NodeStateMachine {
 	if setup.flags == nil {
 		panic("No state flags defined")
 	}

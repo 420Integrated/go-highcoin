@@ -25,7 +25,7 @@ import (
 	"github.com/420integrated/go-highcoin/core"
 	"github.com/420integrated/go-highcoin/core/rawdb"
 	"github.com/420integrated/go-highcoin/core/types"
-	"github.com/420integrated/go-highcoin/ethdb"
+	"github.com/420integrated/go-highcoin/highdb"
 )
 
 // NoOdr is the default context passed to an ODR capable function when the ODR
@@ -37,7 +37,7 @@ var ErrNoPeers = errors.New("no suitable peers available")
 
 // OdrBackend is an interface to a backend service that handles ODR retrievals type
 type OdrBackend interface {
-	Database() ethdb.Database
+	Database() highdb.Database
 	ChtIndexer() *core.ChainIndexer
 	BloomTrieIndexer() *core.ChainIndexer
 	BloomIndexer() *core.ChainIndexer
@@ -48,7 +48,7 @@ type OdrBackend interface {
 
 // OdrRequest is an interface for retrieval requests
 type OdrRequest interface {
-	StoreResult(db ethdb.Database)
+	StoreResult(db highdb.Database)
 }
 
 // TrieID identifies a state or account storage trie
@@ -89,7 +89,7 @@ type TrieRequest struct {
 }
 
 // StoreResult stores the retrieved data in local database
-func (req *TrieRequest) StoreResult(db ethdb.Database) {
+func (req *TrieRequest) StoreResult(db highdb.Database) {
 	req.Proof.Store(db)
 }
 
@@ -101,7 +101,7 @@ type CodeRequest struct {
 }
 
 // StoreResult stores the retrieved data in local database
-func (req *CodeRequest) StoreResult(db ethdb.Database) {
+func (req *CodeRequest) StoreResult(db highdb.Database) {
 	rawdb.WriteCode(db, req.Hash, req.Data)
 }
 
@@ -114,7 +114,7 @@ type BlockRequest struct {
 }
 
 // StoreResult stores the retrieved data in local database
-func (req *BlockRequest) StoreResult(db ethdb.Database) {
+func (req *BlockRequest) StoreResult(db highdb.Database) {
 	rawdb.WriteBodyRLP(db, req.Hash, req.Number, req.Rlp)
 }
 
@@ -128,7 +128,7 @@ type ReceiptsRequest struct {
 }
 
 // StoreResult stores the retrieved data in local database
-func (req *ReceiptsRequest) StoreResult(db ethdb.Database) {
+func (req *ReceiptsRequest) StoreResult(db highdb.Database) {
 	if !req.Untrusted {
 		rawdb.WriteReceipts(db, req.Hash, req.Number, req.Receipts)
 	}
@@ -145,7 +145,7 @@ type ChtRequest struct {
 }
 
 // StoreResult stores the retrieved data in local database
-func (req *ChtRequest) StoreResult(db ethdb.Database) {
+func (req *ChtRequest) StoreResult(db highdb.Database) {
 	hash, num := req.Header.Hash(), req.Header.Number.Uint64()
 	rawdb.WriteHeader(db, req.Header)
 	rawdb.WriteTd(db, hash, num, req.Td)
@@ -165,7 +165,7 @@ type BloomRequest struct {
 }
 
 // StoreResult stores the retrieved data in local database
-func (req *BloomRequest) StoreResult(db ethdb.Database) {
+func (req *BloomRequest) StoreResult(db highdb.Database) {
 	for i, sectionIdx := range req.SectionIndexList {
 		sectionHead := rawdb.ReadCanonicalHash(db, (sectionIdx+1)*req.Config.BloomTrieSize-1)
 		// if we don't have the canonical hash stored for this section head number, we'll still store it under
@@ -190,4 +190,4 @@ type TxStatusRequest struct {
 }
 
 // StoreResult stores the retrieved data in local database
-func (req *TxStatusRequest) StoreResult(db ethdb.Database) {}
+func (req *TxStatusRequest) StoreResult(db highdb.Database) {}

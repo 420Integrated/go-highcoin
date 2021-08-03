@@ -28,7 +28,7 @@ import (
 	"github.com/420integrated/go-highcoin/common/math"
 	"github.com/420integrated/go-highcoin/core/rawdb"
 	"github.com/420integrated/go-highcoin/crypto"
-	"github.com/420integrated/go-highcoin/ethdb"
+	"github.com/420integrated/go-highcoin/highdb"
 	"github.com/420integrated/go-highcoin/log"
 	"github.com/420integrated/go-highcoin/rlp"
 	"github.com/420integrated/go-highcoin/trie"
@@ -94,7 +94,7 @@ func (gs *generatorStats) Log(msg string, root common.Hash, marker []byte) {
 // generateSnapshot regenerates a brand new snapshot based on an existing state
 // database and head block asynchronously. The snapshot is returned immediately
 // and generation is continued in the background until done.
-func generateSnapshot(diskdb ethdb.KeyValueStore, triedb *trie.Database, cache int, root common.Hash, wiper chan struct{}) *diskLayer {
+func generateSnapshot(diskdb highdb.KeyValueStore, triedb *trie.Database, cache int, root common.Hash, wiper chan struct{}) *diskLayer {
 	// Wipe any previously existing snapshot from the database if no wiper is
 	// currently in progress.
 	if wiper == nil {
@@ -126,7 +126,7 @@ func generateSnapshot(diskdb ethdb.KeyValueStore, triedb *trie.Database, cache i
 }
 
 // journalProgress persists the generator stats into the database to resume later.
-func journalProgress(db ethdb.KeyValueWriter, marker []byte, stats *generatorStats) {
+func journalProgress(db highdb.KeyValueWriter, marker []byte, stats *generatorStats) {
 	// Write out the generator marker. Note it's a standalone disk layer generator
 	// which is not mixed with journal. It's ok if the generator is persisted while
 	// journal is not.
@@ -227,7 +227,7 @@ func (dl *diskLayer) generate(stats *generatorStats) {
 		case abort = <-dl.genAbort:
 		default:
 		}
-		if batch.ValueSize() > ethdb.IdealBatchSize || abort != nil {
+		if batch.ValueSize() > highdb.IdealBatchSize || abort != nil {
 			// Only write and set the marker if we actually did something useful
 			if batch.ValueSize() > 0 {
 				// Ensure the generator entry is in sync with the data
@@ -272,7 +272,7 @@ func (dl *diskLayer) generate(stats *generatorStats) {
 				case abort = <-dl.genAbort:
 				default:
 				}
-				if batch.ValueSize() > ethdb.IdealBatchSize || abort != nil {
+				if batch.ValueSize() > highdb.IdealBatchSize || abort != nil {
 					// Only write and set the marker if we actually did something useful
 					if batch.ValueSize() > 0 {
 						// Ensure the generator entry is in sync with the data

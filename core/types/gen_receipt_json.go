@@ -19,12 +19,12 @@ func (r Receipt) MarshalJSON() ([]byte, error) {
 		Type              hexutil.Uint64 `json:"type,omitempty"`
 		PostState         hexutil.Bytes  `json:"root"`
 		Status            hexutil.Uint64 `json:"status"`
-		CumulativeGasUsed hexutil.Uint64 `json:"cumulativeGasUsed" gencodec:"required"`
+		CumulativeSmokeUsed hexutil.Uint64 `json:"cumulativeSmokeUsed" gencodec:"required"`
 		Bloom             Bloom          `json:"logsBloom"         gencodec:"required"`
 		Logs              []*Log         `json:"logs"              gencodec:"required"`
 		TxHash            common.Hash    `json:"transactionHash" gencodec:"required"`
 		ContractAddress   common.Address `json:"contractAddress"`
-		GasUsed           hexutil.Uint64 `json:"gasUsed" gencodec:"required"`
+		SmokeUsed           hexutil.Uint64 `json:"smokeUsed" gencodec:"required"`
 		BlockHash         common.Hash    `json:"blockHash,omitempty"`
 		BlockNumber       *hexutil.Big   `json:"blockNumber,omitempty"`
 		TransactionIndex  hexutil.Uint   `json:"transactionIndex"`
@@ -33,12 +33,12 @@ func (r Receipt) MarshalJSON() ([]byte, error) {
 	enc.Type = hexutil.Uint64(r.Type)
 	enc.PostState = r.PostState
 	enc.Status = hexutil.Uint64(r.Status)
-	enc.CumulativeGasUsed = hexutil.Uint64(r.CumulativeGasUsed)
+	enc.CumulativeSmokeUsed = hexutil.Uint64(r.CumulativeSmokeUsed)
 	enc.Bloom = r.Bloom
 	enc.Logs = r.Logs
 	enc.TxHash = r.TxHash
 	enc.ContractAddress = r.ContractAddress
-	enc.GasUsed = hexutil.Uint64(r.GasUsed)
+	enc.SmokeUsed = hexutil.Uint64(r.SmokeUsed)
 	enc.BlockHash = r.BlockHash
 	enc.BlockNumber = (*hexutil.Big)(r.BlockNumber)
 	enc.TransactionIndex = hexutil.Uint(r.TransactionIndex)
@@ -51,12 +51,12 @@ func (r *Receipt) UnmarshalJSON(input []byte) error {
 		Type              *hexutil.Uint64 `json:"type,omitempty"`
 		PostState         *hexutil.Bytes  `json:"root"`
 		Status            *hexutil.Uint64 `json:"status"`
-		CumulativeGasUsed *hexutil.Uint64 `json:"cumulativeGasUsed" gencodec:"required"`
+		CumulativeSmokeUsed *hexutil.Uint64 `json:"cumulativeSmokeUsed" gencodec:"required"`
 		Bloom             *Bloom          `json:"logsBloom"         gencodec:"required"`
 		Logs              []*Log          `json:"logs"              gencodec:"required"`
 		TxHash            *common.Hash    `json:"transactionHash" gencodec:"required"`
 		ContractAddress   *common.Address `json:"contractAddress"`
-		GasUsed           *hexutil.Uint64 `json:"gasUsed" gencodec:"required"`
+		SmokeUsed           *hexutil.Uint64 `json:"smokeUsed" gencodec:"required"`
 		BlockHash         *common.Hash    `json:"blockHash,omitempty"`
 		BlockNumber       *hexutil.Big    `json:"blockNumber,omitempty"`
 		TransactionIndex  *hexutil.Uint   `json:"transactionIndex"`
@@ -74,10 +74,10 @@ func (r *Receipt) UnmarshalJSON(input []byte) error {
 	if dec.Status != nil {
 		r.Status = uint64(*dec.Status)
 	}
-	if dec.CumulativeGasUsed == nil {
-		return errors.New("missing required field 'cumulativeGasUsed' for Receipt")
+	if dec.CumulativeSmokeUsed == nil {
+		return errors.New("missing required field 'cumulativeSmokeUsed' for Receipt")
 	}
-	r.CumulativeGasUsed = uint64(*dec.CumulativeGasUsed)
+	r.CumulativeSmokeUsed = uint64(*dec.CumulativeSmokeUsed)
 	if dec.Bloom == nil {
 		return errors.New("missing required field 'logsBloom' for Receipt")
 	}
@@ -93,10 +93,10 @@ func (r *Receipt) UnmarshalJSON(input []byte) error {
 	if dec.ContractAddress != nil {
 		r.ContractAddress = *dec.ContractAddress
 	}
-	if dec.GasUsed == nil {
-		return errors.New("missing required field 'gasUsed' for Receipt")
+	if dec.SmokeUsed == nil {
+		return errors.New("missing required field 'smokeUsed' for Receipt")
 	}
-	r.GasUsed = uint64(*dec.GasUsed)
+	r.SmokeUsed = uint64(*dec.SmokeUsed)
 	if dec.BlockHash != nil {
 		r.BlockHash = *dec.BlockHash
 	}

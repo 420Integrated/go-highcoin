@@ -28,7 +28,7 @@ import (
 	"github.com/420integrated/go-highcoin/core/rawdb"
 	"github.com/420integrated/go-highcoin/core/state"
 	"github.com/420integrated/go-highcoin/core/types"
-	"github.com/420integrated/go-highcoin/ethdb"
+	"github.com/420integrated/go-highcoin/highdb"
 	"github.com/420integrated/go-highcoin/event"
 	"github.com/420integrated/go-highcoin/log"
 	"github.com/420integrated/go-highcoin/params"
@@ -59,7 +59,7 @@ type TxPool struct {
 	mu           sync.RWMutex
 	chain        *LightChain
 	odr          OdrBackend
-	chainDb      ethdb.Database
+	chainDb      highdb.Database
 	relay        TxRelayBackend
 	head         common.Hash
 	nonce        map[common.Address]uint64            // "pending" nonce
@@ -362,10 +362,10 @@ func (pool *TxPool) validateTx(ctx context.Context, tx *types.Transaction) error
 	}
 
 	// Check the transaction doesn't exceed the current
-	// block limit gas.
+	// block limit smoke.
 	header := pool.chain.GetHeaderByHash(pool.head)
-	if header.GasLimit < tx.Gas() {
-		return core.ErrGasLimit
+	if header.SmokeLimit < tx.Smoke() {
+		return core.ErrSmokeLimit
 	}
 
 	// Transactions can't be negative. This may never happen
@@ -381,13 +381,13 @@ func (pool *TxPool) validateTx(ctx context.Context, tx *types.Transaction) error
 		return core.ErrInsufficientFunds
 	}
 
-	// Should supply enough intrinsic gas
-	gas, err := core.IntrinsicGas(tx.Data(), tx.AccessList(), tx.To() == nil, true, pool.istanbul)
+	// Should supply enough intrinsic smoke
+	smoke, err := core.IntrinsicSmoke(tx.Data(), tx.AccessList(), tx.To() == nil, true, pool.istanbul)
 	if err != nil {
 		return err
 	}
-	if tx.Gas() < gas {
-		return core.ErrIntrinsicGas
+	if tx.Smoke() < smoke {
+		return core.ErrIntrinsicSmoke
 	}
 	return currentState.Error()
 }

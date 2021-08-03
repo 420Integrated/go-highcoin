@@ -86,7 +86,7 @@ type environment struct {
 	family    mapset.Set     // family set (used for checking uncle invalidity)
 	uncles    mapset.Set     // uncle set
 	tcount    int            // tx count in cycle
-	gasPool   *core.GasPool  // available gas used to pack transactions
+	smokePool   *core.SmokePool  // available smoke used to pack transactions
 
 	header   *types.Header
 	txs      []*types.Transaction
@@ -126,7 +126,7 @@ type worker struct {
 	config      *Config
 	chainConfig *params.ChainConfig
 	engine      consensus.Engine
-	eth         Backend
+	high         Backend
 	chain       *core.BlockChain
 
 	// Feeds
@@ -187,12 +187,12 @@ type worker struct {
 	resubmitHook func(time.Duration, time.Duration) // Method to call upon updating resubmitting interval.
 }
 
-func newWorker(config *Config, chainConfig *params.ChainConfig, engine consensus.Engine, eth Backend, mux *event.TypeMux, isLocalBlock func(*types.Block) bool, init bool) *worker {
+func newWorker(config *Config, chainConfig *params.ChainConfig, engine consensus.Engine, high Backend, mux *event.TypeMux, isLocalBlock func(*types.Block) bool, init bool) *worker {
 	worker := &worker{
 		config:             config,
 		chainConfig:        chainConfig,
 		engine:             engine,
-		eth:                eth,
+		high:                high,
 		mux:                mux,
 		chain:              high.BlockChain(),
 		isLocalBlock:       isLocalBlock,
@@ -487,7 +487,7 @@ func (w *worker) mainLoop() {
 			// be automatically eliminated.
 			if !w.isRunning() && w.current != nil {
 				// If block is already full, abort
-				if gp := w.current.gasPool; gp != nil && gp.Gas() < params.TxGas {
+				if gp := w.current.smokePool; gp != nil && gp.Smoke() < params.TxSmoke {
 					continue
 				}
 				w.mu.RLock()
@@ -736,7 +736,7 @@ func (w *worker) updateSnapshot() {
 func (w *worker) commitTransaction(tx *types.Transaction, coinbase common.Address) ([]*types.Log, error) {
 	snap := w.current.state.Snapshot()
 
-	receipt, err := core.ApplyTransaction(w.chainConfig, w.chain, &coinbase, w.current.gasPool, w.current.state, w.current.header, tx, &w.current.header.GasUsed, *w.chain.GetVMConfig())
+	receipt, err := core.ApplyTransaction(w.chainConfig, w.chain, &coinbase, w.current.smokePool, w.current.state, w.current.header, tx, &w.current.header.SmokeUsed, *w.chain.GetVMConfig())
 	if err != nil {
 		w.current.state.RevertToSnapshot(snap)
 		return nil, err
@@ -753,8 +753,8 @@ func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coin
 		return true
 	}
 
-	if w.current.gasPool == nil {
-		w.current.gasPool = new(core.GasPool).AddGas(w.current.header.GasLimit)
+	if w.current.smokePool == nil {
+		w.current.smokePool = new(core.SmokePool).AddSmoke(w.current.header.SmokeLimit)
 	}
 
 	var coalescedLogs []*types.Log
@@ -769,7 +769,7 @@ func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coin
 		if interrupt != nil && atomic.LoadInt32(interrupt) != commitInterruptNone {
 			// Notify resubmit loop to increase resubmitting interval due to too frequent commits.
 			if atomic.LoadInt32(interrupt) == commitInterruptResubmit {
-				ratio := float64(w.current.header.GasLimit-w.current.gasPool.Gas()) / float64(w.current.header.GasLimit)
+				ratio := float64(w.current.header.SmokeLimit-w.current.smokePool.Smoke()) / float64(w.current.header.SmokeLimit)
 				if ratio < 0.1 {
 					ratio = 0.1
 				}
@@ -780,9 +780,9 @@ func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coin
 			}
 			return atomic.LoadInt32(interrupt) == commitInterruptNewHead
 		}
-		// If we don't have enough gas for any further transactions then we're done
-		if w.current.gasPool.Gas() < params.TxGas {
-			log.Trace("Not enough gas for further transactions", "have", w.current.gasPool, "want", params.TxGas)
+		// If we don't have enough smoke for any further transactions then we're done
+		if w.current.smokePool.Smoke() < params.TxSmoke {
+			log.Trace("Not enough smoke for further transactions", "have", w.current.smokePool, "want", params.TxSmoke)
 			break
 		}
 		// Retrieve the next transaction and abort if all done
@@ -808,9 +808,9 @@ func (w *worker) commitTransactions(txs *types.TransactionsByPriceAndNonce, coin
 
 		logs, err := w.commitTransaction(tx, coinbase)
 		switch {
-		case errors.Is(err, core.ErrGasLimitReached):
-			// Pop the current out-of-gas transaction without shifting in the next from the account
-			log.Trace("Gas limit exceeded for current block", "sender", from)
+		case errors.Is(err, core.ErrSmokeLimitReached):
+			// Pop the current out-of-smoke transaction without shifting in the next from the account
+			log.Trace("Smoke limit exceeded for current block", "sender", from)
 			txs.Pop()
 
 		case errors.Is(err, core.ErrNonceTooLow):
@@ -880,7 +880,7 @@ func (w *worker) commitNewWork(interrupt *int32, noempty bool, timestamp int64) 
 	header := &types.Header{
 		ParentHash: parent.Hash(),
 		Number:     num.Add(num, common.Big1),
-		GasLimit:   core.CalcGasLimit(parent, w.config.GasFloor, w.config.GasCeil),
+		SmokeLimit:   core.CalcSmokeLimit(parent, w.config.SmokeFloor, w.config.SmokeCeil),
 		Extra:      w.extra,
 		Time:       uint64(timestamp),
 	}
@@ -1006,7 +1006,7 @@ func (w *worker) commit(uncles []*types.Header, interval func(), update bool, st
 			w.unconfirmed.Shift(block.NumberU64() - 1)
 			log.Info("Commit new mining work", "number", block.Number(), "sealhash", w.engine.SealHash(block.Header()),
 				"uncles", len(uncles), "txs", w.current.tcount,
-				"gas", block.GasUsed(), "fees", totalFees(block, receipts),
+				"smoke", block.SmokeUsed(), "fees", totalFees(block, receipts),
 				"elapsed", common.PrettyDuration(time.Since(start)))
 
 		case <-w.exitCh:
@@ -1041,7 +1041,7 @@ func (w *worker) postSideBlock(event core.ChainSideEvent) {
 func totalFees(block *types.Block, receipts []*types.Receipt) *big.Float {
 	feesMarleys := new(big.Int)
 	for i, tx := range block.Transactions() {
-		feesMarleys.Add(feesMarleys, new(big.Int).Mul(new(big.Int).SetUint64(receipts[i].GasUsed), tx.GasPrice()))
+		feesMarleys.Add(feesMarleys, new(big.Int).Mul(new(big.Int).SetUint64(receipts[i].SmokeUsed), tx.SmokePrice()))
 	}
 	return new(big.Float).Quo(new(big.Float).SetInt(feesMarleys), new(big.Float).SetInt(big.NewInt(params.Highcoin)))
 }

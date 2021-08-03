@@ -22,7 +22,7 @@ import (
 
 	"github.com/420integrated/go-highcoin/common"
 	"github.com/420integrated/go-highcoin/consensus"
-	"github.com/420integrated/go-highcoin/consensus/othash"
+	"github.com/420integrated/go-highcoin/consensus/ethash"
 	"github.com/420integrated/go-highcoin/core/rawdb"
 	"github.com/420integrated/go-highcoin/core/types"
 	"github.com/420integrated/go-highcoin/core/vm"
@@ -45,11 +45,11 @@ func TestStateProcessorErrors(t *testing.T) {
 			Config: params.TestChainConfig,
 		}
 		genesis       = gspec.MustCommit(db)
-		blockchain, _ = NewBlockChain(db, nil, gspec.Config, othash.NewFaker(), vm.Config{}, nil, nil)
+		blockchain, _ = NewBlockChain(db, nil, gspec.Config, ethash.NewFaker(), vm.Config{}, nil, nil)
 	)
 	defer blockchain.Stop()
-	var makeTx = func(nonce uint64, to common.Address, amount *big.Int, gasLimit uint64, gasPrice *big.Int, data []byte) *types.Transaction {
-		tx, _ := types.SignTx(types.NewTransaction(nonce, to, amount, gasLimit, gasPrice, data), signer, testKey)
+	var makeTx = func(nonce uint64, to common.Address, amount *big.Int, smokeLimit uint64, smokePrice *big.Int, data []byte) *types.Transaction {
+		tx, _ := types.SignTx(types.NewTransaction(nonce, to, amount, smokeLimit, smokePrice, data), signer, testKey)
 		return tx
 	}
 	for i, tt := range []struct {
@@ -58,14 +58,14 @@ func TestStateProcessorErrors(t *testing.T) {
 	}{
 		{
 			txs: []*types.Transaction{
-				makeTx(0, common.Address{}, big.NewInt(0), params.TxGas, nil, nil),
-				makeTx(0, common.Address{}, big.NewInt(0), params.TxGas, nil, nil),
+				makeTx(0, common.Address{}, big.NewInt(0), params.TxSmoke, nil, nil),
+				makeTx(0, common.Address{}, big.NewInt(0), params.TxSmoke, nil, nil),
 			},
 			want: "could not apply tx 1 [0x36bfa6d14f1cd35a1be8cc2322982a595fabc0e799f09c1de3bad7bd5b1f7626]: nonce too low: address 0x71562b71999873DB5b286dF957af199Ec94617F7, tx: 0 state: 1",
 		},
 		{
 			txs: []*types.Transaction{
-				makeTx(100, common.Address{}, big.NewInt(0), params.TxGas, nil, nil),
+				makeTx(100, common.Address{}, big.NewInt(0), params.TxSmoke, nil, nil),
 			},
 			want: "could not apply tx 0 [0x51cd272d41ef6011d8138e18bf4043797aca9b713c7d39a97563f9bbe6bdbe6f]: nonce too high: address 0x71562b71999873DB5b286dF957af199Ec94617F7, tx: 100 state: 0",
 		},
@@ -73,34 +73,34 @@ func TestStateProcessorErrors(t *testing.T) {
 			txs: []*types.Transaction{
 				makeTx(0, common.Address{}, big.NewInt(0), 21000000, nil, nil),
 			},
-			want: "could not apply tx 0 [0x54c58b530824b0bb84b7a98183f08913b5d74e1cebc368515ef3c65edf8eb56a]: gas limit reached",
+			want: "could not apply tx 0 [0x54c58b530824b0bb84b7a98183f08913b5d74e1cebc368515ef3c65edf8eb56a]: smoke limit reached",
 		},
 		{
 			txs: []*types.Transaction{
-				makeTx(0, common.Address{}, big.NewInt(1), params.TxGas, nil, nil),
+				makeTx(0, common.Address{}, big.NewInt(1), params.TxSmoke, nil, nil),
 			},
 			want: "could not apply tx 0 [0x3094b17498940d92b13baccf356ce8bfd6f221e926abc903d642fa1466c5b50e]: insufficient funds for transfer: address 0x71562b71999873DB5b286dF957af199Ec94617F7",
 		},
 		{
 			txs: []*types.Transaction{
-				makeTx(0, common.Address{}, big.NewInt(0), params.TxGas, big.NewInt(0xffffff), nil),
+				makeTx(0, common.Address{}, big.NewInt(0), params.TxSmoke, big.NewInt(0xffffff), nil),
 			},
-			want: "could not apply tx 0 [0xaa3f7d86802b1f364576d9071bf231e31d61b392d306831ac9cf706ff5371ce0]: insufficient funds for gas * price + value: address 0x71562b71999873DB5b286dF957af199Ec94617F7 have 0 want 352321515000",
+			want: "could not apply tx 0 [0xaa3f7d86802b1f364576d9071bf231e31d61b392d306831ac9cf706ff5371ce0]: insufficient funds for smoke * price + value: address 0x71562b71999873DB5b286dF957af199Ec94617F7 have 0 want 352321515000",
 		},
 		{
 			txs: []*types.Transaction{
-				makeTx(0, common.Address{}, big.NewInt(0), params.TxGas, nil, nil),
-				makeTx(1, common.Address{}, big.NewInt(0), params.TxGas, nil, nil),
-				makeTx(2, common.Address{}, big.NewInt(0), params.TxGas, nil, nil),
-				makeTx(3, common.Address{}, big.NewInt(0), params.TxGas-1000, big.NewInt(0), nil),
+				makeTx(0, common.Address{}, big.NewInt(0), params.TxSmoke, nil, nil),
+				makeTx(1, common.Address{}, big.NewInt(0), params.TxSmoke, nil, nil),
+				makeTx(2, common.Address{}, big.NewInt(0), params.TxSmoke, nil, nil),
+				makeTx(3, common.Address{}, big.NewInt(0), params.TxSmoke-1000, big.NewInt(0), nil),
 			},
-			want: "could not apply tx 3 [0x836fab5882205362680e49b311a20646de03b630920f18ec6ee3b111a2cf6835]: intrinsic gas too low: have 20000, want 21000",
+			want: "could not apply tx 3 [0x836fab5882205362680e49b311a20646de03b630920f18ec6ee3b111a2cf6835]: intrinsic smoke too low: have 20000, want 21000",
 		},
-		// The last 'core' error is ErrGasUintOverflow: "gas uint64 overflow", but in order to
+		// The last 'core' error is ErrSmokeUintOverflow: "smoke uint64 overflow", but in order to
 		// trigger that one, we'd have to allocate a _huge_ chunk of data, such that the
-		// multiplication len(data) +gas_per_byte overflows uint64. Not testable at the moment
+		// multiplication len(data) +smoke_per_byte overflows uint64. Not testable at the moment
 	} {
-		block := GenerateBadBlock(genesis, othash.NewFaker(), tt.txs)
+		block := GenerateBadBlock(genesis, ethash.NewFaker(), tt.txs)
 		_, err := blockchain.InsertChain(types.Blocks{block})
 		if err == nil {
 			t.Fatal("block imported without errors")
@@ -114,7 +114,7 @@ func TestStateProcessorErrors(t *testing.T) {
 // GenerateBadBlock constructs a "block" which contains the transactions. The transactions are not expected to be
 // valid, and no proper post-state can be made. But from the perspective of the blockchain, the block is sufficiently
 // valid to be considered for import:
-// - valid pow (fake), ancestry, difficulty, gaslimit etc
+// - valid pow (fake), ancestry, difficulty, smokelimit etc
 func GenerateBadBlock(parent *types.Block, engine consensus.Engine, txs types.Transactions) *types.Block {
 	header := &types.Header{
 		ParentHash: parent.Hash(),
@@ -125,7 +125,7 @@ func GenerateBadBlock(parent *types.Block, engine consensus.Engine, txs types.Tr
 			Difficulty: parent.Difficulty(),
 			UncleHash:  parent.UncleHash(),
 		}),
-		GasLimit:  CalcGasLimit(parent, parent.GasLimit(), parent.GasLimit()),
+		SmokeLimit:  CalcSmokeLimit(parent, parent.SmokeLimit(), parent.SmokeLimit()),
 		Number:    new(big.Int).Add(parent.Number(), common.Big1),
 		Time:      parent.Time() + 10,
 		UncleHash: types.EmptyUncleHash,
@@ -136,15 +136,15 @@ func GenerateBadBlock(parent *types.Block, engine consensus.Engine, txs types.Tr
 	// Preferably something unique. So let's use a combo of blocknum + txhash
 	hasher := sha3.NewLegacyKeccak256()
 	hasher.Write(header.Number.Bytes())
-	var cumulativeGas uint64
+	var cumulativeSmoke uint64
 	for _, tx := range txs {
 		txh := tx.Hash()
 		hasher.Write(txh[:])
-		receipt := types.NewReceipt(nil, false, cumulativeGas+tx.Gas())
+		receipt := types.NewReceipt(nil, false, cumulativeSmoke+tx.Smoke())
 		receipt.TxHash = tx.Hash()
-		receipt.GasUsed = tx.Gas()
+		receipt.SmokeUsed = tx.Smoke()
 		receipts = append(receipts, receipt)
-		cumulativeGas += tx.Gas()
+		cumulativeSmoke += tx.Smoke()
 	}
 	header.Root = common.BytesToHash(hasher.Sum(nil))
 	// Assemble and return the final block for sealing

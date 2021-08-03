@@ -23,7 +23,7 @@ import (
 
 	"github.com/420integrated/go-highcoin/common"
 	"github.com/420integrated/go-highcoin/core/rawdb"
-	"github.com/420integrated/go-highcoin/eth/downloader"
+	"github.com/420integrated/go-highcoin/high/downloader"
 	"github.com/420integrated/go-highcoin/light"
 	"github.com/420integrated/go-highcoin/log"
 	"github.com/420integrated/go-highcoin/params"
@@ -178,7 +178,7 @@ func (h *clientHandler) synchronise(peer *serverPeer) {
 
 		// Fetch the start point block header.
 		//
-		// For the othash consensus engine, the start header is the block header
+		// For the ethash consensus engine, the start header is the block header
 		// of the checkpoint.
 		//
 		// For the clique consensus engine, the start header is the block header

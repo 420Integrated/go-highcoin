@@ -29,13 +29,13 @@ import (
 )
 
 // stateAtBlock retrieves the state database associated with a certain block.
-func (leth *LightHighcoin) stateAtBlock(ctx context.Context, block *types.Block, reexec uint64) (*state.StateDB, func(), error) {
+func (lhigh *LightHighcoin) stateAtBlock(ctx context.Context, block *types.Block, reexec uint64) (*state.StateDB, func(), error) {
 	return light.NewState(ctx, block.Header(), lhigh.odr), func() {}, nil
 }
 
 // statesInRange retrieves a batch of state databases associated with the specific
 // block ranges.
-func (leth *LightHighcoin) statesInRange(ctx context.Context, fromBlock *types.Block, toBlock *types.Block, reexec uint64) ([]*state.StateDB, func(), error) {
+func (lhigh *LightHighcoin) statesInRange(ctx context.Context, fromBlock *types.Block, toBlock *types.Block, reexec uint64) ([]*state.StateDB, func(), error) {
 	var states []*state.StateDB
 	for number := fromBlock.NumberU64(); number <= toBlock.NumberU64(); number++ {
 		header, err := lhigh.blockchain.GetHeaderByNumberOdr(ctx, number)
@@ -48,7 +48,7 @@ func (leth *LightHighcoin) statesInRange(ctx context.Context, fromBlock *types.B
 }
 
 // stateAtTransaction returns the execution environment of a certain transaction.
-func (leth *LightHighcoin) stateAtTransaction(ctx context.Context, block *types.Block, txIndex int, reexec uint64) (core.Message, vm.BlockContext, *state.StateDB, func(), error) {
+func (lhigh *LightHighcoin) stateAtTransaction(ctx context.Context, block *types.Block, txIndex int, reexec uint64) (core.Message, vm.BlockContext, *state.StateDB, func(), error) {
 	// Short circuit if it's genesis block.
 	if block.NumberU64() == 0 {
 		return nil, vm.BlockContext{}, nil, nil, errors.New("no transaction in genesis")
@@ -77,7 +77,7 @@ func (leth *LightHighcoin) stateAtTransaction(ctx context.Context, block *types.
 		}
 		// Not yet the searched for transaction, execute on top of the current state
 		vmenv := vm.NewEVM(context, txContext, statedb, lhigh.blockchain.Config(), vm.Config{})
-		if _, err := core.ApplyMessage(vmenv, msg, new(core.GasPool).AddGas(tx.Gas())); err != nil {
+		if _, err := core.ApplyMessage(vmenv, msg, new(core.SmokePool).AddSmoke(tx.Smoke())); err != nil {
 			return nil, vm.BlockContext{}, nil, nil, fmt.Errorf("transaction %#x failed: %v", tx.Hash(), err)
 		}
 		// Ensure any modifications are committed to the state

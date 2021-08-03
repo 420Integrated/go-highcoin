@@ -22,7 +22,7 @@ import (
 	"time"
 
 	"github.com/420integrated/go-highcoin/common/mclock"
-	"github.com/420integrated/go-highcoin/ethdb"
+	"github.com/420integrated/go-highcoin/highdb"
 	"github.com/420integrated/go-highcoin/les/utils"
 	"github.com/420integrated/go-highcoin/p2p/enode"
 	"github.com/420integrated/go-highcoin/p2p/nodestate"
@@ -87,7 +87,7 @@ type BalanceTracker struct {
 }
 
 // NewBalanceTracker creates a new BalanceTracker
-func NewBalanceTracker(ns *nodestate.NodeStateMachine, setup BalanceTrackerSetup, db ethdb.KeyValueStore, clock mclock.Clock, posExp, negExp utils.ValueExpirer) *BalanceTracker {
+func NewBalanceTracker(ns *nodestate.NodeStateMachine, setup BalanceTrackerSetup, db highdb.KeyValueStore, clock mclock.Clock, posExp, negExp utils.ValueExpirer) *BalanceTracker {
 	ndb := newNodeDB(db, clock)
 	bt := &BalanceTracker{
 		ns:                  ns,

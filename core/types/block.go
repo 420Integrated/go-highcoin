@@ -76,8 +76,8 @@ type Header struct {
 	Bloom       Bloom          `json:"logsBloom"        gencodec:"required"`
 	Difficulty  *big.Int       `json:"difficulty"       gencodec:"required"`
 	Number      *big.Int       `json:"number"           gencodec:"required"`
-	GasLimit    uint64         `json:"gasLimit"         gencodec:"required"`
-	GasUsed     uint64         `json:"gasUsed"          gencodec:"required"`
+	SmokeLimit    uint64         `json:"smokeLimit"         gencodec:"required"`
+	SmokeUsed     uint64         `json:"smokeUsed"          gencodec:"required"`
 	Time        uint64         `json:"timestamp"        gencodec:"required"`
 	Extra       []byte         `json:"extraData"        gencodec:"required"`
 	MixDigest   common.Hash    `json:"mixHash"`
@@ -88,8 +88,8 @@ type Header struct {
 type headerMarshaling struct {
 	Difficulty *hexutil.Big
 	Number     *hexutil.Big
-	GasLimit   hexutil.Uint64
-	GasUsed    hexutil.Uint64
+	SmokeLimit   hexutil.Uint64
+	SmokeUsed    hexutil.Uint64
 	Time       hexutil.Uint64
 	Extra      hexutil.Bytes
 	Hash       common.Hash `json:"hash"` // adds call to Hash() in MarshalJSON
@@ -160,7 +160,7 @@ type Block struct {
 	// of the chain up to and including the block.
 	td *big.Int
 
-	// These fields are used by package eth to track
+	// These fields are used by package high to track
 	// inter-peer block relay.
 	ReceivedAt   time.Time
 	ReceivedFrom interface{}
@@ -173,20 +173,20 @@ func (b *Block) DeprecatedTd() *big.Int {
 	return b.td
 }
 
-// [deprecated by eth/63]
+// [deprecated by high/63]
 // StorageBlock defines the RLP encoding of a Block stored in the
 // state database. The StorageBlock encoding contains fields that
 // would otherwise need to be recomputed.
 type StorageBlock Block
 
-// "external" block encoding. used for eth protocol, etc.
+// "external" block encoding. used for high protocol, etc.
 type extblock struct {
 	Header *Header
 	Txs    []*Transaction
 	Uncles []*Header
 }
 
-// [deprecated by eth/63]
+// [deprecated by high/63]
 // "storage" block encoding. used for database.
 type storageblock struct {
 	Header *Header
@@ -279,7 +279,7 @@ func (b *Block) EncodeRLP(w io.Writer) error {
 	})
 }
 
-// [deprecated by eth/63]
+// [deprecated by high/63]
 func (b *StorageBlock) DecodeRLP(s *rlp.Stream) error {
 	var sb storageblock
 	if err := s.Decode(&sb); err != nil {
@@ -304,8 +304,8 @@ func (b *Block) Transaction(hash common.Hash) *Transaction {
 }
 
 func (b *Block) Number() *big.Int     { return new(big.Int).Set(b.header.Number) }
-func (b *Block) GasLimit() uint64     { return b.header.GasLimit }
-func (b *Block) GasUsed() uint64      { return b.header.GasUsed }
+func (b *Block) SmokeLimit() uint64     { return b.header.SmokeLimit }
+func (b *Block) SmokeUsed() uint64      { return b.header.SmokeUsed }
 func (b *Block) Difficulty() *big.Int { return new(big.Int).Set(b.header.Difficulty) }
 func (b *Block) Time() uint64         { return b.header.Time }
 

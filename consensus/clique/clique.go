@@ -34,7 +34,7 @@ import (
 	"github.com/420integrated/go-highcoin/core/state"
 	"github.com/420integrated/go-highcoin/core/types"
 	"github.com/420integrated/go-highcoin/crypto"
-	"github.com/420integrated/go-highcoin/ethdb"
+	"github.com/420integrated/go-highcoin/highdb"
 	"github.com/420integrated/go-highcoin/log"
 	"github.com/420integrated/go-highcoin/params"
 	"github.com/420integrated/go-highcoin/rlp"
@@ -170,7 +170,7 @@ func ecrecover(header *types.Header, sigcache *lru.ARCCache) (common.Address, er
 // Highcoin testnet following the Ropsten attacks.
 type Clique struct {
 	config *params.CliqueConfig // Consensus engine configuration parameters
-	db     ethdb.Database       // Database to store and retrieve snapshot checkpoints
+	db     highdb.Database       // Database to store and retrieve snapshot checkpoints
 
 	recents    *lru.ARCCache // Snapshots for recent block to speed up reorgs
 	signatures *lru.ARCCache // Signatures of recent blocks to speed up mining
@@ -187,7 +187,7 @@ type Clique struct {
 
 // New creates a Clique proof-of-authority consensus engine with the initial
 // signers set to the ones provided by the user.
-func New(config *params.CliqueConfig, db ethdb.Database) *Clique {
+func New(config *params.CliqueConfig, db highdb.Database) *Clique {
 	// Set any missing consensus parameters to their defaults
 	conf := *config
 	if conf.Epoch == 0 {
@@ -716,8 +716,8 @@ func encodeSigHeader(w io.Writer, header *types.Header) {
 		header.Bloom,
 		header.Difficulty,
 		header.Number,
-		header.GasLimit,
-		header.GasUsed,
+		header.SmokeLimit,
+		header.SmokeUsed,
 		header.Time,
 		header.Extra[:len(header.Extra)-crypto.SignatureLength], // Yes, this will panic if extra is too short
 		header.MixDigest,

@@ -30,13 +30,13 @@ import (
 
 // explorerDockerfile is the Dockerfile required to run a block explorer.
 var explorerDockerfile = `
-FROM puppeth/blockscout:latest
+FROM pupphigh/blockscout:latest
 
 ADD genesis.json /genesis.json
 RUN \
   echo 'highcoin --cache 512 init /genesis.json' > explorer.sh && \
-  echo $'highcoin --networkid {{.NetworkID}} --syncmode "full" --gcmode "archive" --port {{.HighPort}} --bootnodes {{.Bootnodes}} --ethstats \'{{.Highstats}}\' --cache=512 --http --http.api "net,web3,eth,shh,debug" --http.corsdomain "*" --http.vhosts "*" --ws --ws.origins "*" --exitwhensynced' >> explorer.sh && \
-  echo $'exec highcoin --networkid {{.NetworkID}} --syncmode "full" --gcmode "archive" --port {{.HighPort}} --bootnodes {{.Bootnodes}} --ethstats \'{{.Highstats}}\' --cache=512 --http --http.api "net,web3,eth,shh,debug" --http.corsdomain "*" --http.vhosts "*" --ws --ws.origins "*" &' >> explorer.sh && \
+  echo $'highcoin --networkid {{.NetworkID}} --syncmode "full" --gcmode "archive" --port {{.HighPort}} --bootnodes {{.Bootnodes}} --highstats \'{{.Highstats}}\' --cache=512 --http --http.api "net,web3,high,shh,debug" --http.corsdomain "*" --http.vhosts "*" --ws --ws.origins "*" --exitwhensynced' >> explorer.sh && \
+  echo $'exec highcoin --networkid {{.NetworkID}} --syncmode "full" --gcmode "archive" --port {{.HighPort}} --bootnodes {{.Bootnodes}} --highstats \'{{.Highstats}}\' --cache=512 --http --http.api "net,web3,high,shh,debug" --http.corsdomain "*" --http.vhosts "*" --ws --ws.origins "*" &' >> explorer.sh && \
   echo '/usr/local/bin/docker-entrypoint.sh postgres &' >> explorer.sh && \
   echo 'sleep 5' >> explorer.sh && \
   echo 'mix do ecto.drop --force, ecto.create, ecto.migrate' >> explorer.sh && \
@@ -184,7 +184,7 @@ func checkExplorer(client *sshClient, network string) (*explorerInfos, error) {
 		node: &nodeInfos{
 			datadir:  infos.volumes["/opt/app/.highcoin"],
 			port:     infos.portmap[infos.envvars["HIGH_PORT"]+"/tcp"],
-			ethstats: infos.envvars["HIGH_NAME"],
+			highstats: infos.envvars["HIGH_NAME"],
 		},
 		dbdir: infos.volumes["/var/lib/postgresql/data"],
 		host:  host,

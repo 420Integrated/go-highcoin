@@ -23,7 +23,7 @@ import (
 	"math/big"
 
 	"github.com/420integrated/go-highcoin/common"
-	"github.com/420integrated/go-highcoin/consensus/othash"
+	"github.com/420integrated/go-highcoin/consensus/ethash"
 	"github.com/420integrated/go-highcoin/core"
 	"github.com/420integrated/go-highcoin/core/rawdb"
 	"github.com/420integrated/go-highcoin/core/types"
@@ -58,11 +58,11 @@ func makechain() (bc *core.BlockChain, addrHashes, txHashes []common.Hash) {
 	gspec := core.Genesis{
 		Config:   params.TestChainConfig,
 		Alloc:    core.GenesisAlloc{bankAddr: {Balance: bankFunds}},
-		GasLimit: 100000000,
+		SmokeLimit: 100000000,
 	}
 	genesis := gspec.MustCommit(db)
 	signer := types.HomesteadSigner{}
-	blocks, _ := core.GenerateChain(gspec.Config, genesis, othash.NewFaker(), db, testChainLen,
+	blocks, _ := core.GenerateChain(gspec.Config, genesis, ethash.NewFaker(), db, testChainLen,
 		func(i int, gen *core.BlockGen) {
 			var (
 				tx   *types.Transaction
@@ -74,13 +74,13 @@ func makechain() (bc *core.BlockChain, addrHashes, txHashes []common.Hash) {
 				addr = crypto.CreateAddress(bankAddr, nonce)
 			} else {
 				addr = common.BigToAddress(big.NewInt(int64(i)))
-				tx, _ = types.SignTx(types.NewTransaction(nonce, addr, big.NewInt(10000), params.TxGas, big.NewInt(params.GMarleys), nil), signer, bankKey)
+				tx, _ = types.SignTx(types.NewTransaction(nonce, addr, big.NewInt(10000), params.TxSmoke, big.NewInt(params.GMarleys), nil), signer, bankKey)
 			}
 			gen.AddTx(tx)
 			addrHashes = append(addrHashes, crypto.Keccak256Hash(addr[:]))
 			txHashes = append(txHashes, tx.Hash())
 		})
-	bc, _ = core.NewBlockChain(db, nil, gspec.Config, othash.NewFaker(), vm.Config{}, nil, nil)
+	bc, _ = core.NewBlockChain(db, nil, gspec.Config, ethash.NewFaker(), vm.Config{}, nil, nil)
 	if _, err := bc.InsertChain(blocks); err != nil {
 		panic(err)
 	}
@@ -391,7 +391,7 @@ func Fuzz(input []byte) int {
 					nonce = f.nonce
 					f.nonce += 1
 				}
-				req.Txs[i], _ = types.SignTx(types.NewTransaction(nonce, common.Address{}, big.NewInt(10000), params.TxGas, big.NewInt(1000000000*int64(f.randomByte())), nil), signer, bankKey)
+				req.Txs[i], _ = types.SignTx(types.NewTransaction(nonce, common.Address{}, big.NewInt(10000), params.TxSmoke, big.NewInt(1000000000*int64(f.randomByte())), nil), signer, bankKey)
 			}
 			f.doFuzz(l.SendTxV2Msg, req)
 

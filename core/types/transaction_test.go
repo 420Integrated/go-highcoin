@@ -60,8 +60,8 @@ var (
 		Nonce:    3,
 		To:       &testAddr,
 		Value:    big.NewInt(10),
-		Gas:      25000,
-		GasPrice: big.NewInt(1),
+		Smoke:      25000,
+		SmokePrice: big.NewInt(1),
 		Data:     common.FromHex("5544"),
 	})
 
@@ -303,8 +303,8 @@ func TestTransactionPriceNonceSort(t *testing.T) {
 		if i+1 < len(txs) {
 			next := txs[i+1]
 			fromNext, _ := Sender(signer, next)
-			if fromi != fromNext && txi.GasPrice().Cmp(next.GasPrice()) < 0 {
-				t.Errorf("invalid gasprice ordering: tx #%d (A=%x P=%v) < tx #%d (A=%x P=%v)", i, fromi[:4], txi.GasPrice(), i+1, fromNext[:4], next.GasPrice())
+			if fromi != fromNext && txi.SmokePrice().Cmp(next.SmokePrice()) < 0 {
+				t.Errorf("invalid smokeprice ordering: tx #%d (A=%x P=%v) < tx #%d (A=%x P=%v)", i, fromi[:4], txi.SmokePrice(), i+1, fromNext[:4], next.SmokePrice())
 			}
 		}
 	}
@@ -347,11 +347,11 @@ func TestTransactionTimeSort(t *testing.T) {
 			next := txs[i+1]
 			fromNext, _ := Sender(signer, next)
 
-			if txi.GasPrice().Cmp(next.GasPrice()) < 0 {
-				t.Errorf("invalid gasprice ordering: tx #%d (A=%x P=%v) < tx #%d (A=%x P=%v)", i, fromi[:4], txi.GasPrice(), i+1, fromNext[:4], next.GasPrice())
+			if txi.SmokePrice().Cmp(next.SmokePrice()) < 0 {
+				t.Errorf("invalid smokeprice ordering: tx #%d (A=%x P=%v) < tx #%d (A=%x P=%v)", i, fromi[:4], txi.SmokePrice(), i+1, fromNext[:4], next.SmokePrice())
 			}
-			// Make sure time order is ascending if the txs have the same gas price
-			if txi.GasPrice().Cmp(next.GasPrice()) == 0 && txi.time.After(next.time) {
+			// Make sure time order is ascending if the txs have the same smoke price
+			if txi.SmokePrice().Cmp(next.SmokePrice()) == 0 && txi.time.After(next.time) {
 				t.Errorf("invalid received time ordering: tx #%d (A=%x T=%v) > tx #%d (A=%x T=%v)", i, fromi[:4], txi.time, i+1, fromNext[:4], next.time)
 			}
 		}
@@ -378,16 +378,16 @@ func TestTransactionCoding(t *testing.T) {
 			txdata = &LegacyTx{
 				Nonce:    i,
 				To:       &recipient,
-				Gas:      1,
-				GasPrice: big.NewInt(2),
+				Smoke:      1,
+				SmokePrice: big.NewInt(2),
 				Data:     []byte("abcdef"),
 			}
 		case 1:
 			// Legacy tx contract creation.
 			txdata = &LegacyTx{
 				Nonce:    i,
-				Gas:      1,
-				GasPrice: big.NewInt(2),
+				Smoke:      1,
+				SmokePrice: big.NewInt(2),
 				Data:     []byte("abcdef"),
 			}
 		case 2:
@@ -396,8 +396,8 @@ func TestTransactionCoding(t *testing.T) {
 				ChainID:    big.NewInt(1),
 				Nonce:      i,
 				To:         &recipient,
-				Gas:        123457,
-				GasPrice:   big.NewInt(10),
+				Smoke:        123457,
+				SmokePrice:   big.NewInt(10),
 				AccessList: accesses,
 				Data:       []byte("abcdef"),
 			}
@@ -407,8 +407,8 @@ func TestTransactionCoding(t *testing.T) {
 				ChainID:  big.NewInt(1),
 				Nonce:    i,
 				To:       &recipient,
-				Gas:      123457,
-				GasPrice: big.NewInt(10),
+				Smoke:      123457,
+				SmokePrice: big.NewInt(10),
 				Data:     []byte("abcdef"),
 			}
 		case 4:
@@ -416,8 +416,8 @@ func TestTransactionCoding(t *testing.T) {
 			txdata = &AccessListTx{
 				ChainID:    big.NewInt(1),
 				Nonce:      i,
-				Gas:        123457,
-				GasPrice:   big.NewInt(10),
+				Smoke:        123457,
+				SmokePrice:   big.NewInt(10),
 				AccessList: accesses,
 			}
 		}
@@ -466,7 +466,7 @@ func encodeDecodeBinary(tx *Transaction) (*Transaction, error) {
 }
 
 func assertEqual(orig *Transaction, cpy *Transaction) error {
-	// compare nonce, price, gaslimit, recipient, amount, payload, V, R, S
+	// compare nonce, price, smokelimit, recipient, amount, payload, V, R, S
 	if want, got := orig.Hash(), cpy.Hash(); want != got {
 		return fmt.Errorf("parsed tx differs from original tx, want %v, got %v", want, got)
 	}

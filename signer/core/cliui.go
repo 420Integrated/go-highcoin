@@ -26,7 +26,7 @@ import (
 
 	"github.com/420integrated/go-highcoin/common/hexutil"
 	"github.com/420integrated/go-highcoin/console/prompt"
-	"github.com/420integrated/go-highcoin/internal/ethapi"
+	"github.com/420integrated/go-highcoin/internal/highapi"
 	"github.com/420integrated/go-highcoin/log"
 )
 
@@ -115,8 +115,8 @@ func (ui *CommandlineUI) ApproveTx(request *SignTxRequest) (SignTxResponse, erro
 	}
 	fmt.Printf("from:     %v\n", request.Transaction.From.String())
 	fmt.Printf("value:    %v marleys\n", marleysval)
-	fmt.Printf("gas:      %v (%v)\n", request.Transaction.Gas, uint64(request.Transaction.Gas))
-	fmt.Printf("gasprice: %v marleys\n", request.Transaction.GasPrice.ToInt())
+	fmt.Printf("smoke:      %v (%v)\n", request.Transaction.Smoke, uint64(request.Transaction.Smoke))
+	fmt.Printf("smokeprice: %v marleys\n", request.Transaction.SmokePrice.ToInt())
 	fmt.Printf("nonce:    %v (%v)\n", request.Transaction.Nonce, uint64(request.Transaction.Nonce))
 	if request.Transaction.Data != nil {
 		d := *request.Transaction.Data
@@ -218,7 +218,7 @@ func (ui *CommandlineUI) ShowInfo(message string) {
 	fmt.Printf("## Info \n%s\n", message)
 }
 
-func (ui *CommandlineUI) OnApprovedTx(tx ethapi.SignTransactionResult) {
+func (ui *CommandlineUI) OnApprovedTx(tx highapi.SignTransactionResult) {
 	fmt.Printf("Transaction signed:\n ")
 	if jsn, err := json.MarshalIndent(tx.Tx, "  ", "  "); err != nil {
 		fmt.Printf("WARN: marshalling error %v\n", err)

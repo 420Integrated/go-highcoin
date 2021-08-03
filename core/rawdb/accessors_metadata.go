@@ -21,14 +21,14 @@ import (
 	"time"
 
 	"github.com/420integrated/go-highcoin/common"
-	"github.com/420integrated/go-highcoin/ethdb"
+	"github.com/420integrated/go-highcoin/highdb"
 	"github.com/420integrated/go-highcoin/log"
 	"github.com/420integrated/go-highcoin/params"
 	"github.com/420integrated/go-highcoin/rlp"
 )
 
 // ReadDatabaseVersion retrieves the version number of the database.
-func ReadDatabaseVersion(db ethdb.KeyValueReader) *uint64 {
+func ReadDatabaseVersion(db highdb.KeyValueReader) *uint64 {
 	var version uint64
 
 	enc, _ := db.Get(databaseVersionKey)
@@ -43,7 +43,7 @@ func ReadDatabaseVersion(db ethdb.KeyValueReader) *uint64 {
 }
 
 // WriteDatabaseVersion stores the version number of the database
-func WriteDatabaseVersion(db ethdb.KeyValueWriter, version uint64) {
+func WriteDatabaseVersion(db highdb.KeyValueWriter, version uint64) {
 	enc, err := rlp.EncodeToBytes(version)
 	if err != nil {
 		log.Crit("Failed to encode database version", "err", err)
@@ -54,7 +54,7 @@ func WriteDatabaseVersion(db ethdb.KeyValueWriter, version uint64) {
 }
 
 // ReadChainConfig retrieves the consensus settings based on the given genesis hash.
-func ReadChainConfig(db ethdb.KeyValueReader, hash common.Hash) *params.ChainConfig {
+func ReadChainConfig(db highdb.KeyValueReader, hash common.Hash) *params.ChainConfig {
 	data, _ := db.Get(configKey(hash))
 	if len(data) == 0 {
 		return nil
@@ -68,7 +68,7 @@ func ReadChainConfig(db ethdb.KeyValueReader, hash common.Hash) *params.ChainCon
 }
 
 // WriteChainConfig writes the chain config settings to the database.
-func WriteChainConfig(db ethdb.KeyValueWriter, hash common.Hash, cfg *params.ChainConfig) {
+func WriteChainConfig(db highdb.KeyValueWriter, hash common.Hash, cfg *params.ChainConfig) {
 	if cfg == nil {
 		return
 	}
@@ -94,7 +94,7 @@ const crashesToKeep = 10
 // the previous data
 // - a list of timestamps
 // - a count of how many old unclean-shutdowns have been discarded
-func PushUncleanShutdownMarker(db ethdb.KeyValueStore) ([]uint64, uint64, error) {
+func PushUncleanShutdownMarker(db highdb.KeyValueStore) ([]uint64, uint64, error) {
 	var uncleanShutdowns crashList
 	// Read old data
 	if data, err := db.Get(uncleanShutdownKey); err != nil {
@@ -122,7 +122,7 @@ func PushUncleanShutdownMarker(db ethdb.KeyValueStore) ([]uint64, uint64, error)
 }
 
 // PopUncleanShutdownMarker removes the last unclean shutdown marker
-func PopUncleanShutdownMarker(db ethdb.KeyValueStore) {
+func PopUncleanShutdownMarker(db highdb.KeyValueStore) {
 	var uncleanShutdowns crashList
 	// Read old data
 	if data, err := db.Get(uncleanShutdownKey); err != nil {

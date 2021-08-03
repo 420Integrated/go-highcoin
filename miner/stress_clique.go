@@ -34,8 +34,8 @@ import (
 	"github.com/420integrated/go-highcoin/core"
 	"github.com/420integrated/go-highcoin/core/types"
 	"github.com/420integrated/go-highcoin/crypto"
-	"github.com/420integrated/go-highcoin/eth"
-	"github.com/420integrated/go-highcoin/eth/downloader"
+	"github.com/420integrated/go-highcoin/high"
+	"github.com/420integrated/go-highcoin/high/downloader"
 	"github.com/420integrated/go-highcoin/log"
 	"github.com/420integrated/go-highcoin/miner"
 	"github.com/420integrated/go-highcoin/node"
@@ -57,7 +57,7 @@ func main() {
 	for i := 0; i < len(sealers); i++ {
 		sealers[i], _ = crypto.GenerateKey()
 	}
-	// Create a Clique network based off of the Rinkeby config
+	// Create a Clique network based off of the Ruderalis config
 	genesis := makeGenesis(faucets, sealers)
 
 	var (
@@ -67,7 +67,7 @@ func main() {
 
 	for _, sealer := range sealers {
 		// Start the node and wait until it's up
-		stack, ethBackend, err := makeSealer(genesis)
+		stack, highBackend, err := makeSealer(genesis)
 		if err != nil {
 			panic(err)
 		}
@@ -81,7 +81,7 @@ func main() {
 			stack.Server().AddPeer(n)
 		}
 		// Start tracking the node and its enode
-		nodes = append(nodes, ethBackend)
+		nodes = append(nodes, highBackend)
 		enodes = append(enodes, stack.Server().Self())
 
 		// Inject the signer key and start sealing with it
@@ -131,9 +131,9 @@ func main() {
 // makeGenesis creates a custom Clique genesis block based on some pre-defined
 // signer and faucet accounts.
 func makeGenesis(faucets []*ecdsa.PrivateKey, sealers []*ecdsa.PrivateKey) *core.Genesis {
-	// Create a Clique network based off of the Rinkeby config
-	genesis := core.DefaultRinkebyGenesisBlock()
-	genesis.GasLimit = 25000000
+	// Create a Clique network based off of the Ruderalis config
+	genesis := core.DefaultRuderalisGenesisBlock()
+	genesis.SmokeLimit = 25000000
 
 	genesis.Config.ChainID = big.NewInt(18)
 	genesis.Config.Clique.Period = 1
@@ -185,7 +185,7 @@ func makeSealer(genesis *core.Genesis) (*node.Node, *high.Highcoin, error) {
 		return nil, nil, err
 	}
 	// Create and register the backend
-	ethBackend, err := high.New(stack, &ethconfig.Config{
+	highBackend, err := high.New(stack, &highconfig.Config{
 		Genesis:         genesis,
 		NetworkId:       genesis.Config.ChainID.Uint64(),
 		SyncMode:        downloader.FullSync,
@@ -194,9 +194,9 @@ func makeSealer(genesis *core.Genesis) (*node.Node, *high.Highcoin, error) {
 		TxPool:          core.DefaultTxPoolConfig,
 		GPO:             high.DefaultConfig.GPO,
 		Miner: miner.Config{
-			GasFloor: genesis.GasLimit * 9 / 10,
-			GasCeil:  genesis.GasLimit * 11 / 10,
-			GasPrice: big.NewInt(1),
+			SmokeFloor: genesis.SmokeLimit * 9 / 10,
+			SmokeCeil:  genesis.SmokeLimit * 11 / 10,
+			SmokePrice: big.NewInt(1),
 			Recommit: time.Second,
 		},
 	})
@@ -205,5 +205,5 @@ func makeSealer(genesis *core.Genesis) (*node.Node, *high.Highcoin, error) {
 	}
 
 	err = stack.Start()
-	return stack, ethBackend, err
+	return stack, highBackend, err
 }

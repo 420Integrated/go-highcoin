@@ -24,5 +24,5 @@ package params
 const (
 	Marleys   = 1
 	GMarleys  = 1e9
-	Highcoin = 1e18
+	Highcoin  = 1e18
 )

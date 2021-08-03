@@ -22,7 +22,7 @@ import (
 
 	"github.com/420integrated/go-highcoin/common"
 	"github.com/420integrated/go-highcoin/common/hexutil"
-	"github.com/420integrated/go-highcoin/internal/ethapi"
+	"github.com/420integrated/go-highcoin/internal/highapi"
 	"github.com/420integrated/go-highcoin/log"
 )
 
@@ -43,7 +43,7 @@ func (l *AuditLogger) New(ctx context.Context) (common.Address, error) {
 	return l.api.New(ctx)
 }
 
-func (l *AuditLogger) SignTransaction(ctx context.Context, args SendTxArgs, methodSelector *string) (*ethapi.SignTransactionResult, error) {
+func (l *AuditLogger) SignTransaction(ctx context.Context, args SendTxArgs, methodSelector *string) (*highapi.SignTransactionResult, error) {
 	sel := "<nil>"
 	if methodSelector != nil {
 		sel = *methodSelector

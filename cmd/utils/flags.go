@@ -37,20 +37,20 @@ import (
 	"github.com/420integrated/go-highcoin/common/fdlimit"
 	"github.com/420integrated/go-highcoin/consensus"
 	"github.com/420integrated/go-highcoin/consensus/clique"
-	"github.com/420integrated/go-highcoin/consensus/othash"
+	"github.com/420integrated/go-highcoin/consensus/ethash"
 	"github.com/420integrated/go-highcoin/core"
 	"github.com/420integrated/go-highcoin/core/rawdb"
 	"github.com/420integrated/go-highcoin/core/vm"
 	"github.com/420integrated/go-highcoin/crypto"
-	"github.com/420integrated/go-highcoin/eth"
-	"github.com/420integrated/go-highcoin/eth/downloader"
-	"github.com/420integrated/go-highcoin/eth/ethconfig"
-	"github.com/420integrated/go-highcoin/eth/gasprice"
-	"github.com/420integrated/go-highcoin/eth/tracers"
-	"github.com/420integrated/go-highcoin/ethdb"
-	"github.com/420integrated/go-highcoin/ethstats"
+	"github.com/420integrated/go-highcoin/high"
+	"github.com/420integrated/go-highcoin/high/downloader"
+	"github.com/420integrated/go-highcoin/high/highconfig"
+	"github.com/420integrated/go-highcoin/high/smokeprice"
+	"github.com/420integrated/go-highcoin/high/tracers"
+	"github.com/420integrated/go-highcoin/highdb"
+	"github.com/420integrated/go-highcoin/highstats"
 	"github.com/420integrated/go-highcoin/graphql"
-	"github.com/420integrated/go-highcoin/internal/ethapi"
+	"github.com/420integrated/go-highcoin/internal/highapi"
 	"github.com/420integrated/go-highcoin/internal/flags"
 	"github.com/420integrated/go-highcoin/les"
 	"github.com/420integrated/go-highcoin/log"
@@ -137,8 +137,8 @@ var (
 	}
 	NetworkIdFlag = cli.Uint64Flag{
 		Name:  "networkid",
-		Usage: "Explicitly set network id (integer)(For testnets: use --ropsten, --rinkeby, --goerli instead)",
-		Value: ethconfig.Defaults.NetworkId,
+		Usage: "Explicitly set network id (integer)(For testnets: use --ropsten, --ruderalis, --goerli instead)",
+		Value: highconfig.Defaults.NetworkId,
 	}
 	MainnetFlag = cli.BoolFlag{
 		Name:  "mainnet",
@@ -152,9 +152,9 @@ var (
 		Name:  "yolov3",
 		Usage: "YOLOv3 network: pre-configured proof-of-authority shortlived test network.",
 	}
-	RinkebyFlag = cli.BoolFlag{
-		Name:  "rinkeby",
-		Usage: "Rinkeby network: pre-configured proof-of-authority test network",
+	RuderalisFlag = cli.BoolFlag{
+		Name:  "ruderalis",
+		Usage: "Ruderalis network: pre-configured proof-of-authority test network",
 	}
 	RopstenFlag = cli.BoolFlag{
 		Name:  "ropsten",
@@ -197,7 +197,7 @@ var (
 		Name:  "nocode",
 		Usage: "Exclude contract code (save db lookups)",
 	}
-	defaultSyncMode = ethconfig.Defaults.SyncMode
+	defaultSyncMode = highconfig.Defaults.SyncMode
 	SyncModeFlag    = TextMarshalerFlag{
 		Name:  "syncmode",
 		Usage: `Blockchain sync mode ("fast", "full", "snap" or "light")`,
@@ -215,7 +215,7 @@ var (
 	TxLookupLimitFlag = cli.Uint64Flag{
 		Name:  "txlookuplimit",
 		Usage: "Number of recent blocks to maintain transactions index for (default = about one year, 0 = entire chain)",
-		Value: ethconfig.Defaults.TxLookupLimit,
+		Value: highconfig.Defaults.TxLookupLimit,
 	}
 	LightKDFFlag = cli.BoolFlag{
 		Name:  "lightkdf",
@@ -234,32 +234,32 @@ var (
 	LightServeFlag = cli.IntFlag{
 		Name:  "light.serve",
 		Usage: "Maximum percentage of time allowed for serving LES requests (multi-threaded processing allows values over 100)",
-		Value: ethconfig.Defaults.LightServ,
+		Value: highconfig.Defaults.LightServ,
 	}
 	LightIngressFlag = cli.IntFlag{
 		Name:  "light.ingress",
 		Usage: "Incoming bandwidth limit for serving light clients (kilobytes/sec, 0 = unlimited)",
-		Value: ethconfig.Defaults.LightIngress,
+		Value: highconfig.Defaults.LightIngress,
 	}
 	LightEgressFlag = cli.IntFlag{
 		Name:  "light.egress",
 		Usage: "Outgoing bandwidth limit for serving light clients (kilobytes/sec, 0 = unlimited)",
-		Value: ethconfig.Defaults.LightEgress,
+		Value: highconfig.Defaults.LightEgress,
 	}
 	LightMaxPeersFlag = cli.IntFlag{
 		Name:  "light.maxpeers",
 		Usage: "Maximum number of light clients to serve, or light servers to attach to",
-		Value: ethconfig.Defaults.LightPeers,
+		Value: highconfig.Defaults.LightPeers,
 	}
 	UltraLightServersFlag = cli.StringFlag{
 		Name:  "ulc.servers",
 		Usage: "List of trusted ultra-light servers",
-		Value: strings.Join(ethconfig.Defaults.UltraLightServers, ","),
+		Value: strings.Join(highconfig.Defaults.UltraLightServers, ","),
 	}
 	UltraLightFractionFlag = cli.IntFlag{
 		Name:  "ulc.fraction",
 		Usage: "Minimum % of trusted ultra-light servers required to announce a new head",
-		Value: ethconfig.Defaults.UltraLightFraction,
+		Value: highconfig.Defaults.UltraLightFraction,
 	}
 	UltraLightOnlyAnnounceFlag = cli.BoolFlag{
 		Name:  "ulc.onlyannounce",
@@ -275,41 +275,41 @@ var (
 	}
 	// Ethash settings
 	EthashCacheDirFlag = DirectoryFlag{
-		Name:  "othash.cachedir",
-		Usage: "Directory to store the othash verification caches (default = inside the datadir)",
+		Name:  "ethash.cachedir",
+		Usage: "Directory to store the ethash verification caches (default = inside the datadir)",
 	}
 	EthashCachesInMemoryFlag = cli.IntFlag{
-		Name:  "othash.cachesinmem",
-		Usage: "Number of recent othash caches to keep in memory (16MB each)",
-		Value: ethconfig.Defaults.Ethash.CachesInMem,
+		Name:  "ethash.cachesinmem",
+		Usage: "Number of recent ethash caches to keep in memory (16MB each)",
+		Value: highconfig.Defaults.Ethash.CachesInMem,
 	}
 	EthashCachesOnDiskFlag = cli.IntFlag{
-		Name:  "othash.cachesondisk",
-		Usage: "Number of recent othash caches to keep on disk (16MB each)",
-		Value: ethconfig.Defaults.Ethash.CachesOnDisk,
+		Name:  "ethash.cachesondisk",
+		Usage: "Number of recent ethash caches to keep on disk (16MB each)",
+		Value: highconfig.Defaults.Ethash.CachesOnDisk,
 	}
 	EthashCachesLockMmapFlag = cli.BoolFlag{
-		Name:  "othash.cacheslockmmap",
-		Usage: "Lock memory maps of recent othash caches",
+		Name:  "ethash.cacheslockmmap",
+		Usage: "Lock memory maps of recent ethash caches",
 	}
 	EthashDatasetDirFlag = DirectoryFlag{
-		Name:  "othash.dagdir",
-		Usage: "Directory to store the othash mining DAGs",
-		Value: DirectoryString(ethconfig.Defaults.Ethash.DatasetDir),
+		Name:  "ethash.dagdir",
+		Usage: "Directory to store the ethash mining DAGs",
+		Value: DirectoryString(highconfig.Defaults.Ethash.DatasetDir),
 	}
 	EthashDatasetsInMemoryFlag = cli.IntFlag{
-		Name:  "othash.dagsinmem",
-		Usage: "Number of recent othash mining DAGs to keep in memory (1+GB each)",
-		Value: ethconfig.Defaults.Ethash.DatasetsInMem,
+		Name:  "ethash.dagsinmem",
+		Usage: "Number of recent ethash mining DAGs to keep in memory (1+GB each)",
+		Value: highconfig.Defaults.Ethash.DatasetsInMem,
 	}
 	EthashDatasetsOnDiskFlag = cli.IntFlag{
-		Name:  "othash.dagsondisk",
-		Usage: "Number of recent othash mining DAGs to keep on disk (1+GB each)",
-		Value: ethconfig.Defaults.Ethash.DatasetsOnDisk,
+		Name:  "ethash.dagsondisk",
+		Usage: "Number of recent ethash mining DAGs to keep on disk (1+GB each)",
+		Value: highconfig.Defaults.Ethash.DatasetsOnDisk,
 	}
 	EthashDatasetsLockMmapFlag = cli.BoolFlag{
-		Name:  "othash.dagslockmmap",
-		Usage: "Lock memory maps for recent othash mining DAGs",
+		Name:  "ethash.dagslockmmap",
+		Usage: "Lock memory maps for recent ethash mining DAGs",
 	}
 	// Transaction pool settings
 	TxPoolLocalsFlag = cli.StringFlag{
@@ -332,38 +332,38 @@ var (
 	}
 	TxPoolPriceLimitFlag = cli.Uint64Flag{
 		Name:  "txpool.pricelimit",
-		Usage: "Minimum gas price limit to enforce for acceptance into the pool",
-		Value: ethconfig.Defaults.TxPool.PriceLimit,
+		Usage: "Minimum smoke price limit to enforce for acceptance into the pool",
+		Value: highconfig.Defaults.TxPool.PriceLimit,
 	}
 	TxPoolPriceBumpFlag = cli.Uint64Flag{
 		Name:  "txpool.pricebump",
 		Usage: "Price bump percentage to replace an already existing transaction",
-		Value: ethconfig.Defaults.TxPool.PriceBump,
+		Value: highconfig.Defaults.TxPool.PriceBump,
 	}
 	TxPoolAccountSlotsFlag = cli.Uint64Flag{
 		Name:  "txpool.accountslots",
 		Usage: "Minimum number of executable transaction slots guaranteed per account",
-		Value: ethconfig.Defaults.TxPool.AccountSlots,
+		Value: highconfig.Defaults.TxPool.AccountSlots,
 	}
 	TxPoolGlobalSlotsFlag = cli.Uint64Flag{
 		Name:  "txpool.globalslots",
 		Usage: "Maximum number of executable transaction slots for all accounts",
-		Value: ethconfig.Defaults.TxPool.GlobalSlots,
+		Value: highconfig.Defaults.TxPool.GlobalSlots,
 	}
 	TxPoolAccountQueueFlag = cli.Uint64Flag{
 		Name:  "txpool.accountqueue",
 		Usage: "Maximum number of non-executable transaction slots permitted per account",
-		Value: ethconfig.Defaults.TxPool.AccountQueue,
+		Value: highconfig.Defaults.TxPool.AccountQueue,
 	}
 	TxPoolGlobalQueueFlag = cli.Uint64Flag{
 		Name:  "txpool.globalqueue",
 		Usage: "Maximum number of non-executable transaction slots for all accounts",
-		Value: ethconfig.Defaults.TxPool.GlobalQueue,
+		Value: highconfig.Defaults.TxPool.GlobalQueue,
 	}
 	TxPoolLifetimeFlag = cli.DurationFlag{
 		Name:  "txpool.lifetime",
 		Usage: "Maximum amount of time non-executable transaction are queued",
-		Value: ethconfig.Defaults.TxPool.Lifetime,
+		Value: highconfig.Defaults.TxPool.Lifetime,
 	}
 	// Performance tuning settings
 	CacheFlag = cli.IntFlag{
@@ -384,12 +384,12 @@ var (
 	CacheTrieJournalFlag = cli.StringFlag{
 		Name:  "cache.trie.journal",
 		Usage: "Disk journal directory for trie cache to survive node restarts",
-		Value: ethconfig.Defaults.TrieCleanCacheJournal,
+		Value: highconfig.Defaults.TrieCleanCacheJournal,
 	}
 	CacheTrieRejournalFlag = cli.DurationFlag{
 		Name:  "cache.trie.rejournal",
 		Usage: "Time interval to regenerate the trie cache journal",
-		Value: ethconfig.Defaults.TrieCleanCacheRejournal,
+		Value: highconfig.Defaults.TrieCleanCacheRejournal,
 	}
 	CacheGCFlag = cli.IntFlag{
 		Name:  "cache.gc",
@@ -423,20 +423,20 @@ var (
 		Name:  "miner.notify",
 		Usage: "Comma separated HTTP URL list to notify of new work packages",
 	}
-	MinerGasTargetFlag = cli.Uint64Flag{
-		Name:  "miner.gastarget",
-		Usage: "Target gas floor for mined blocks",
-		Value: ethconfig.Defaults.Miner.GasFloor,
+	MinerSmokeTargetFlag = cli.Uint64Flag{
+		Name:  "miner.smoketarget",
+		Usage: "Target smoke floor for mined blocks",
+		Value: highconfig.Defaults.Miner.SmokeFloor,
 	}
-	MinerGasLimitFlag = cli.Uint64Flag{
-		Name:  "miner.gaslimit",
-		Usage: "Target gas ceiling for mined blocks",
-		Value: ethconfig.Defaults.Miner.GasCeil,
+	MinerSmokeLimitFlag = cli.Uint64Flag{
+		Name:  "miner.smokelimit",
+		Usage: "Target smoke ceiling for mined blocks",
+		Value: highconfig.Defaults.Miner.SmokeCeil,
 	}
-	MinerGasPriceFlag = BigFlag{
-		Name:  "miner.gasprice",
-		Usage: "Minimum gas price for mining a transaction",
-		Value: ethconfig.Defaults.Miner.GasPrice,
+	MinerSmokePriceFlag = BigFlag{
+		Name:  "miner.smokeprice",
+		Usage: "Minimum smoke price for mining a transaction",
+		Value: highconfig.Defaults.Miner.SmokePrice,
 	}
 	MinerHighcoinbaseFlag = cli.StringFlag{
 		Name:  "miner.highcoinbase",
@@ -450,7 +450,7 @@ var (
 	MinerRecommitIntervalFlag = cli.DurationFlag{
 		Name:  "miner.recommit",
 		Usage: "Time interval to recreate the block being mined",
-		Value: ethconfig.Defaults.Miner.Recommit,
+		Value: highconfig.Defaults.Miner.Recommit,
 	}
 	MinerNoVerfiyFlag = cli.BoolFlag{
 		Name:  "miner.noverify",
@@ -480,20 +480,20 @@ var (
 		Name:  "allow-insecure-unlock",
 		Usage: "Allow insecure account unlocking when account-related RPCs are exposed by http",
 	}
-	RPCGlobalGasCapFlag = cli.Uint64Flag{
-		Name:  "rpc.gascap",
-		Usage: "Sets a cap on gas that can be used in eth_call/estimateGas (0=infinite)",
-		Value: ethconfig.Defaults.RPCGasCap,
+	RPCGlobalSmokeCapFlag = cli.Uint64Flag{
+		Name:  "rpc.smokecap",
+		Usage: "Sets a cap on smoke that can be used in high_call/estimateSmoke (0=infinite)",
+		Value: highconfig.Defaults.RPCSmokeCap,
 	}
 	RPCGlobalTxFeeCapFlag = cli.Float64Flag{
 		Name:  "rpc.txfeecap",
 		Usage: "Sets a cap on transaction fee (in highcoin) that can be sent via the RPC APIs (0 = no cap)",
-		Value: ethconfig.Defaults.RPCTxFeeCap,
+		Value: highconfig.Defaults.RPCTxFeeCap,
 	}
 	// Logging and debug settings
 	HighStatsURLFlag = cli.StringFlag{
-		Name:  "ethstats",
-		Usage: "Reporting URL of a ethstats service (nodename:secret@host:port)",
+		Name:  "highstats",
+		Usage: "Reporting URL of a highstats service (nodename:secret@host:port)",
 	}
 	FakePoWFlag = cli.BoolFlag{
 		Name:  "fakepow",
@@ -660,21 +660,21 @@ var (
 		Value: ".",
 	}
 
-	// Gas price oracle settings
+	// Smoke price oracle settings
 	GpoBlocksFlag = cli.IntFlag{
 		Name:  "gpo.blocks",
-		Usage: "Number of recent blocks to check for gas prices",
-		Value: ethconfig.Defaults.GPO.Blocks,
+		Usage: "Number of recent blocks to check for smoke prices",
+		Value: highconfig.Defaults.GPO.Blocks,
 	}
 	GpoPercentileFlag = cli.IntFlag{
 		Name:  "gpo.percentile",
-		Usage: "Suggested gas price is the given percentile of a set of recent transaction gas prices",
-		Value: ethconfig.Defaults.GPO.Percentile,
+		Usage: "Suggested smoke price is the given percentile of a set of recent transaction smoke prices",
+		Value: highconfig.Defaults.GPO.Percentile,
 	}
-	GpoMaxGasPriceFlag = cli.Int64Flag{
+	GpoMaxSmokePriceFlag = cli.Int64Flag{
 		Name:  "gpo.maxprice",
-		Usage: "Maximum gas price will be recommended by gpo",
-		Value: ethconfig.Defaults.GPO.MaxPrice.Int64(),
+		Usage: "Maximum smoke price will be recommended by gpo",
+		Value: highconfig.Defaults.GPO.MaxPrice.Int64(),
 	}
 	WhisperEnabledFlag = cli.BoolFlag{
 		Name:  "shh",
@@ -774,8 +774,8 @@ func MakeDataDir(ctx *cli.Context) string {
 			// Ropsten database in `testnet` instead of `ropsten`.
 			return filepath.Join(path, "ropsten")
 		}
-		if ctx.GlobalBool(RinkebyFlag.Name) {
-			return filepath.Join(path, "rinkeby")
+		if ctx.GlobalBool(RuderalisFlag.Name) {
+			return filepath.Join(path, "ruderalis")
 		}
 		if ctx.GlobalBool(GoerliFlag.Name) {
 			return filepath.Join(path, "goerli")
@@ -831,8 +831,8 @@ func setBootstrapNodes(ctx *cli.Context, cfg *p2p.Config) {
 		urls = SplitAndTrim(ctx.GlobalString(BootnodesFlag.Name))
 	case ctx.GlobalBool(RopstenFlag.Name):
 		urls = params.RopstenBootnodes
-	case ctx.GlobalBool(RinkebyFlag.Name):
-		urls = params.RinkebyBootnodes
+	case ctx.GlobalBool(RuderalisFlag.Name):
+		urls = params.RuderalisBootnodes
 	case ctx.GlobalBool(GoerliFlag.Name):
 		urls = params.GoerliBootnodes
 	case ctx.GlobalBool(YoloV3Flag.Name):
@@ -1017,7 +1017,7 @@ func setIPC(ctx *cli.Context, cfg *node.Config) {
 }
 
 // setLes configures the les server and ultra light client settings from the command line flags.
-func setLes(ctx *cli.Context, cfg *ethconfig.Config) {
+func setLes(ctx *cli.Context, cfg *highconfig.Config) {
 	if ctx.GlobalIsSet(LightServeFlag.Name) {
 		cfg.LightServ = ctx.GlobalInt(LightServeFlag.Name)
 	}
@@ -1037,8 +1037,8 @@ func setLes(ctx *cli.Context, cfg *ethconfig.Config) {
 		cfg.UltraLightFraction = ctx.GlobalInt(UltraLightFractionFlag.Name)
 	}
 	if cfg.UltraLightFraction <= 0 && cfg.UltraLightFraction > 100 {
-		log.Error("Ultra light fraction is invalid", "had", cfg.UltraLightFraction, "updated", ethconfig.Defaults.UltraLightFraction)
-		cfg.UltraLightFraction = ethconfig.Defaults.UltraLightFraction
+		log.Error("Ultra light fraction is invalid", "had", cfg.UltraLightFraction, "updated", highconfig.Defaults.UltraLightFraction)
+		cfg.UltraLightFraction = highconfig.Defaults.UltraLightFraction
 	}
 	if ctx.GlobalIsSet(UltraLightOnlyAnnounceFlag.Name) {
 		cfg.UltraLightOnlyAnnounce = ctx.GlobalBool(UltraLightOnlyAnnounceFlag.Name)
@@ -1092,7 +1092,7 @@ func MakeAddress(ks *keystore.KeyStore, account string) (accounts.Account, error
 
 // setHighcoinbase retrieves the highcoinbase either from the directly specified
 // command line flags or from the keystore if CLI indexed.
-func setHighcoinbase(ctx *cli.Context, ks *keystore.KeyStore, cfg *ethconfig.Config) {
+func setHighcoinbase(ctx *cli.Context, ks *keystore.KeyStore, cfg *highconfig.Config) {
 	// Extract the current highcoinbase
 	var highcoinbase string
 	if ctx.GlobalIsSet(MinerHighcoinbaseFlag.Name) {
@@ -1162,11 +1162,11 @@ func SetP2PConfig(ctx *cli.Context, cfg *p2p.Config) {
 	if !(lightClient || lightServer) {
 		lightPeers = 0
 	}
-	ethPeers := cfg.MaxPeers - lightPeers
+	highPeers := cfg.MaxPeers - lightPeers
 	if lightClient {
-		ethPeers = 0
+		highPeers = 0
 	}
-	log.Info("Maximum peer count", "HIGH", ethPeers, "LES", lightPeers, "total", cfg.MaxPeers)
+	log.Info("Maximum peer count", "HIGH", highPeers, "LES", lightPeers, "total", cfg.MaxPeers)
 
 	if ctx.GlobalIsSet(MaxPendingPeersFlag.Name) {
 		cfg.MaxPendingPeers = ctx.GlobalInt(MaxPendingPeersFlag.Name)
@@ -1272,8 +1272,8 @@ func setDataDir(ctx *cli.Context, cfg *node.Config) {
 		}
 
 		cfg.DataDir = filepath.Join(node.DefaultDataDir(), "ropsten")
-	case ctx.GlobalBool(RinkebyFlag.Name) && cfg.DataDir == node.DefaultDataDir():
-		cfg.DataDir = filepath.Join(node.DefaultDataDir(), "rinkeby")
+	case ctx.GlobalBool(RuderalisFlag.Name) && cfg.DataDir == node.DefaultDataDir():
+		cfg.DataDir = filepath.Join(node.DefaultDataDir(), "ruderalis")
 	case ctx.GlobalBool(GoerliFlag.Name) && cfg.DataDir == node.DefaultDataDir():
 		cfg.DataDir = filepath.Join(node.DefaultDataDir(), "goerli")
 	case ctx.GlobalBool(YoloV3Flag.Name) && cfg.DataDir == node.DefaultDataDir():
@@ -1281,12 +1281,12 @@ func setDataDir(ctx *cli.Context, cfg *node.Config) {
 	}
 }
 
-func setGPO(ctx *cli.Context, cfg *gasprice.Config, light bool) {
+func setGPO(ctx *cli.Context, cfg *smokeprice.Config, light bool) {
 	// If we are running the light client, apply another group
-	// settings for gas oracle.
+	// settings for smoke oracle.
 	if light {
-		cfg.Blocks = ethconfig.LightClientGPO.Blocks
-		cfg.Percentile = ethconfig.LightClientGPO.Percentile
+		cfg.Blocks = highconfig.LightClientGPO.Blocks
+		cfg.Percentile = highconfig.LightClientGPO.Percentile
 	}
 	if ctx.GlobalIsSet(GpoBlocksFlag.Name) {
 		cfg.Blocks = ctx.GlobalInt(GpoBlocksFlag.Name)
@@ -1294,8 +1294,8 @@ func setGPO(ctx *cli.Context, cfg *gasprice.Config, light bool) {
 	if ctx.GlobalIsSet(GpoPercentileFlag.Name) {
 		cfg.Percentile = ctx.GlobalInt(GpoPercentileFlag.Name)
 	}
-	if ctx.GlobalIsSet(GpoMaxGasPriceFlag.Name) {
-		cfg.MaxPrice = big.NewInt(ctx.GlobalInt64(GpoMaxGasPriceFlag.Name))
+	if ctx.GlobalIsSet(GpoMaxSmokePriceFlag.Name) {
+		cfg.MaxPrice = big.NewInt(ctx.GlobalInt64(GpoMaxSmokePriceFlag.Name))
 	}
 }
 
@@ -1342,7 +1342,7 @@ func setTxPool(ctx *cli.Context, cfg *core.TxPoolConfig) {
 	}
 }
 
-func setEthash(ctx *cli.Context, cfg *ethconfig.Config) {
+func setEthash(ctx *cli.Context, cfg *highconfig.Config) {
 	if ctx.GlobalIsSet(EthashCacheDirFlag.Name) {
 		cfg.Ethash.CacheDir = ctx.GlobalString(EthashCacheDirFlag.Name)
 	}
@@ -1376,14 +1376,14 @@ func setMiner(ctx *cli.Context, cfg *miner.Config) {
 	if ctx.GlobalIsSet(MinerExtraDataFlag.Name) {
 		cfg.ExtraData = []byte(ctx.GlobalString(MinerExtraDataFlag.Name))
 	}
-	if ctx.GlobalIsSet(MinerGasTargetFlag.Name) {
-		cfg.GasFloor = ctx.GlobalUint64(MinerGasTargetFlag.Name)
+	if ctx.GlobalIsSet(MinerSmokeTargetFlag.Name) {
+		cfg.SmokeFloor = ctx.GlobalUint64(MinerSmokeTargetFlag.Name)
 	}
-	if ctx.GlobalIsSet(MinerGasLimitFlag.Name) {
-		cfg.GasCeil = ctx.GlobalUint64(MinerGasLimitFlag.Name)
+	if ctx.GlobalIsSet(MinerSmokeLimitFlag.Name) {
+		cfg.SmokeCeil = ctx.GlobalUint64(MinerSmokeLimitFlag.Name)
 	}
-	if ctx.GlobalIsSet(MinerGasPriceFlag.Name) {
-		cfg.GasPrice = GlobalBig(ctx, MinerGasPriceFlag.Name)
+	if ctx.GlobalIsSet(MinerSmokePriceFlag.Name) {
+		cfg.SmokePrice = GlobalBig(ctx, MinerSmokePriceFlag.Name)
 	}
 	if ctx.GlobalIsSet(MinerRecommitIntervalFlag.Name) {
 		cfg.Recommit = ctx.GlobalDuration(MinerRecommitIntervalFlag.Name)
@@ -1393,7 +1393,7 @@ func setMiner(ctx *cli.Context, cfg *miner.Config) {
 	}
 }
 
-func setWhitelist(ctx *cli.Context, cfg *ethconfig.Config) {
+func setWhitelist(ctx *cli.Context, cfg *highconfig.Config) {
 	whitelist := ctx.GlobalString(WhitelistFlag.Name)
 	if whitelist == "" {
 		return
@@ -1467,10 +1467,10 @@ func SetShhConfig(ctx *cli.Context, stack *node.Node) {
 	}
 }
 
-// SetHighConfig applies eth-related command line flags to the config.
-func SetHighConfig(ctx *cli.Context, stack *node.Node, cfg *ethconfig.Config) {
+// SetHighConfig applies high-related command line flags to the config.
+func SetHighConfig(ctx *cli.Context, stack *node.Node, cfg *highconfig.Config) {
 	// Avoid conflicting network flags
-	CheckExclusive(ctx, MainnetFlag, DeveloperFlag, RopstenFlag, RinkebyFlag, GoerliFlag, YoloV3Flag)
+	CheckExclusive(ctx, MainnetFlag, DeveloperFlag, RopstenFlag, RuderalisFlag, GoerliFlag, YoloV3Flag)
 	CheckExclusive(ctx, LightServeFlag, SyncModeFlag, "light")
 	CheckExclusive(ctx, DeveloperFlag, ExternalSignerFlag) // Can't use both ephemeral unlocked and external signer
 	CheckExclusive(ctx, GCModeFlag, "archive", TxLookupLimitFlag)
@@ -1560,13 +1560,13 @@ func SetHighConfig(ctx *cli.Context, stack *node.Node, cfg *ethconfig.Config) {
 	if ctx.GlobalIsSet(EVMInterpreterFlag.Name) {
 		cfg.EVMInterpreter = ctx.GlobalString(EVMInterpreterFlag.Name)
 	}
-	if ctx.GlobalIsSet(RPCGlobalGasCapFlag.Name) {
-		cfg.RPCGasCap = ctx.GlobalUint64(RPCGlobalGasCapFlag.Name)
+	if ctx.GlobalIsSet(RPCGlobalSmokeCapFlag.Name) {
+		cfg.RPCSmokeCap = ctx.GlobalUint64(RPCGlobalSmokeCapFlag.Name)
 	}
-	if cfg.RPCGasCap != 0 {
-		log.Info("Set global gas cap", "cap", cfg.RPCGasCap)
+	if cfg.RPCSmokeCap != 0 {
+		log.Info("Set global smoke cap", "cap", cfg.RPCSmokeCap)
 	} else {
-		log.Info("Global gas cap disabled")
+		log.Info("Global smoke cap disabled")
 	}
 	if ctx.GlobalIsSet(RPCGlobalTxFeeCapFlag.Name) {
 		cfg.RPCTxFeeCap = ctx.GlobalFloat64(RPCGlobalTxFeeCapFlag.Name)
@@ -1595,12 +1595,12 @@ func SetHighConfig(ctx *cli.Context, stack *node.Node, cfg *ethconfig.Config) {
 		}
 		cfg.Genesis = core.DefaultRopstenGenesisBlock()
 		SetDNSDiscoveryDefaults(cfg, params.RopstenGenesisHash)
-	case ctx.GlobalBool(RinkebyFlag.Name):
+	case ctx.GlobalBool(RuderalisFlag.Name):
 		if !ctx.GlobalIsSet(NetworkIdFlag.Name) {
 			cfg.NetworkId = 4
 		}
-		cfg.Genesis = core.DefaultRinkebyGenesisBlock()
-		SetDNSDiscoveryDefaults(cfg, params.RinkebyGenesisHash)
+		cfg.Genesis = core.DefaultRuderalisGenesisBlock()
+		SetDNSDiscoveryDefaults(cfg, params.RuderalisGenesisHash)
 	case ctx.GlobalBool(GoerliFlag.Name):
 		if !ctx.GlobalIsSet(NetworkIdFlag.Name) {
 			cfg.NetworkId = 5
@@ -1655,8 +1655,8 @@ func SetHighConfig(ctx *cli.Context, stack *node.Node, cfg *ethconfig.Config) {
 			}
 			chaindb.Close()
 		}
-		if !ctx.GlobalIsSet(MinerGasPriceFlag.Name) {
-			cfg.Miner.GasPrice = big.NewInt(1)
+		if !ctx.GlobalIsSet(MinerSmokePriceFlag.Name) {
+			cfg.Miner.SmokePrice = big.NewInt(1)
 		}
 	default:
 		if cfg.NetworkId == 1 {
@@ -1667,7 +1667,7 @@ func SetHighConfig(ctx *cli.Context, stack *node.Node, cfg *ethconfig.Config) {
 
 // SetDNSDiscoveryDefaults configures DNS discovery with the given URL if
 // no URLs are set.
-func SetDNSDiscoveryDefaults(cfg *ethconfig.Config, genesis common.Hash) {
+func SetDNSDiscoveryDefaults(cfg *highconfig.Config, genesis common.Hash) {
 	if cfg.HighDiscoveryURLs != nil {
 		return // already set through flags/config
 	}
@@ -1686,7 +1686,7 @@ func SetDNSDiscoveryDefaults(cfg *ethconfig.Config, genesis common.Hash) {
 }
 
 // RegisterHighService adds an Highcoin client to the stack.
-func RegisterHighService(stack *node.Node, cfg *ethconfig.Config) ethapi.Backend {
+func RegisterHighService(stack *node.Node, cfg *highconfig.Config) highapi.Backend {
 	if cfg.SyncMode == downloader.LightSync {
 		backend, err := les.New(stack, cfg)
 		if err != nil {
@@ -1711,14 +1711,14 @@ func RegisterHighService(stack *node.Node, cfg *ethconfig.Config) ethapi.Backend
 
 // RegisterHighStatsService configures the Highcoin Stats daemon and adds it to
 // the given node.
-func RegisterHighStatsService(stack *node.Node, backend ethapi.Backend, url string) {
-	if err := ethstats.New(stack, backend, backend.Engine(), url); err != nil {
+func RegisterHighStatsService(stack *node.Node, backend highapi.Backend, url string) {
+	if err := highstats.New(stack, backend, backend.Engine(), url); err != nil {
 		Fatalf("Failed to register the Highcoin Stats service: %v", err)
 	}
 }
 
 // RegisterGraphQLService is a utility function to construct a new service and register it against a node.
-func RegisterGraphQLService(stack *node.Node, backend ethapi.Backend, cfg node.Config) {
+func RegisterGraphQLService(stack *node.Node, backend highapi.Backend, cfg node.Config) {
 	if err := graphql.New(stack, backend, cfg.GraphQLCors, cfg.GraphQLVirtualHosts); err != nil {
 		Fatalf("Failed to register the GraphQL service: %v", err)
 	}
@@ -1770,13 +1770,13 @@ func SplitTagsFlag(tagsFlag string) map[string]string {
 }
 
 // MakeChainDatabase open an LevelDB using the flags passed to the client and will hard crash if it fails.
-func MakeChainDatabase(ctx *cli.Context, stack *node.Node) ethdb.Database {
+func MakeChainDatabase(ctx *cli.Context, stack *node.Node) highdb.Database {
 	var (
 		cache   = ctx.GlobalInt(CacheFlag.Name) * ctx.GlobalInt(CacheDatabaseFlag.Name) / 100
 		handles = MakeDatabaseHandles()
 
 		err     error
-		chainDb ethdb.Database
+		chainDb highdb.Database
 	)
 	if ctx.GlobalString(SyncModeFlag.Name) == "light" {
 		name := "lightchaindata"
@@ -1796,8 +1796,8 @@ func MakeGenesis(ctx *cli.Context) *core.Genesis {
 	switch {
 	case ctx.GlobalBool(RopstenFlag.Name):
 		genesis = core.DefaultRopstenGenesisBlock()
-	case ctx.GlobalBool(RinkebyFlag.Name):
-		genesis = core.DefaultRinkebyGenesisBlock()
+	case ctx.GlobalBool(RuderalisFlag.Name):
+		genesis = core.DefaultRuderalisGenesisBlock()
 	case ctx.GlobalBool(GoerliFlag.Name):
 		genesis = core.DefaultGoerliGenesisBlock()
 	case ctx.GlobalBool(YoloV3Flag.Name):
@@ -1809,7 +1809,7 @@ func MakeGenesis(ctx *cli.Context) *core.Genesis {
 }
 
 // MakeChain creates a chain manager from set command line flags.
-func MakeChain(ctx *cli.Context, stack *node.Node, readOnly bool) (chain *core.BlockChain, chainDb ethdb.Database) {
+func MakeChain(ctx *cli.Context, stack *node.Node, readOnly bool) (chain *core.BlockChain, chainDb highdb.Database) {
 	var err error
 	chainDb = MakeChainDatabase(ctx, stack)
 	config, _, err := core.SetupGenesisBlock(chainDb, MakeGenesis(ctx))
@@ -1820,17 +1820,17 @@ func MakeChain(ctx *cli.Context, stack *node.Node, readOnly bool) (chain *core.B
 	if config.Clique != nil {
 		engine = clique.New(config.Clique, chainDb)
 	} else {
-		engine = othash.NewFaker()
+		engine = ethash.NewFaker()
 		if !ctx.GlobalBool(FakePoWFlag.Name) {
-			engine = othash.New(othash.Config{
-				CacheDir:         stack.ResolvePath(ethconfig.Defaults.Ethash.CacheDir),
-				CachesInMem:      ethconfig.Defaults.Ethash.CachesInMem,
-				CachesOnDisk:     ethconfig.Defaults.Ethash.CachesOnDisk,
-				CachesLockMmap:   ethconfig.Defaults.Ethash.CachesLockMmap,
-				DatasetDir:       stack.ResolvePath(ethconfig.Defaults.Ethash.DatasetDir),
-				DatasetsInMem:    ethconfig.Defaults.Ethash.DatasetsInMem,
-				DatasetsOnDisk:   ethconfig.Defaults.Ethash.DatasetsOnDisk,
-				DatasetsLockMmap: ethconfig.Defaults.Ethash.DatasetsLockMmap,
+			engine = ethash.New(ethash.Config{
+				CacheDir:         stack.ResolvePath(highconfig.Defaults.Ethash.CacheDir),
+				CachesInMem:      highconfig.Defaults.Ethash.CachesInMem,
+				CachesOnDisk:     highconfig.Defaults.Ethash.CachesOnDisk,
+				CachesLockMmap:   highconfig.Defaults.Ethash.CachesLockMmap,
+				DatasetDir:       stack.ResolvePath(highconfig.Defaults.Ethash.DatasetDir),
+				DatasetsInMem:    highconfig.Defaults.Ethash.DatasetsInMem,
+				DatasetsOnDisk:   highconfig.Defaults.Ethash.DatasetsOnDisk,
+				DatasetsLockMmap: highconfig.Defaults.Ethash.DatasetsLockMmap,
 			}, nil, false)
 		}
 	}
@@ -1838,12 +1838,12 @@ func MakeChain(ctx *cli.Context, stack *node.Node, readOnly bool) (chain *core.B
 		Fatalf("--%s must be either 'full' or 'archive'", GCModeFlag.Name)
 	}
 	cache := &core.CacheConfig{
-		TrieCleanLimit:      ethconfig.Defaults.TrieCleanCache,
+		TrieCleanLimit:      highconfig.Defaults.TrieCleanCache,
 		TrieCleanNoPrefetch: ctx.GlobalBool(CacheNoPrefetchFlag.Name),
-		TrieDirtyLimit:      ethconfig.Defaults.TrieDirtyCache,
+		TrieDirtyLimit:      highconfig.Defaults.TrieDirtyCache,
 		TrieDirtyDisabled:   ctx.GlobalString(GCModeFlag.Name) == "archive",
-		TrieTimeLimit:       ethconfig.Defaults.TrieTimeout,
-		SnapshotLimit:       ethconfig.Defaults.SnapshotCache,
+		TrieTimeLimit:       highconfig.Defaults.TrieTimeout,
+		SnapshotLimit:       highconfig.Defaults.SnapshotCache,
 		Preimages:           ctx.GlobalBool(CachePreimagesFlag.Name),
 	}
 	if cache.TrieDirtyDisabled && !cache.Preimages {

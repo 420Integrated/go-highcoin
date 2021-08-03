@@ -26,10 +26,10 @@ The API-method `account_signGnosisSafeTx` was added. This method takes two param
       "value": "20000000000000000",
       "data": null,
       "operation": 0,
-      "gasToken": "0x0000000000000000000000000000000000000000",
-      "safeTxGas": 27845,
-      "baseGas": 0,
-      "gasPrice": "0",
+      "smokeToken": "0x0000000000000000000000000000000000000000",
+      "safeTxSmoke": 27845,
+      "baseSmoke": 0,
+      "smokePrice": "0",
       "refundReceiver": "0x0000000000000000000000000000000000000000",
       "nonce": 2,
       "executionDate": null,
@@ -41,8 +41,8 @@ The API-method `account_signGnosisSafeTx` was added. This method takes two param
       "executor": null,
       "isExecuted": false,
       "isSuccessful": null,
-      "ethGasPrice": null,
-      "gasUsed": null,
+      "highSmokePrice": null,
+      "smokeUsed": null,
       "fee": null,
       "origin": null,
       "dataDecoded": null,
@@ -96,7 +96,7 @@ The addition of `contentType` makes it possible to use the method for different 
 #### 2.0.0
 
 * Commit `73abaf04b1372fa4c43201fb1b8019fe6b0a6f8d`, move `from` into `transaction` object in `signTransaction`. This
-makes the `accounts_signTransaction` identical to the old `eth_signTransaction`.
+makes the `accounts_signTransaction` identical to the old `high_signTransaction`.
 
 
 #### 1.0.0

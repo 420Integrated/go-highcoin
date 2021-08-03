@@ -75,13 +75,13 @@ func TestState(t *testing.T) {
 				name := name + "/" + key
 
 				t.Run(key+"/trie", func(t *testing.T) {
-					withTrace(t, test.gasLimit(subtest), func(vmconfig vm.Config) error {
+					withTrace(t, test.smokeLimit(subtest), func(vmconfig vm.Config) error {
 						_, _, err := test.Run(subtest, vmconfig, false)
 						return st.checkFailure(t, name+"/trie", err)
 					})
 				})
 				t.Run(key+"/snap", func(t *testing.T) {
-					withTrace(t, test.gasLimit(subtest), func(vmconfig vm.Config) error {
+					withTrace(t, test.smokeLimit(subtest), func(vmconfig vm.Config) error {
 						snaps, statedb, err := test.Run(subtest, vmconfig, true)
 						if _, err := snaps.Journal(statedb.IntermediateRoot(false)); err != nil {
 							return err
@@ -94,10 +94,10 @@ func TestState(t *testing.T) {
 	}
 }
 
-// Transactions with gasLimit above this value will not get a VM trace on failure.
+// Transactions with smokeLimit above this value will not get a VM trace on failure.
 const traceErrorLimit = 400000
 
-func withTrace(t *testing.T, gasLimit uint64, test func(vm.Config) error) {
+func withTrace(t *testing.T, smokeLimit uint64, test func(vm.Config) error) {
 	// Use config from command line arguments.
 	config := vm.Config{EVMInterpreter: *testEVM, EWASMInterpreter: *testEWASM}
 	err := test(config)
@@ -107,8 +107,8 @@ func withTrace(t *testing.T, gasLimit uint64, test func(vm.Config) error) {
 
 	// Test failed, re-run with tracing enabled.
 	t.Error(err)
-	if gasLimit > traceErrorLimit {
-		t.Log("gas limit too high for EVM trace")
+	if smokeLimit > traceErrorLimit {
+		t.Log("smoke limit too high for EVM trace")
 		return
 	}
 	buf := new(bytes.Buffer)

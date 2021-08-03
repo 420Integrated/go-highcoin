@@ -40,7 +40,7 @@ func (w *wizard) makeGenesis() {
 	// Construct a default genesis block
 	genesis := &core.Genesis{
 		Timestamp:  uint64(time.Now().Unix()),
-		GasLimit:   4700000,
+		SmokeLimit:   4700000,
 		Difficulty: big.NewInt(524288),
 		Alloc:      make(core.GenesisAlloc),
 		Config: &params.ChainConfig{
@@ -63,7 +63,7 @@ func (w *wizard) makeGenesis() {
 	choice := w.read()
 	switch {
 	case choice == "1":
-		// In case of othash, we're pretty much done
+		// In case of ethash, we're pretty much done
 		genesis.Config.Ethash = new(params.EthashConfig)
 		genesis.ExtraData = make([]byte, 32)
 
@@ -141,7 +141,7 @@ func (w *wizard) makeGenesis() {
 	w.conf.flush()
 }
 
-// importGenesis imports a Highcoin genesis spec into puppeth.
+// importGenesis imports a Highcoin genesis spec into pupphigh.
 func (w *wizard) importGenesis() {
 	// Request the genesis JSON spec URL from the user
 	fmt.Println()
@@ -248,7 +248,7 @@ func (w *wizard) manageGenesis() {
 		// Save whatever genesis configuration we currently have
 		fmt.Println()
 		fmt.Printf("Which folder to save the genesis specs into? (default = current)\n")
-		fmt.Printf("  Will create %s.json, %s-aleth.json, %s-harmony.json, %s-parity.json\n", w.network, w.network, w.network, w.network)
+		fmt.Printf("  Will create %s.json, %s-alhigh.json, %s-harmony.json, %s-parity.json\n", w.network, w.network, w.network, w.network)
 
 		folder := w.readDefaultString(".")
 		if err := os.MkdirAll(folder, 0755); err != nil {
@@ -257,7 +257,7 @@ func (w *wizard) manageGenesis() {
 		}
 		out, _ := json.MarshalIndent(w.conf.Genesis, "", "  ")
 
-		// Export the native genesis spec used by puppeth and Highcoin
+		// Export the native genesis spec used by pupphigh and Highcoin
 		highcoinJson := filepath.Join(folder, fmt.Sprintf("%s.json", w.network))
 		if err := ioutil.WriteFile(highcoinJson, out, 0644); err != nil {
 			log.Error("Failed to save genesis file", "err", err)
@@ -265,11 +265,11 @@ func (w *wizard) manageGenesis() {
 		}
 		log.Info("Saved native genesis chain spec", "path", highcoinJson)
 
-		// Export the genesis spec used by Aleth
-		if spec, err := newAlethGenesisSpec(w.network, w.conf.Genesis); err != nil {
-			log.Error("Failed to create Aleth chain spec", "err", err)
+		// Export the genesis spec used by Alhigh
+		if spec, err := newAlhighGenesisSpec(w.network, w.conf.Genesis); err != nil {
+			log.Error("Failed to create Alhigh chain spec", "err", err)
 		} else {
-			saveGenesis(folder, w.network, "aleth", spec)
+			saveGenesis(folder, w.network, "alhigh", spec)
 		}
 		// Export the genesis spec used by Parity
 		if spec, err := newParityChainSpec(w.network, w.conf.Genesis, []string{}); err != nil {

@@ -25,10 +25,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/420integrated/go-highcoin/consensus/othash"
+	"github.com/420integrated/go-highcoin/consensus/ethash"
 	"github.com/420integrated/go-highcoin/core"
-	"github.com/420integrated/go-highcoin/eth"
-	"github.com/420integrated/go-highcoin/eth/ethconfig"
+	"github.com/420integrated/go-highcoin/high"
+	"github.com/420integrated/go-highcoin/high/highconfig"
 	"github.com/420integrated/go-highcoin/node"
 	"github.com/420integrated/go-highcoin/params"
 
@@ -73,52 +73,52 @@ func TestGraphQLBlockSerialization(t *testing.T) {
 			code: 200,
 		},
 		{ // Should return info about latest block
-			body: `{"query": "{block{number,gasUsed,gasLimit}}","variables": null}`,
-			want: `{"data":{"block":{"number":10,"gasUsed":0,"gasLimit":11500000}}}`,
+			body: `{"query": "{block{number,smokeUsed,smokeLimit}}","variables": null}`,
+			want: `{"data":{"block":{"number":10,"smokeUsed":0,"smokeLimit":11500000}}}`,
 			code: 200,
 		},
 		{
-			body: `{"query": "{block(number:0){number,gasUsed,gasLimit}}","variables": null}`,
-			want: `{"data":{"block":{"number":0,"gasUsed":0,"gasLimit":11500000}}}`,
+			body: `{"query": "{block(number:0){number,smokeUsed,smokeLimit}}","variables": null}`,
+			want: `{"data":{"block":{"number":0,"smokeUsed":0,"smokeLimit":11500000}}}`,
 			code: 200,
 		},
 		{
-			body: `{"query": "{block(number:-1){number,gasUsed,gasLimit}}","variables": null}`,
+			body: `{"query": "{block(number:-1){number,smokeUsed,smokeLimit}}","variables": null}`,
 			want: `{"data":{"block":null}}`,
 			code: 200,
 		},
 		{
-			body: `{"query": "{block(number:-500){number,gasUsed,gasLimit}}","variables": null}`,
+			body: `{"query": "{block(number:-500){number,smokeUsed,smokeLimit}}","variables": null}`,
 			want: `{"data":{"block":null}}`,
 			code: 200,
 		},
 		{
-			body: `{"query": "{block(number:\"0\"){number,gasUsed,gasLimit}}","variables": null}`,
-			want: `{"data":{"block":{"number":0,"gasUsed":0,"gasLimit":11500000}}}`,
+			body: `{"query": "{block(number:\"0\"){number,smokeUsed,smokeLimit}}","variables": null}`,
+			want: `{"data":{"block":{"number":0,"smokeUsed":0,"smokeLimit":11500000}}}`,
 			code: 200,
 		},
 		{
-			body: `{"query": "{block(number:\"-33\"){number,gasUsed,gasLimit}}","variables": null}`,
+			body: `{"query": "{block(number:\"-33\"){number,smokeUsed,smokeLimit}}","variables": null}`,
 			want: `{"data":{"block":null}}`,
 			code: 200,
 		},
 		{
-			body: `{"query": "{block(number:\"1337\"){number,gasUsed,gasLimit}}","variables": null}`,
+			body: `{"query": "{block(number:\"1337\"){number,smokeUsed,smokeLimit}}","variables": null}`,
 			want: `{"data":{"block":null}}`,
 			code: 200,
 		},
 		{
-			body: `{"query": "{block(number:\"0xbad\"){number,gasUsed,gasLimit}}","variables": null}`,
+			body: `{"query": "{block(number:\"0xbad\"){number,smokeUsed,smokeLimit}}","variables": null}`,
 			want: `{"errors":[{"message":"strconv.ParseInt: parsing \"0xbad\": invalid syntax"}],"data":{}}`,
 			code: 400,
 		},
 		{ // hex strings are currently not supported. If that's added to the spec, this test will need to change
-			body: `{"query": "{block(number:\"0x0\"){number,gasUsed,gasLimit}}","variables": null}`,
+			body: `{"query": "{block(number:\"0x0\"){number,smokeUsed,smokeLimit}}","variables": null}`,
 			want: `{"errors":[{"message":"strconv.ParseInt: parsing \"0x0\": invalid syntax"}],"data":{}}`,
 			code: 400,
 		},
 		{
-			body: `{"query": "{block(number:\"a\"){number,gasUsed,gasLimit}}","variables": null}`,
+			body: `{"query": "{block(number:\"a\"){number,smokeUsed,smokeLimit}}","variables": null}`,
 			want: `{"errors":[{"message":"strconv.ParseInt: parsing \"a\": invalid syntax"}],"data":{}}`,
 			code: 400,
 		},
@@ -127,10 +127,10 @@ func TestGraphQLBlockSerialization(t *testing.T) {
 			want: `{"errors":[{"message":"Cannot query field \"bleh\" on type \"Query\".","locations":[{"line":1,"column":2}]}]}`,
 			code: 400,
 		},
-		// should return `estimateGas` as decimal
+		// should return `estimateSmoke` as decimal
 		{
-			body: `{"query": "{block{ estimateGas(data:{}) }}"}`,
-			want: `{"data":{"block":{"estimateGas":53000}}}`,
+			body: `{"query": "{block{ estimateSmoke(data:{}) }}"}`,
+			want: `{"data":{"block":{"estimateSmoke":53000}}}`,
 			code: 200,
 		},
 		// should return `status` as decimal
@@ -192,14 +192,14 @@ func createNode(t *testing.T, gqlEnabled bool) *node.Node {
 
 func createGQLService(t *testing.T, stack *node.Node) {
 	// create backend
-	ethConf := &ethconfig.Config{
+	highConf := &highconfig.Config{
 		Genesis: &core.Genesis{
 			Config:     params.AllEthashProtocolChanges,
-			GasLimit:   11500000,
+			SmokeLimit:   11500000,
 			Difficulty: big.NewInt(1048576),
 		},
-		Ethash: othash.Config{
-			PowMode: othash.ModeFake,
+		Ethash: ethash.Config{
+			PowMode: ethash.ModeFake,
 		},
 		NetworkId:               1337,
 		TrieCleanCache:          5,
@@ -209,19 +209,19 @@ func createGQLService(t *testing.T, stack *node.Node) {
 		TrieTimeout:             60 * time.Minute,
 		SnapshotCache:           5,
 	}
-	ethBackend, err := high.New(stack, ethConf)
+	highBackend, err := high.New(stack, highConf)
 	if err != nil {
-		t.Fatalf("could not create eth backend: %v", err)
+		t.Fatalf("could not create high backend: %v", err)
 	}
 	// Create some blocks and import them
-	chain, _ := core.GenerateChain(params.AllEthashProtocolChanges, ethBackend.BlockChain().Genesis(),
-		othash.NewFaker(), ethBackend.ChainDb(), 10, func(i int, gen *core.BlockGen) {})
-	_, err = ethBackend.BlockChain().InsertChain(chain)
+	chain, _ := core.GenerateChain(params.AllEthashProtocolChanges, highBackend.BlockChain().Genesis(),
+		ethash.NewFaker(), highBackend.ChainDb(), 10, func(i int, gen *core.BlockGen) {})
+	_, err = highBackend.BlockChain().InsertChain(chain)
 	if err != nil {
 		t.Fatalf("could not create import blocks: %v", err)
 	}
 	// create gql service
-	err = New(stack, ethBackend.APIBackend, []string{}, []string{})
+	err = New(stack, highBackend.APIBackend, []string{}, []string{})
 	if err != nil {
 		t.Fatalf("could not create graphql service: %v", err)
 	}

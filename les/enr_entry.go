@@ -32,16 +32,16 @@ type lesEntry struct {
 
 func (lesEntry) ENRKey() string { return "les" }
 
-// ethEntry is the "eth" ENR entry. This is redeclared here to avoid depending on package high.
-type ethEntry struct {
+// highEntry is the "high" ENR entry. This is redeclared here to avoid depending on package high.
+type highEntry struct {
 	ForkID forkid.ID
 	_      []rlp.RawValue `rlp:"tail"`
 }
 
-func (ethEntry) ENRKey() string { return "eth" }
+func (highEntry) ENRKey() string { return "high" }
 
-// setupDiscovery creates the node discovery source for the eth protocol.
-func (eth *LightHighcoin) setupDiscovery(cfg *p2p.Config) (enode.Iterator, error) {
+// setupDiscovery creates the node discovery source for the high protocol.
+func (high *LightHighcoin) setupDiscovery(cfg *p2p.Config) (enode.Iterator, error) {
 	it := enode.NewFairMix(0)
 
 	// Enable DNS discovery.
@@ -67,6 +67,6 @@ func (eth *LightHighcoin) setupDiscovery(cfg *p2p.Config) (enode.Iterator, error
 // nodeIsServer checks if n is an LES server node.
 func nodeIsServer(forkFilter forkid.Filter, n *enode.Node) bool {
 	var les lesEntry
-	var eth ethEntry
-	return n.Load(&les) == nil && n.Load(&eth) == nil && forkFilter(high.ForkID) == nil
+	var high highEntry
+	return n.Load(&les) == nil && n.Load(&high) == nil && forkFilter(high.ForkID) == nil
 }

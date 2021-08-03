@@ -60,7 +60,7 @@ func TestLegacyReceiptDecoding(t *testing.T) {
 	tx := NewTransaction(1, common.HexToAddress("0x1"), big.NewInt(1), 1, big.NewInt(1), nil)
 	receipt := &Receipt{
 		Status:            ReceiptStatusFailed,
-		CumulativeGasUsed: 1,
+		CumulativeSmokeUsed: 1,
 		Logs: []*Log{
 			{
 				Address: common.BytesToAddress([]byte{0x11}),
@@ -75,7 +75,7 @@ func TestLegacyReceiptDecoding(t *testing.T) {
 		},
 		TxHash:          tx.Hash(),
 		ContractAddress: common.BytesToAddress([]byte{0x01, 0x11, 0x11}),
-		GasUsed:         111111,
+		SmokeUsed:         111111,
 	}
 	receipt.Bloom = CreateBloom(Receipts{receipt})
 
@@ -93,8 +93,8 @@ func TestLegacyReceiptDecoding(t *testing.T) {
 			if dec.Status != receipt.Status {
 				t.Fatalf("Receipt status mismatch, want %v, have %v", receipt.Status, dec.Status)
 			}
-			if dec.CumulativeGasUsed != receipt.CumulativeGasUsed {
-				t.Fatalf("Receipt CumulativeGasUsed mismatch, want %v, have %v", receipt.CumulativeGasUsed, dec.CumulativeGasUsed)
+			if dec.CumulativeSmokeUsed != receipt.CumulativeSmokeUsed {
+				t.Fatalf("Receipt CumulativeSmokeUsed mismatch, want %v, have %v", receipt.CumulativeSmokeUsed, dec.CumulativeSmokeUsed)
 			}
 			if dec.Bloom != receipt.Bloom {
 				t.Fatalf("Bloom data mismatch, want %v, have %v", receipt.Bloom, dec.Bloom)
@@ -120,7 +120,7 @@ func TestLegacyReceiptDecoding(t *testing.T) {
 func encodeAsStoredReceiptRLP(want *Receipt) ([]byte, error) {
 	stored := &storedReceiptRLP{
 		PostStateOrStatus: want.statusEncoding(),
-		CumulativeGasUsed: want.CumulativeGasUsed,
+		CumulativeSmokeUsed: want.CumulativeSmokeUsed,
 		Logs:              make([]*LogForStorage, len(want.Logs)),
 	}
 	for i, log := range want.Logs {
@@ -132,11 +132,11 @@ func encodeAsStoredReceiptRLP(want *Receipt) ([]byte, error) {
 func encodeAsV4StoredReceiptRLP(want *Receipt) ([]byte, error) {
 	stored := &v4StoredReceiptRLP{
 		PostStateOrStatus: want.statusEncoding(),
-		CumulativeGasUsed: want.CumulativeGasUsed,
+		CumulativeSmokeUsed: want.CumulativeSmokeUsed,
 		TxHash:            want.TxHash,
 		ContractAddress:   want.ContractAddress,
 		Logs:              make([]*LogForStorage, len(want.Logs)),
-		GasUsed:           want.GasUsed,
+		SmokeUsed:           want.SmokeUsed,
 	}
 	for i, log := range want.Logs {
 		stored.Logs[i] = (*LogForStorage)(log)
@@ -147,12 +147,12 @@ func encodeAsV4StoredReceiptRLP(want *Receipt) ([]byte, error) {
 func encodeAsV3StoredReceiptRLP(want *Receipt) ([]byte, error) {
 	stored := &v3StoredReceiptRLP{
 		PostStateOrStatus: want.statusEncoding(),
-		CumulativeGasUsed: want.CumulativeGasUsed,
+		CumulativeSmokeUsed: want.CumulativeSmokeUsed,
 		Bloom:             want.Bloom,
 		TxHash:            want.TxHash,
 		ContractAddress:   want.ContractAddress,
 		Logs:              make([]*LogForStorage, len(want.Logs)),
-		GasUsed:           want.GasUsed,
+		SmokeUsed:           want.SmokeUsed,
 	}
 	for i, log := range want.Logs {
 		stored.Logs[i] = (*LogForStorage)(log)
@@ -169,59 +169,59 @@ func TestDeriveFields(t *testing.T) {
 		NewTx(&LegacyTx{
 			Nonce:    1,
 			Value:    big.NewInt(1),
-			Gas:      1,
-			GasPrice: big.NewInt(1),
+			Smoke:      1,
+			SmokePrice: big.NewInt(1),
 		}),
 		NewTx(&LegacyTx{
 			To:       &to2,
 			Nonce:    2,
 			Value:    big.NewInt(2),
-			Gas:      2,
-			GasPrice: big.NewInt(2),
+			Smoke:      2,
+			SmokePrice: big.NewInt(2),
 		}),
 		NewTx(&AccessListTx{
 			To:       &to3,
 			Nonce:    3,
 			Value:    big.NewInt(3),
-			Gas:      3,
-			GasPrice: big.NewInt(3),
+			Smoke:      3,
+			SmokePrice: big.NewInt(3),
 		}),
 	}
 	// Create the corresponding receipts
 	receipts := Receipts{
 		&Receipt{
 			Status:            ReceiptStatusFailed,
-			CumulativeGasUsed: 1,
+			CumulativeSmokeUsed: 1,
 			Logs: []*Log{
 				{Address: common.BytesToAddress([]byte{0x11})},
 				{Address: common.BytesToAddress([]byte{0x01, 0x11})},
 			},
 			TxHash:          txs[0].Hash(),
 			ContractAddress: common.BytesToAddress([]byte{0x01, 0x11, 0x11}),
-			GasUsed:         1,
+			SmokeUsed:         1,
 		},
 		&Receipt{
 			PostState:         common.Hash{2}.Bytes(),
-			CumulativeGasUsed: 3,
+			CumulativeSmokeUsed: 3,
 			Logs: []*Log{
 				{Address: common.BytesToAddress([]byte{0x22})},
 				{Address: common.BytesToAddress([]byte{0x02, 0x22})},
 			},
 			TxHash:          txs[1].Hash(),
 			ContractAddress: common.BytesToAddress([]byte{0x02, 0x22, 0x22}),
-			GasUsed:         2,
+			SmokeUsed:         2,
 		},
 		&Receipt{
 			Type:              AccessListTxType,
 			PostState:         common.Hash{3}.Bytes(),
-			CumulativeGasUsed: 6,
+			CumulativeSmokeUsed: 6,
 			Logs: []*Log{
 				{Address: common.BytesToAddress([]byte{0x33})},
 				{Address: common.BytesToAddress([]byte{0x03, 0x33})},
 			},
 			TxHash:          txs[2].Hash(),
 			ContractAddress: common.BytesToAddress([]byte{0x03, 0x33, 0x33}),
-			GasUsed:         3,
+			SmokeUsed:         3,
 		},
 	}
 	// Clear all the computed fields and re-derive them
@@ -252,8 +252,8 @@ func TestDeriveFields(t *testing.T) {
 		if receipts[i].TransactionIndex != uint(i) {
 			t.Errorf("receipts[%d].TransactionIndex = %d, want %d", i, receipts[i].TransactionIndex, i)
 		}
-		if receipts[i].GasUsed != txs[i].Gas() {
-			t.Errorf("receipts[%d].GasUsed = %d, want %d", i, receipts[i].GasUsed, txs[i].Gas())
+		if receipts[i].SmokeUsed != txs[i].Smoke() {
+			t.Errorf("receipts[%d].SmokeUsed = %d, want %d", i, receipts[i].SmokeUsed, txs[i].Smoke())
 		}
 		if txs[i].To() != nil && receipts[i].ContractAddress != (common.Address{}) {
 			t.Errorf("receipts[%d].ContractAddress = %s, want %s", i, receipts[i].ContractAddress.String(), (common.Address{}).String())
@@ -331,7 +331,7 @@ func clearComputedFieldsOnReceipt(t *testing.T, receipt *Receipt) {
 	receipt.BlockNumber = big.NewInt(math.MaxUint32)
 	receipt.TransactionIndex = math.MaxUint32
 	receipt.ContractAddress = common.Address{}
-	receipt.GasUsed = 0
+	receipt.SmokeUsed = 0
 
 	clearComputedFieldsOnLogs(t, receipt.Logs)
 }

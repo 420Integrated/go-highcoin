@@ -75,13 +75,13 @@ func (v *BlockValidator) ValidateBody(block *types.Block) error {
 }
 
 // ValidateState validates the various changes that happen after a state
-// transition, such as amount of used gas, the receipt roots and the state root
+// transition, such as amount of used smoke, the receipt roots and the state root
 // itself. ValidateState returns a database batch if the validation was a success
 // otherwise nil and an error is returned.
-func (v *BlockValidator) ValidateState(block *types.Block, statedb *state.StateDB, receipts types.Receipts, usedGas uint64) error {
+func (v *BlockValidator) ValidateState(block *types.Block, statedb *state.StateDB, receipts types.Receipts, usedSmoke uint64) error {
 	header := block.Header()
-	if block.GasUsed() != usedGas {
-		return fmt.Errorf("invalid gas used (remote: %d local: %d)", block.GasUsed(), usedGas)
+	if block.SmokeUsed() != usedSmoke {
+		return fmt.Errorf("invalid smoke used (remote: %d local: %d)", block.SmokeUsed(), usedSmoke)
 	}
 	// Validate the received block's bloom with the one derived from the generated receipts.
 	// For valid blocks this should always validate to true.
@@ -102,38 +102,38 @@ func (v *BlockValidator) ValidateState(block *types.Block, statedb *state.StateD
 	return nil
 }
 
-// CalcGasLimit computes the gas limit of the next block after parent. It aims
-// to keep the baseline gas above the provided floor, and increase it towards the
+// CalcSmokeLimit computes the smoke limit of the next block after parent. It aims
+// to keep the baseline smoke above the provided floor, and increase it towards the
 // ceil if the blocks are full. If the ceil is exceeded, it will always decrease
-// the gas allowance.
-func CalcGasLimit(parent *types.Block, gasFloor, gasCeil uint64) uint64 {
-	// contrib = (parentGasUsed * 3 / 2) / 1024
-	contrib := (parent.GasUsed() + parent.GasUsed()/2) / params.GasLimitBoundDivisor
+// the smoke allowance.
+func CalcSmokeLimit(parent *types.Block, smokeFloor, smokeCeil uint64) uint64 {
+	// contrib = (parentSmokeUsed * 3 / 2) / 1024
+	contrib := (parent.SmokeUsed() + parent.SmokeUsed()/2) / params.SmokeLimitBoundDivisor
 
-	// decay = parentGasLimit / 1024 -1
-	decay := parent.GasLimit()/params.GasLimitBoundDivisor - 1
+	// decay = parentSmokeLimit / 1024 -1
+	decay := parent.SmokeLimit()/params.SmokeLimitBoundDivisor - 1
 
 	/*
-		strategy: gasLimit of block-to-mine is set based on parent's
-		gasUsed value.  if parentGasUsed > parentGasLimit * (2/3) then we
+		strategy: smokeLimit of block-to-mine is set based on parent's
+		smokeUsed value.  if parentSmokeUsed > parentSmokeLimit * (2/3) then we
 		increase it, otherwise lower it (or leave it unchanged if it's right
 		at that usage) the amount increased/decreased depends on how far away
-		from parentGasLimit * (2/3) parentGasUsed is.
+		from parentSmokeLimit * (2/3) parentSmokeUsed is.
 	*/
-	limit := parent.GasLimit() - decay + contrib
-	if limit < params.MinGasLimit {
-		limit = params.MinGasLimit
+	limit := parent.SmokeLimit() - decay + contrib
+	if limit < params.MinSmokeLimit {
+		limit = params.MinSmokeLimit
 	}
-	// If we're outside our allowed gas range, we try to hone towards them
-	if limit < gasFloor {
-		limit = parent.GasLimit() + decay
-		if limit > gasFloor {
-			limit = gasFloor
+	// If we're outside our allowed smoke range, we try to hone towards them
+	if limit < smokeFloor {
+		limit = parent.SmokeLimit() + decay
+		if limit > smokeFloor {
+			limit = smokeFloor
 		}
-	} else if limit > gasCeil {
-		limit = parent.GasLimit() - decay
-		if limit < gasCeil {
-			limit = gasCeil
+	} else if limit > smokeCeil {
+		limit = parent.SmokeLimit() - decay
+		if limit < smokeCeil {
+			limit = smokeCeil
 		}
 	}
 	return limit

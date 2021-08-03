@@ -77,7 +77,7 @@ var (
 		executablePath("bootnode"),
 		executablePath("evm"),
 		executablePath("highcoin"),
-		executablePath("puppeth"),
+		executablePath("pupphigh"),
 		executablePath("rlpdump"),
 		executablePath("clef"),
 	}
@@ -101,7 +101,7 @@ var (
 			Description: "Highcoin CLI client.",
 		},
 		{
-			BinaryName:  "puppeth",
+			BinaryName:  "pupphigh",
 			Description: "Highcoin private network manager.",
 		},
 		{

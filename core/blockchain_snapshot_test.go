@@ -29,11 +29,11 @@ import (
 	"time"
 
 	"github.com/420integrated/go-highcoin/consensus"
-	"github.com/420integrated/go-highcoin/consensus/othash"
+	"github.com/420integrated/go-highcoin/consensus/ethash"
 	"github.com/420integrated/go-highcoin/core/rawdb"
 	"github.com/420integrated/go-highcoin/core/types"
 	"github.com/420integrated/go-highcoin/core/vm"
-	"github.com/420integrated/go-highcoin/ethdb"
+	"github.com/420integrated/go-highcoin/highdb"
 	"github.com/420integrated/go-highcoin/params"
 )
 
@@ -52,8 +52,8 @@ type snapshotTestBasic struct {
 
 	// share fields, set in runtime
 	datadir string
-	db      ethdb.Database
-	gendb   ethdb.Database
+	db      highdb.Database
+	gendb   highdb.Database
 	engine  consensus.Engine
 }
 
@@ -72,7 +72,7 @@ func (basic *snapshotTestBasic) prepare(t *testing.T) (*BlockChain, []*types.Blo
 	// Initialize a fresh chain
 	var (
 		genesis = new(Genesis).MustCommit(db)
-		engine  = othash.NewFullFaker()
+		engine  = ethash.NewFullFaker()
 		gendb   = rawdb.NewMemoryDatabase()
 
 		// Snapshot is enabled, the first snapshot is created from the Genesis.

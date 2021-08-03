@@ -24,7 +24,7 @@ import (
 	"time"
 
 	"github.com/420integrated/go-highcoin/common/mclock"
-	"github.com/420integrated/go-highcoin/ethdb/memorydb"
+	"github.com/420integrated/go-highcoin/highdb/memorydb"
 	"github.com/420integrated/go-highcoin/p2p/enode"
 
 	"github.com/420integrated/go-highcoin/les/utils"

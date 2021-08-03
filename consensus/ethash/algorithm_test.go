@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Lesser General Public License
 // along with the go-highcoin library. If not, see <http://www.gnu.org/licenses/>.
 
-package othash
+package ethash
 
 import (
 	"bytes"
@@ -31,8 +31,8 @@ import (
 	"github.com/420integrated/go-highcoin/core/types"
 )
 
-// prepare converts an othash cache or dataset from a byte stream into the internal
-// int representation. All othash methods work with ints to avoid constant byte to
+// prepare converts an ethash cache or dataset from a byte stream into the internal
+// int representation. All ethash methods work with ints to avoid constant byte to
 // int conversions as well as to handle both little and big endian systems.
 func prepare(dest []uint32, src []byte) {
 	for i := 0; i < len(dest); i++ {
@@ -714,8 +714,8 @@ func TestConcurrentDiskCacheGeneration(t *testing.T) {
 		TxHash:      common.HexToHash("0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421"),
 		ReceiptHash: common.HexToHash("0x56e81f171bcc55a6ff8345e692c0f86e5b48e01b996cadc001622fb5e363b421"),
 		Difficulty:  big.NewInt(167925187834220),
-		GasLimit:    4015682,
-		GasUsed:     0,
+		SmokeLimit:    4015682,
+		SmokeUsed:     0,
 		Time:        1488928920,
 		Extra:       []byte("www.bw.com"),
 		MixDigest:   common.HexToHash("0x3e140b0784516af5e5ec6730f2fb20cca22f32be399b9e4ad77d32541f798cd0"),
@@ -729,9 +729,9 @@ func TestConcurrentDiskCacheGeneration(t *testing.T) {
 
 		go func(idx int) {
 			defer pend.Done()
-			othash := New(Config{cachedir, 0, 1, false, "", 0, 0, false, ModeNormal, nil}, nil, false)
-			defer othash.Close()
-			if err := othash.verifySeal(nil, block.Header(), false); err != nil {
+			ethash := New(Config{cachedir, 0, 1, false, "", 0, 0, false, ModeNormal, nil}, nil, false)
+			defer ethash.Close()
+			if err := ethash.verifySeal(nil, block.Header(), false); err != nil {
 				t.Errorf("proc %d: block verification failed: %v", idx, err)
 			}
 		}(i)
@@ -790,7 +790,7 @@ func BenchmarkHashimotoFullSmall(b *testing.B) {
 
 func benchmarkHashimotoFullMmap(b *testing.B, name string, lock bool) {
 	b.Run(name, func(b *testing.B) {
-		tmpdir, err := ioutil.TempDir("", "othash-test")
+		tmpdir, err := ioutil.TempDir("", "ethash-test")
 		if err != nil {
 			b.Fatal(err)
 		}

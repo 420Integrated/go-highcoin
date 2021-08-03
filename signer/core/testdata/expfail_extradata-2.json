@@ -55,7 +55,7 @@
   "domain": {
     "name": "Highcoin Mail",
     "version": "1",
-    "chainId": "1",
+    "chainId": "420",
     "verifyingContract": "0xCCCcccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"
   },
   "message": {

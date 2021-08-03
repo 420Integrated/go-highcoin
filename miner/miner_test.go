@@ -28,8 +28,8 @@ import (
 	"github.com/420integrated/go-highcoin/core/state"
 	"github.com/420integrated/go-highcoin/core/types"
 	"github.com/420integrated/go-highcoin/core/vm"
-	"github.com/420integrated/go-highcoin/eth/downloader"
-	"github.com/420integrated/go-highcoin/ethdb/memorydb"
+	"github.com/420integrated/go-highcoin/high/downloader"
+	"github.com/420integrated/go-highcoin/highdb/memorydb"
 	"github.com/420integrated/go-highcoin/event"
 	"github.com/420integrated/go-highcoin/trie"
 )
@@ -56,13 +56,13 @@ func (m *mockBackend) TxPool() *core.TxPool {
 
 type testBlockChain struct {
 	statedb       *state.StateDB
-	gasLimit      uint64
+	smokeLimit      uint64
 	chainHeadFeed *event.Feed
 }
 
 func (bc *testBlockChain) CurrentBlock() *types.Block {
 	return types.NewBlock(&types.Header{
-		GasLimit: bc.gasLimit,
+		SmokeLimit: bc.smokeLimit,
 	}, nil, nil, nil, trie.NewStackTrie(nil))
 }
 

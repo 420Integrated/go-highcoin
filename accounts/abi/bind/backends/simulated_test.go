@@ -37,13 +37,13 @@ import (
 )
 
 func TestSimulatedBackend(t *testing.T) {
-	var gasLimit uint64 = 8000029
+	var smokeLimit uint64 = 8000029
 	key, _ := crypto.GenerateKey() // nolint: gosec
 	auth, _ := bind.NewKeyedTransactorWithChainID(key, big.NewInt(1337))
 	genAlloc := make(core.GenesisAlloc)
 	genAlloc[auth.From] = core.GenesisAccount{Balance: big.NewInt(9223372036854775807)}
 
-	sim := NewSimulatedBackend(genAlloc, gasLimit)
+	sim := NewSimulatedBackend(genAlloc, smokeLimit)
 	defer sim.Close()
 
 	// should return an error if the tx is not found
@@ -59,8 +59,8 @@ func TestSimulatedBackend(t *testing.T) {
 
 	// generate a transaction and confirm you can retrieve it
 	code := `6060604052600a8060106000396000f360606040526008565b00`
-	var gas uint64 = 3000000
-	tx := types.NewContractCreation(0, big.NewInt(0), gas, big.NewInt(1), common.FromHex(code))
+	var smoke uint64 = 3000000
+	tx := types.NewContractCreation(0, big.NewInt(0), smoke, big.NewInt(1), common.FromHex(code))
 	tx, _ = types.SignTx(tx, types.HomesteadSigner{}, key)
 
 	err = sim.SendTransaction(context.Background(), tx)
@@ -157,7 +157,7 @@ func TestNewSimulatedBackend_AdjustTimeFail(t *testing.T) {
 	testAddr := crypto.PubkeyToAddress(testKey.PublicKey)
 	sim := simTestBackend(testAddr)
 	// Create tx and send
-	tx := types.NewTransaction(0, testAddr, big.NewInt(1000), params.TxGas, big.NewInt(1), nil)
+	tx := types.NewTransaction(0, testAddr, big.NewInt(1000), params.TxSmoke, big.NewInt(1), nil)
 	signedTx, err := types.SignTx(tx, types.HomesteadSigner{}, testKey)
 	if err != nil {
 		t.Errorf("could not sign tx: %v", err)
@@ -178,7 +178,7 @@ func TestNewSimulatedBackend_AdjustTimeFail(t *testing.T) {
 		t.Errorf("adjusted time not equal to a minute. prev: %v, new: %v", prevTime, newTime)
 	}
 	// Put a transaction after adjusting time
-	tx2 := types.NewTransaction(1, testAddr, big.NewInt(1000), params.TxGas, big.NewInt(1), nil)
+	tx2 := types.NewTransaction(1, testAddr, big.NewInt(1000), params.TxSmoke, big.NewInt(1), nil)
 	signedTx2, err := types.SignTx(tx2, types.HomesteadSigner{}, testKey)
 	if err != nil {
 		t.Errorf("could not sign tx: %v", err)
@@ -281,7 +281,7 @@ func TestSimulatedBackend_NonceAt(t *testing.T) {
 	}
 
 	// create a signed transaction to send
-	tx := types.NewTransaction(nonce, testAddr, big.NewInt(1000), params.TxGas, big.NewInt(1), nil)
+	tx := types.NewTransaction(nonce, testAddr, big.NewInt(1000), params.TxSmoke, big.NewInt(1), nil)
 	signedTx, err := types.SignTx(tx, types.HomesteadSigner{}, testKey)
 	if err != nil {
 		t.Errorf("could not sign tx: %v", err)
@@ -322,7 +322,7 @@ func TestSimulatedBackend_SendTransaction(t *testing.T) {
 	bgCtx := context.Background()
 
 	// create a signed transaction to send
-	tx := types.NewTransaction(uint64(0), testAddr, big.NewInt(1000), params.TxGas, big.NewInt(1), nil)
+	tx := types.NewTransaction(uint64(0), testAddr, big.NewInt(1000), params.TxSmoke, big.NewInt(1), nil)
 	signedTx, err := types.SignTx(tx, types.HomesteadSigner{}, testKey)
 	if err != nil {
 		t.Errorf("could not sign tx: %v", err)
@@ -357,7 +357,7 @@ func TestSimulatedBackend_TransactionByHash(t *testing.T) {
 	bgCtx := context.Background()
 
 	// create a signed transaction to send
-	tx := types.NewTransaction(uint64(0), testAddr, big.NewInt(1000), params.TxGas, big.NewInt(1), nil)
+	tx := types.NewTransaction(uint64(0), testAddr, big.NewInt(1000), params.TxSmoke, big.NewInt(1), nil)
 	signedTx, err := types.SignTx(tx, types.HomesteadSigner{}, testKey)
 	if err != nil {
 		t.Errorf("could not sign tx: %v", err)
@@ -396,10 +396,10 @@ func TestSimulatedBackend_TransactionByHash(t *testing.T) {
 	}
 }
 
-func TestSimulatedBackend_EstimateGas(t *testing.T) {
+func TestSimulatedBackend_EstimateSmoke(t *testing.T) {
 	/*
 		pragma solidity ^0.6.4;
-		contract GasEstimation {
+		contract SmokeEstimation {
 		    function PureRevert() public { revert(); }
 		    function Revert() public { revert("revert reason");}
 		    function OOG() public { for (uint i = 0; ; i++) {}}
@@ -430,17 +430,17 @@ func TestSimulatedBackend_EstimateGas(t *testing.T) {
 		{"plain transfer(valid)", highcoin.CallMsg{
 			From:     addr,
 			To:       &addr,
-			Gas:      0,
-			GasPrice: big.NewInt(0),
+			Smoke:      0,
+			SmokePrice: big.NewInt(0),
 			Value:    big.NewInt(1),
 			Data:     nil,
-		}, params.TxGas, nil, nil},
+		}, params.TxSmoke, nil, nil},
 
 		{"plain transfer(invalid)", highcoin.CallMsg{
 			From:     addr,
 			To:       &contractAddr,
-			Gas:      0,
-			GasPrice: big.NewInt(0),
+			Smoke:      0,
+			SmokePrice: big.NewInt(0),
 			Value:    big.NewInt(1),
 			Data:     nil,
 		}, 0, errors.New("execution reverted"), nil},
@@ -448,8 +448,8 @@ func TestSimulatedBackend_EstimateGas(t *testing.T) {
 		{"Revert", highcoin.CallMsg{
 			From:     addr,
 			To:       &contractAddr,
-			Gas:      0,
-			GasPrice: big.NewInt(0),
+			Smoke:      0,
+			SmokePrice: big.NewInt(0),
 			Value:    nil,
 			Data:     common.Hex2Bytes("d8b98391"),
 		}, 0, errors.New("execution reverted: revert reason"), "0x08c379a00000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000d72657665727420726561736f6e00000000000000000000000000000000000000"},
@@ -457,8 +457,8 @@ func TestSimulatedBackend_EstimateGas(t *testing.T) {
 		{"PureRevert", highcoin.CallMsg{
 			From:     addr,
 			To:       &contractAddr,
-			Gas:      0,
-			GasPrice: big.NewInt(0),
+			Smoke:      0,
+			SmokePrice: big.NewInt(0),
 			Value:    nil,
 			Data:     common.Hex2Bytes("aa8b1d30"),
 		}, 0, errors.New("execution reverted"), nil},
@@ -466,17 +466,17 @@ func TestSimulatedBackend_EstimateGas(t *testing.T) {
 		{"OOG", highcoin.CallMsg{
 			From:     addr,
 			To:       &contractAddr,
-			Gas:      100000,
-			GasPrice: big.NewInt(0),
+			Smoke:      100000,
+			SmokePrice: big.NewInt(0),
 			Value:    nil,
 			Data:     common.Hex2Bytes("50f6fe34"),
-		}, 0, errors.New("gas required exceeds allowance (100000)"), nil},
+		}, 0, errors.New("smoke required exceeds allowance (100000)"), nil},
 
 		{"Assert", highcoin.CallMsg{
 			From:     addr,
 			To:       &contractAddr,
-			Gas:      100000,
-			GasPrice: big.NewInt(0),
+			Smoke:      100000,
+			SmokePrice: big.NewInt(0),
 			Value:    nil,
 			Data:     common.Hex2Bytes("b9b046f9"),
 		}, 0, errors.New("invalid opcode: opcode 0xfe not defined"), nil},
@@ -484,14 +484,14 @@ func TestSimulatedBackend_EstimateGas(t *testing.T) {
 		{"Valid", highcoin.CallMsg{
 			From:     addr,
 			To:       &contractAddr,
-			Gas:      100000,
-			GasPrice: big.NewInt(0),
+			Smoke:      100000,
+			SmokePrice: big.NewInt(0),
 			Value:    nil,
 			Data:     common.Hex2Bytes("e09fface"),
 		}, 21275, nil, nil},
 	}
 	for _, c := range cases {
-		got, err := sim.EstimateGas(context.Background(), c.message)
+		got, err := sim.EstimateSmoke(context.Background(), c.message)
 		if c.expectError != nil {
 			if err == nil {
 				t.Fatalf("Expect error, got nil")
@@ -509,12 +509,12 @@ func TestSimulatedBackend_EstimateGas(t *testing.T) {
 			continue
 		}
 		if got != c.expect {
-			t.Fatalf("Gas estimation mismatch, want %d, got %d", c.expect, got)
+			t.Fatalf("Smoke estimation mismatch, want %d, got %d", c.expect, got)
 		}
 	}
 }
 
-func TestSimulatedBackend_EstimateGasWithPrice(t *testing.T) {
+func TestSimulatedBackend_EstimateSmokeWithPrice(t *testing.T) {
 	key, _ := crypto.GenerateKey()
 	addr := crypto.PubkeyToAddress(key.PublicKey)
 
@@ -531,8 +531,8 @@ func TestSimulatedBackend_EstimateGasWithPrice(t *testing.T) {
 		{"EstimateWithoutPrice", highcoin.CallMsg{
 			From:     addr,
 			To:       &recipient,
-			Gas:      0,
-			GasPrice: big.NewInt(0),
+			Smoke:      0,
+			SmokePrice: big.NewInt(0),
 			Value:    big.NewInt(1000),
 			Data:     nil,
 		}, 21000, nil},
@@ -540,8 +540,8 @@ func TestSimulatedBackend_EstimateGasWithPrice(t *testing.T) {
 		{"EstimateWithPrice", highcoin.CallMsg{
 			From:     addr,
 			To:       &recipient,
-			Gas:      0,
-			GasPrice: big.NewInt(1000),
+			Smoke:      0,
+			SmokePrice: big.NewInt(1000),
 			Value:    big.NewInt(1000),
 			Data:     nil,
 		}, 21000, nil},
@@ -549,8 +549,8 @@ func TestSimulatedBackend_EstimateGasWithPrice(t *testing.T) {
 		{"EstimateWithVeryHighPrice", highcoin.CallMsg{
 			From:     addr,
 			To:       &recipient,
-			Gas:      0,
-			GasPrice: big.NewInt(1e14), // gascost = 2.1highcoin
+			Smoke:      0,
+			SmokePrice: big.NewInt(1e14), // smokecost = 2.1highcoin
 			Value:    big.NewInt(1e17), // the remaining balance for fee is 2.1highcoin
 			Data:     nil,
 		}, 21000, nil},
@@ -558,14 +558,14 @@ func TestSimulatedBackend_EstimateGasWithPrice(t *testing.T) {
 		{"EstimateWithSuperhighPrice", highcoin.CallMsg{
 			From:     addr,
 			To:       &recipient,
-			Gas:      0,
-			GasPrice: big.NewInt(2e14), // gascost = 4.2highcoin
+			Smoke:      0,
+			SmokePrice: big.NewInt(2e14), // smokecost = 4.2highcoin
 			Value:    big.NewInt(1000),
 			Data:     nil,
-		}, 21000, errors.New("gas required exceeds allowance (10999)")}, // 10999=(2.2highcoin-1000marleys)/(2e14)
+		}, 21000, errors.New("smoke required exceeds allowance (10999)")}, // 10999=(2.2highcoin-1000marleys)/(2e14)
 	}
 	for _, c := range cases {
-		got, err := sim.EstimateGas(context.Background(), c.message)
+		got, err := sim.EstimateSmoke(context.Background(), c.message)
 		if c.expectError != nil {
 			if err == nil {
 				t.Fatalf("Expect error, got nil")
@@ -576,7 +576,7 @@ func TestSimulatedBackend_EstimateGasWithPrice(t *testing.T) {
 			continue
 		}
 		if got != c.expect {
-			t.Fatalf("Gas estimation mismatch, want %d, got %d", c.expect, got)
+			t.Fatalf("Smoke estimation mismatch, want %d, got %d", c.expect, got)
 		}
 	}
 }
@@ -670,7 +670,7 @@ func TestSimulatedBackend_TransactionCount(t *testing.T) {
 	}
 
 	// create a signed transaction to send
-	tx := types.NewTransaction(uint64(0), testAddr, big.NewInt(1000), params.TxGas, big.NewInt(1), nil)
+	tx := types.NewTransaction(uint64(0), testAddr, big.NewInt(1000), params.TxSmoke, big.NewInt(1), nil)
 	signedTx, err := types.SignTx(tx, types.HomesteadSigner{}, testKey)
 	if err != nil {
 		t.Errorf("could not sign tx: %v", err)
@@ -725,7 +725,7 @@ func TestSimulatedBackend_TransactionInBlock(t *testing.T) {
 	}
 
 	// create a signed transaction to send
-	tx := types.NewTransaction(uint64(0), testAddr, big.NewInt(1000), params.TxGas, big.NewInt(1), nil)
+	tx := types.NewTransaction(uint64(0), testAddr, big.NewInt(1000), params.TxSmoke, big.NewInt(1), nil)
 	signedTx, err := types.SignTx(tx, types.HomesteadSigner{}, testKey)
 	if err != nil {
 		t.Errorf("could not sign tx: %v", err)
@@ -780,7 +780,7 @@ func TestSimulatedBackend_PendingNonceAt(t *testing.T) {
 	}
 
 	// create a signed transaction to send
-	tx := types.NewTransaction(uint64(0), testAddr, big.NewInt(1000), params.TxGas, big.NewInt(1), nil)
+	tx := types.NewTransaction(uint64(0), testAddr, big.NewInt(1000), params.TxSmoke, big.NewInt(1), nil)
 	signedTx, err := types.SignTx(tx, types.HomesteadSigner{}, testKey)
 	if err != nil {
 		t.Errorf("could not sign tx: %v", err)
@@ -803,7 +803,7 @@ func TestSimulatedBackend_PendingNonceAt(t *testing.T) {
 	}
 
 	// make a new transaction with a nonce of 1
-	tx = types.NewTransaction(uint64(1), testAddr, big.NewInt(1000), params.TxGas, big.NewInt(1), nil)
+	tx = types.NewTransaction(uint64(1), testAddr, big.NewInt(1000), params.TxSmoke, big.NewInt(1), nil)
 	signedTx, err = types.SignTx(tx, types.HomesteadSigner{}, testKey)
 	if err != nil {
 		t.Errorf("could not sign tx: %v", err)
@@ -832,7 +832,7 @@ func TestSimulatedBackend_TransactionReceipt(t *testing.T) {
 	bgCtx := context.Background()
 
 	// create a signed transaction to send
-	tx := types.NewTransaction(uint64(0), testAddr, big.NewInt(1000), params.TxGas, big.NewInt(1), nil)
+	tx := types.NewTransaction(uint64(0), testAddr, big.NewInt(1000), params.TxSmoke, big.NewInt(1), nil)
 	signedTx, err := types.SignTx(tx, types.HomesteadSigner{}, testKey)
 	if err != nil {
 		t.Errorf("could not sign tx: %v", err)
@@ -855,19 +855,19 @@ func TestSimulatedBackend_TransactionReceipt(t *testing.T) {
 	}
 }
 
-func TestSimulatedBackend_SuggestGasPrice(t *testing.T) {
+func TestSimulatedBackend_SuggestSmokePrice(t *testing.T) {
 	sim := NewSimulatedBackend(
 		core.GenesisAlloc{},
 		10000000,
 	)
 	defer sim.Close()
 	bgCtx := context.Background()
-	gasPrice, err := sim.SuggestGasPrice(bgCtx)
+	smokePrice, err := sim.SuggestSmokePrice(bgCtx)
 	if err != nil {
-		t.Errorf("could not get gas price: %v", err)
+		t.Errorf("could not get smoke price: %v", err)
 	}
-	if gasPrice.Uint64() != uint64(1) {
-		t.Errorf("gas price was not expected value of 1. actual: %v", gasPrice.Uint64())
+	if smokePrice.Uint64() != uint64(1) {
+		t.Errorf("smoke price was not expected value of 1. actual: %v", smokePrice.Uint64())
 	}
 }
 
@@ -945,7 +945,7 @@ func TestSimulatedBackend_CodeAt(t *testing.T) {
 }
 
 // When receive("X") is called with sender 0x00... and value 1, it produces this tx receipt:
-//   receipt{status=1 cgas=23949 bloom=00000000004000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000040200000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 logs=[log: b6818c8064f645cd82d99b59a1a267d6d61117ef [75fd880d39c1daf53b6547ab6cb59451fc6452d27caa90e5b6649dd8293b9eed] 000000000000000000000000376c47978271565f56deb45495afa69e59c16ab200000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000000158 9ae378b6d4409eada347a5dc0c180f186cb62dc68fcc0f043425eb917335aa28 0 95d429d309bb9d753954195fe2d69bd140b4ae731b9b5b605c34323de162cf00 0]}
+//   receipt{status=1 csmoke=23949 bloom=00000000004000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000040200000000000000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000080000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000 logs=[log: b6818c8064f645cd82d99b59a1a267d6d61117ef [75fd880d39c1daf53b6547ab6cb59451fc6452d27caa90e5b6649dd8293b9eed] 000000000000000000000000376c47978271565f56deb45495afa69e59c16ab200000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000000158 9ae378b6d4409eada347a5dc0c180f186cb62dc68fcc0f043425eb917335aa28 0 95d429d309bb9d753954195fe2d69bd140b4ae731b9b5b605c34323de162cf00 0]}
 func TestSimulatedBackend_PendingAndCallContract(t *testing.T) {
 	testAddr := crypto.PubkeyToAddress(testKey.PublicKey)
 	sim := simTestBackend(testAddr)

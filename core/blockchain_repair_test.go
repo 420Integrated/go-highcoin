@@ -28,7 +28,7 @@ import (
 	"time"
 
 	"github.com/420integrated/go-highcoin/common"
-	"github.com/420integrated/go-highcoin/consensus/othash"
+	"github.com/420integrated/go-highcoin/consensus/ethash"
 	"github.com/420integrated/go-highcoin/core/rawdb"
 	"github.com/420integrated/go-highcoin/core/types"
 	"github.com/420integrated/go-highcoin/core/vm"
@@ -1771,7 +1771,7 @@ func testRepair(t *testing.T, tt *rewindTest, snapshots bool) {
 	// Initialize a fresh chain
 	var (
 		genesis = new(Genesis).MustCommit(db)
-		engine  = othash.NewFullFaker()
+		engine  = ethash.NewFullFaker()
 		config  = &CacheConfig{
 			TrieCleanLimit: 256,
 			TrieDirtyLimit: 256,

@@ -28,8 +28,8 @@ import (
 	"github.com/420integrated/go-highcoin/core"
 )
 
-// Tests the go-highcoin to Aleth chainspec conversion for the Stureby testnet.
-func TestAlethSturebyConverter(t *testing.T) {
+// Tests the go-highcoin to Alhigh chainspec conversion for the Stureby testnet.
+func TestAlhighSturebyConverter(t *testing.T) {
 	blob, err := ioutil.ReadFile("testdata/stureby_highcoin.json")
 	if err != nil {
 		t.Fatalf("could not read file: %v", err)
@@ -38,16 +38,16 @@ func TestAlethSturebyConverter(t *testing.T) {
 	if err := json.Unmarshal(blob, &genesis); err != nil {
 		t.Fatalf("failed parsing genesis: %v", err)
 	}
-	spec, err := newAlethGenesisSpec("stureby", &genesis)
+	spec, err := newAlhighGenesisSpec("stureby", &genesis)
 	if err != nil {
 		t.Fatalf("failed creating chainspec: %v", err)
 	}
 
-	expBlob, err := ioutil.ReadFile("testdata/stureby_aleth.json")
+	expBlob, err := ioutil.ReadFile("testdata/stureby_alhigh.json")
 	if err != nil {
 		t.Fatalf("could not read file: %v", err)
 	}
-	expspec := &alethGenesisSpec{}
+	expspec := &alhighGenesisSpec{}
 	if err := json.Unmarshal(expBlob, expspec); err != nil {
 		t.Fatalf("failed parsing genesis: %v", err)
 	}

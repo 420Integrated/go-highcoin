@@ -86,10 +86,10 @@ const schema string = `
         to(block: Long): Account
         # Value is the value, in marleys, sent along with this transaction.
         value: BigInt!
-        # GasPrice is the price offered to miners for gas, in marleys per unit.
-        gasPrice: BigInt!
-        # Gas is the maximum amount of gas this transaction can consume.
-        gas: Long!
+        # SmokePrice is the price offered to miners for smoke, in marleys per unit.
+        smokePrice: BigInt!
+        # Smoke is the maximum amount of smoke this transaction can consume.
+        smoke: Long!
         # InputData is the data supplied to the target of the transaction.
         inputData: Bytes!
         # Block is the block this transaction was mined in. This will be null if
@@ -98,16 +98,16 @@ const schema string = `
 
         # Status is the return status of the transaction. This will be 1 if the
         # transaction succeeded, or 0 if it failed (due to a revert, or due to
-        # running out of gas). If the transaction has not yet been mined, this
+        # running out of smoke). If the transaction has not yet been mined, this
         # field will be null.
         status: Long
-        # GasUsed is the amount of gas that was used processing this transaction.
+        # SmokeUsed is the amount of smoke that was used processing this transaction.
         # If the transaction has not yet been mined, this field will be null.
-        gasUsed: Long
-        # CumulativeGasUsed is the total gas used in the block up to and including
+        smokeUsed: Long
+        # CumulativeSmokeUsed is the total smoke used in the block up to and including
         # this transaction. If the transaction has not yet been mined, this field
         # will be null.
-        cumulativeGasUsed: Long
+        cumulativeSmokeUsed: Long
         # CreatedContract is the account that was created by a contract creation
         # transaction. If the transaction was not a contract creation transaction,
         # or it has not yet been mined, this field will be null.
@@ -163,10 +163,10 @@ const schema string = `
         miner(block: Long): Account!
         # ExtraData is an arbitrary data field supplied by the miner.
         extraData: Bytes!
-        # GasLimit is the maximum amount of gas that was available to transactions in this block.
-        gasLimit: Long!
-        # GasUsed is the amount of gas that was used executing transactions in this block.
-        gasUsed: Long!
+        # SmokeLimit is the maximum amount of smoke that was available to transactions in this block.
+        smokeLimit: Long!
+        # SmokeUsed is the amount of smoke that was used executing transactions in this block.
+        smokeUsed: Long!
         # Timestamp is the unix timestamp at which this block was mined.
         timestamp: Long!
         # LogsBloom is a bloom filter that can be used to check if a block may
@@ -206,9 +206,9 @@ const schema string = `
         account(address: Address!): Account!
         # Call executes a local call operation at the current block's state.
         call(data: CallData!): CallResult
-        # EstimateGas estimates the amount of gas that will be required for
+        # EstimateSmoke estimates the amount of smoke that will be required for
         # successful execution of a transaction at the current block's state.
-        estimateGas(data: CallData!): Long!
+        estimateSmoke(data: CallData!): Long!
     }
 
     # CallData represents the data associated with a local contract call.
@@ -218,10 +218,10 @@ const schema string = `
         from: Address
         # To is the address the call is sent to.
         to: Address
-        # Gas is the amount of gas sent with the call.
-        gas: Long
-        # GasPrice is the price, in marleys, offered for each unit of gas.
-        gasPrice: BigInt
+        # Smoke is the amount of smoke sent with the call.
+        smoke: Long
+        # SmokePrice is the price, in marleys, offered for each unit of smoke.
+        smokePrice: BigInt
         # Value is the value, in marleys, sent along with the call.
         value: BigInt
         # Data is the data sent to the callee.
@@ -232,8 +232,8 @@ const schema string = `
     type CallResult {
         # Data is the return data of the called contract.
         data: Bytes!
-        # GasUsed is the amount of gas used by the call, after any refunds.
-        gasUsed: Long!
+        # SmokeUsed is the amount of smoke used by the call, after any refunds.
+        smokeUsed: Long!
         # Status is the result of the call - 1 for success or 0 for failure.
         status: Long!
     }
@@ -289,9 +289,9 @@ const schema string = `
       account(address: Address!): Account!
       # Call executes a local call operation for the pending state.
       call(data: CallData!): CallResult
-      # EstimateGas estimates the amount of gas that will be required for
+      # EstimateSmoke estimates the amount of smoke that will be required for
       # successful execution of a transaction for the pending state.
-      estimateGas(data: CallData!): Long!
+      estimateSmoke(data: CallData!): Long!
     }
 
     type Query {
@@ -307,9 +307,9 @@ const schema string = `
         transaction(hash: Bytes32!): Transaction
         # Logs returns log entries matching the provided filter.
         logs(filter: FilterCriteria!): [Log!]!
-        # GasPrice returns the node's estimate of a gas price sufficient to
+        # SmokePrice returns the node's estimate of a smoke price sufficient to
         # ensure a transaction is mined in a timely fashion.
-        gasPrice: BigInt!
+        smokePrice: BigInt!
         # Syncing returns information on the current synchronisation state.
         syncing: SyncState
         # ChainID returns the current chain ID for transaction replay protection.

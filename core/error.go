@@ -49,9 +49,9 @@ var (
 	// next one expected based on the local chain.
 	ErrNonceTooHigh = errors.New("nonce too high")
 
-	// ErrGasLimitReached is returned by the gas pool if the amount of gas required
+	// ErrSmokeLimitReached is returned by the smoke pool if the amount of smoke required
 	// by a transaction is higher than what's left in the block.
-	ErrGasLimitReached = errors.New("gas limit reached")
+	ErrSmokeLimitReached = errors.New("smoke limit reached")
 
 	// ErrInsufficientFundsForTransfer is returned if the transaction sender doesn't
 	// have enough funds for transfer(topmost call only).
@@ -59,14 +59,14 @@ var (
 
 	// ErrInsufficientFunds is returned if the total cost of executing a transaction
 	// is higher than the balance of the user's account.
-	ErrInsufficientFunds = errors.New("insufficient funds for gas * price + value")
+	ErrInsufficientFunds = errors.New("insufficient funds for smoke * price + value")
 
-	// ErrGasUintOverflow is returned when calculating gas usage.
-	ErrGasUintOverflow = errors.New("gas uint64 overflow")
+	// ErrSmokeUintOverflow is returned when calculating smoke usage.
+	ErrSmokeUintOverflow = errors.New("smoke uint64 overflow")
 
-	// ErrIntrinsicGas is returned if the transaction is specified to use less gas
+	// ErrIntrinsicSmoke is returned if the transaction is specified to use less smoke
 	// than required to start the invocation.
-	ErrIntrinsicGas = errors.New("intrinsic gas too low")
+	ErrIntrinsicSmoke = errors.New("intrinsic smoke too low")
 
 	// ErrTxTypeNotSupported is returned if a transaction is not supported in the
 	// current network configuration.

@@ -30,15 +30,15 @@ import (
 	"github.com/420integrated/go-highcoin/common"
 	"github.com/420integrated/go-highcoin/common/hexutil"
 	"github.com/420integrated/go-highcoin/common/math"
-	"github.com/420integrated/go-highcoin/consensus/othash"
+	"github.com/420integrated/go-highcoin/consensus/ethash"
 	"github.com/420integrated/go-highcoin/core"
 	"github.com/420integrated/go-highcoin/core/bloombits"
 	"github.com/420integrated/go-highcoin/core/rawdb"
 	"github.com/420integrated/go-highcoin/core/state"
 	"github.com/420integrated/go-highcoin/core/types"
 	"github.com/420integrated/go-highcoin/core/vm"
-	"github.com/420integrated/go-highcoin/eth/filters"
-	"github.com/420integrated/go-highcoin/ethdb"
+	"github.com/420integrated/go-highcoin/high/filters"
+	"github.com/420integrated/go-highcoin/highdb"
 	"github.com/420integrated/go-highcoin/event"
 	"github.com/420integrated/go-highcoin/log"
 	"github.com/420integrated/go-highcoin/params"
@@ -58,9 +58,9 @@ var (
 // the background. Its main purpose is to allow for easy testing of contract bindings.
 // Simulated backend implements the following interfaces:
 // ChainReader, ChainStateReader, ContractBackend, ContractCaller, ContractFilterer, ContractTransactor,
-// DeployBackend, GasEstimator, GasPricer, LogFilterer, PendingContractCaller, TransactionReader, and TransactionSender
+// DeployBackend, SmokeEstimator, SmokePricer, LogFilterer, PendingContractCaller, TransactionReader, and TransactionSender
 type SimulatedBackend struct {
-	database   ethdb.Database   // In memory database to store our testing data
+	database   highdb.Database   // In memory database to store our testing data
 	blockchain *core.BlockChain // Highcoin blockchain to handle the consensus
 
 	mu           sync.Mutex
@@ -75,10 +75,10 @@ type SimulatedBackend struct {
 // NewSimulatedBackendWithDatabase creates a new binding backend based on the given database
 // and uses a simulated blockchain for testing purposes.
 // A simulated backend always uses chainID 1337.
-func NewSimulatedBackendWithDatabase(database ethdb.Database, alloc core.GenesisAlloc, gasLimit uint64) *SimulatedBackend {
-	genesis := core.Genesis{Config: params.AllEthashProtocolChanges, GasLimit: gasLimit, Alloc: alloc}
+func NewSimulatedBackendWithDatabase(database highdb.Database, alloc core.GenesisAlloc, smokeLimit uint64) *SimulatedBackend {
+	genesis := core.Genesis{Config: params.AllEthashProtocolChanges, SmokeLimit: smokeLimit, Alloc: alloc}
 	genesis.MustCommit(database)
-	blockchain, _ := core.NewBlockChain(database, nil, genesis.Config, othash.NewFaker(), vm.Config{}, nil, nil)
+	blockchain, _ := core.NewBlockChain(database, nil, genesis.Config, ethash.NewFaker(), vm.Config{}, nil, nil)
 
 	backend := &SimulatedBackend{
 		database:   database,
@@ -93,8 +93,8 @@ func NewSimulatedBackendWithDatabase(database ethdb.Database, alloc core.Genesis
 // NewSimulatedBackend creates a new binding backend using a simulated blockchain
 // for testing purposes.
 // A simulated backend always uses chainID 1337.
-func NewSimulatedBackend(alloc core.GenesisAlloc, gasLimit uint64) *SimulatedBackend {
-	return NewSimulatedBackendWithDatabase(rawdb.NewMemoryDatabase(), alloc, gasLimit)
+func NewSimulatedBackend(alloc core.GenesisAlloc, smokeLimit uint64) *SimulatedBackend {
+	return NewSimulatedBackendWithDatabase(rawdb.NewMemoryDatabase(), alloc, smokeLimit)
 }
 
 // Close terminates the underlying blockchain's update loop.
@@ -124,7 +124,7 @@ func (b *SimulatedBackend) Rollback() {
 }
 
 func (b *SimulatedBackend) rollback() {
-	blocks, _ := core.GenerateChain(b.config, b.blockchain.CurrentBlock(), othash.NewFaker(), b.database, 1, func(int, *core.BlockGen) {})
+	blocks, _ := core.GenerateChain(b.config, b.blockchain.CurrentBlock(), ethash.NewFaker(), b.database, 1, func(int, *core.BlockGen) {})
 
 	b.pendingBlock = blocks[0]
 	b.pendingState, _ = state.New(b.pendingBlock.Root(), b.blockchain.StateCache(), nil)
@@ -425,31 +425,31 @@ func (b *SimulatedBackend) PendingNonceAt(ctx context.Context, account common.Ad
 	return b.pendingState.GetOrNewStateObject(account).Nonce(), nil
 }
 
-// SuggestGasPrice implements ContractTransactor.SuggestGasPrice. Since the simulated
-// chain doesn't have miners, we just return a gas price of 1 for any call.
-func (b *SimulatedBackend) SuggestGasPrice(ctx context.Context) (*big.Int, error) {
+// SuggestSmokePrice implements ContractTransactor.SuggestSmokePrice. Since the simulated
+// chain doesn't have miners, we just return a smoke price of 1 for any call.
+func (b *SimulatedBackend) SuggestSmokePrice(ctx context.Context) (*big.Int, error) {
 	return big.NewInt(1), nil
 }
 
-// EstimateGas executes the requested code against the currently pending block/state and
-// returns the used amount of gas.
-func (b *SimulatedBackend) EstimateGas(ctx context.Context, call highcoin.CallMsg) (uint64, error) {
+// EstimateSmoke executes the requested code against the currently pending block/state and
+// returns the used amount of smoke.
+func (b *SimulatedBackend) EstimateSmoke(ctx context.Context, call highcoin.CallMsg) (uint64, error) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
-	// Determine the lowest and highest possible gas limits to binary search in between
+	// Determine the lowest and highest possible smoke limits to binary search in between
 	var (
-		lo  uint64 = params.TxGas - 1
+		lo  uint64 = params.TxSmoke - 1
 		hi  uint64
 		cap uint64
 	)
-	if call.Gas >= params.TxGas {
-		hi = call.Gas
+	if call.Smoke >= params.TxSmoke {
+		hi = call.Smoke
 	} else {
-		hi = b.pendingBlock.GasLimit()
+		hi = b.pendingBlock.SmokeLimit()
 	}
-	// Recap the highest gas allowance with account's balance.
-	if call.GasPrice != nil && call.GasPrice.BitLen() != 0 {
+	// Recap the highest smoke allowance with account's balance.
+	if call.SmokePrice != nil && call.SmokePrice.BitLen() != 0 {
 		balance := b.pendingState.GetBalance(call.From) // from can't be nil
 		available := new(big.Int).Set(balance)
 		if call.Value != nil {
@@ -458,42 +458,42 @@ func (b *SimulatedBackend) EstimateGas(ctx context.Context, call highcoin.CallMs
 			}
 			available.Sub(available, call.Value)
 		}
-		allowance := new(big.Int).Div(available, call.GasPrice)
+		allowance := new(big.Int).Div(available, call.SmokePrice)
 		if allowance.IsUint64() && hi > allowance.Uint64() {
 			transfer := call.Value
 			if transfer == nil {
 				transfer = new(big.Int)
 			}
-			log.Warn("Gas estimation capped by limited funds", "original", hi, "balance", balance,
-				"sent", transfer, "gasprice", call.GasPrice, "fundable", allowance)
+			log.Warn("Smoke estimation capped by limited funds", "original", hi, "balance", balance,
+				"sent", transfer, "smokeprice", call.SmokePrice, "fundable", allowance)
 			hi = allowance.Uint64()
 		}
 	}
 	cap = hi
 
-	// Create a helper to check if a gas allowance results in an executable transaction
-	executable := func(gas uint64) (bool, *core.ExecutionResult, error) {
-		call.Gas = gas
+	// Create a helper to check if a smoke allowance results in an executable transaction
+	executable := func(smoke uint64) (bool, *core.ExecutionResult, error) {
+		call.Smoke = smoke
 
 		snapshot := b.pendingState.Snapshot()
 		res, err := b.callContract(ctx, call, b.pendingBlock, b.pendingState)
 		b.pendingState.RevertToSnapshot(snapshot)
 
 		if err != nil {
-			if errors.Is(err, core.ErrIntrinsicGas) {
-				return true, nil, nil // Special case, raise gas limit
+			if errors.Is(err, core.ErrIntrinsicSmoke) {
+				return true, nil, nil // Special case, raise smoke limit
 			}
 			return true, nil, err // Bail out
 		}
 		return res.Failed(), res, nil
 	}
-	// Execute the binary search and hone in on an executable gas limit
+	// Execute the binary search and hone in on an executable smoke limit
 	for lo+1 < hi {
 		mid := (hi + lo) / 2
 		failed, _, err := executable(mid)
 
 		// If the error is not nil(consensus error), it means the provided message
-		// call or transaction will never be accepted no matter how much gas it is
+		// call or transaction will never be accepted no matter how much smoke it is
 		// assigned. Return the error directly, don't struggle any more
 		if err != nil {
 			return 0, err
@@ -511,14 +511,14 @@ func (b *SimulatedBackend) EstimateGas(ctx context.Context, call highcoin.CallMs
 			return 0, err
 		}
 		if failed {
-			if result != nil && result.Err != vm.ErrOutOfGas {
+			if result != nil && result.Err != vm.ErrOutOfSmoke {
 				if len(result.Revert()) > 0 {
 					return 0, newRevertError(result)
 				}
 				return 0, result.Err
 			}
-			// Otherwise, the specified gas cap is too low
-			return 0, fmt.Errorf("gas required exceeds allowance (%d)", cap)
+			// Otherwise, the specified smoke cap is too low
+			return 0, fmt.Errorf("smoke required exceeds allowance (%d)", cap)
 		}
 	}
 	return hi, nil
@@ -528,11 +528,11 @@ func (b *SimulatedBackend) EstimateGas(ctx context.Context, call highcoin.CallMs
 // state is modified during execution, make sure to copy it if necessary.
 func (b *SimulatedBackend) callContract(ctx context.Context, call highcoin.CallMsg, block *types.Block, stateDB *state.StateDB) (*core.ExecutionResult, error) {
 	// Ensure message is initialized properly.
-	if call.GasPrice == nil {
-		call.GasPrice = big.NewInt(1)
+	if call.SmokePrice == nil {
+		call.SmokePrice = big.NewInt(1)
 	}
-	if call.Gas == 0 {
-		call.Gas = 50000000
+	if call.Smoke == 0 {
+		call.Smoke = 50000000
 	}
 	if call.Value == nil {
 		call.Value = new(big.Int)
@@ -548,9 +548,9 @@ func (b *SimulatedBackend) callContract(ctx context.Context, call highcoin.CallM
 	// Create a new environment which holds all relevant information
 	// about the transaction and calling mechanisms.
 	vmEnv := vm.NewEVM(evmContext, txContext, stateDB, b.config, vm.Config{})
-	gasPool := new(core.GasPool).AddGas(math.MaxUint64)
+	smokePool := new(core.SmokePool).AddSmoke(math.MaxUint64)
 
-	return core.NewStateTransition(vmEnv, msg, gasPool).TransitionDb()
+	return core.NewStateTransition(vmEnv, msg, smokePool).TransitionDb()
 }
 
 // SendTransaction updates the pending block to include the given transaction.
@@ -572,7 +572,7 @@ func (b *SimulatedBackend) SendTransaction(ctx context.Context, tx *types.Transa
 	}
 
 	// Include tx in chain.
-	blocks, _ := core.GenerateChain(b.config, block, othash.NewFaker(), b.database, 1, func(number int, block *core.BlockGen) {
+	blocks, _ := core.GenerateChain(b.config, block, ethash.NewFaker(), b.database, 1, func(number int, block *core.BlockGen) {
 		for _, tx := range b.pendingBlock.Transactions() {
 			block.AddTxWithChain(b.blockchain, tx)
 		}
@@ -690,7 +690,7 @@ func (b *SimulatedBackend) AdjustTime(adjustment time.Duration) error {
 		return errors.New("Could not adjust time on non-empty block")
 	}
 
-	blocks, _ := core.GenerateChain(b.config, b.blockchain.CurrentBlock(), othash.NewFaker(), b.database, 1, func(number int, block *core.BlockGen) {
+	blocks, _ := core.GenerateChain(b.config, b.blockchain.CurrentBlock(), ethash.NewFaker(), b.database, 1, func(number int, block *core.BlockGen) {
 		block.OffsetTime(int64(adjustment.Seconds()))
 	})
 	stateDB, _ := b.blockchain.State()
@@ -715,8 +715,8 @@ func (m callMsg) From() common.Address         { return m.CallMsg.From }
 func (m callMsg) Nonce() uint64                { return 0 }
 func (m callMsg) CheckNonce() bool             { return false }
 func (m callMsg) To() *common.Address          { return m.CallMsg.To }
-func (m callMsg) GasPrice() *big.Int           { return m.CallMsg.GasPrice }
-func (m callMsg) Gas() uint64                  { return m.CallMsg.Gas }
+func (m callMsg) SmokePrice() *big.Int           { return m.CallMsg.SmokePrice }
+func (m callMsg) Smoke() uint64                  { return m.CallMsg.Smoke }
 func (m callMsg) Value() *big.Int              { return m.CallMsg.Value }
 func (m callMsg) Data() []byte                 { return m.CallMsg.Data }
 func (m callMsg) AccessList() types.AccessList { return m.CallMsg.AccessList }
@@ -724,11 +724,11 @@ func (m callMsg) AccessList() types.AccessList { return m.CallMsg.AccessList }
 // filterBackend implements filters.Backend to support filtering for logs without
 // taking bloom-bits acceleration structures into account.
 type filterBackend struct {
-	db ethdb.Database
+	db highdb.Database
 	bc *core.BlockChain
 }
 
-func (fb *filterBackend) ChainDb() ethdb.Database  { return fb.db }
+func (fb *filterBackend) ChainDb() highdb.Database  { return fb.db }
 func (fb *filterBackend) EventMux() *event.TypeMux { panic("not supported") }
 
 func (fb *filterBackend) HeaderByNumber(ctx context.Context, block rpc.BlockNumber) (*types.Header, error) {

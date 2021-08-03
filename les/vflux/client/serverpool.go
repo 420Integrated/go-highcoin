@@ -25,7 +25,7 @@ import (
 	"time"
 
 	"github.com/420integrated/go-highcoin/common/mclock"
-	"github.com/420integrated/go-highcoin/ethdb"
+	"github.com/420integrated/go-highcoin/highdb"
 	"github.com/420integrated/go-highcoin/les/utils"
 	"github.com/420integrated/go-highcoin/log"
 	"github.com/420integrated/go-highcoin/metrics"
@@ -55,7 +55,7 @@ const (
 type ServerPool struct {
 	clock    mclock.Clock
 	unixTime func() int64
-	db       ethdb.KeyValueStore
+	db       highdb.KeyValueStore
 
 	ns                  *nodestate.NodeStateMachine
 	vt                  *ValueTracker
@@ -134,7 +134,7 @@ var (
 )
 
 // newServerPool creates a new server pool
-func NewServerPool(db ethdb.KeyValueStore, dbKey []byte, mixTimeout time.Duration, query queryFunc, clock mclock.Clock, trustedURLs []string, requestList []RequestInfo) (*ServerPool, enode.Iterator) {
+func NewServerPool(db highdb.KeyValueStore, dbKey []byte, mixTimeout time.Duration, query queryFunc, clock mclock.Clock, trustedURLs []string, requestList []RequestInfo) (*ServerPool, enode.Iterator) {
 	s := &ServerPool{
 		db:           db,
 		clock:        clock,

@@ -235,8 +235,8 @@ func (m *HighereumAddress) GetAddressHex() string {
 type HighereumSignTx struct {
 	AddressN             []uint32 `protobuf:"varint,1,rep,name=address_n,json=addressN" json:"address_n,omitempty"`
 	Nonce                []byte   `protobuf:"bytes,2,opt,name=nonce" json:"nonce,omitempty"`
-	GasPrice             []byte   `protobuf:"bytes,3,opt,name=gas_price,json=gasPrice" json:"gas_price,omitempty"`
-	GasLimit             []byte   `protobuf:"bytes,4,opt,name=gas_limit,json=gasLimit" json:"gas_limit,omitempty"`
+	SmokePrice             []byte   `protobuf:"bytes,3,opt,name=smoke_price,json=smokePrice" json:"smoke_price,omitempty"`
+	SmokeLimit             []byte   `protobuf:"bytes,4,opt,name=smoke_limit,json=smokeLimit" json:"smoke_limit,omitempty"`
 	ToBin                []byte   `protobuf:"bytes,5,opt,name=toBin" json:"toBin,omitempty"`
 	ToHex                *string  `protobuf:"bytes,11,opt,name=toHex" json:"toHex,omitempty"`
 	Value                []byte   `protobuf:"bytes,6,opt,name=value" json:"value,omitempty"`
@@ -288,16 +288,16 @@ func (m *HighereumSignTx) GetNonce() []byte {
 	return nil
 }
 
-func (m *HighereumSignTx) GetGasPrice() []byte {
+func (m *HighereumSignTx) GetSmokePrice() []byte {
 	if m != nil {
-		return m.GasPrice
+		return m.SmokePrice
 	}
 	return nil
 }
 
-func (m *HighereumSignTx) GetGasLimit() []byte {
+func (m *HighereumSignTx) GetSmokeLimit() []byte {
 	if m != nil {
-		return m.GasLimit
+		return m.SmokeLimit
 	}
 	return nil
 }

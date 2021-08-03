@@ -33,7 +33,7 @@ import (
 	"github.com/420integrated/go-highcoin/core/state/snapshot"
 	"github.com/420integrated/go-highcoin/core/types"
 	"github.com/420integrated/go-highcoin/crypto"
-	"github.com/420integrated/go-highcoin/ethdb"
+	"github.com/420integrated/go-highcoin/highdb"
 	"github.com/420integrated/go-highcoin/log"
 	"github.com/420integrated/go-highcoin/rlp"
 	"github.com/420integrated/go-highcoin/trie"
@@ -76,7 +76,7 @@ var (
 // periodically in order to release the disk usage and improve the
 // disk read performance to some extent.
 type Pruner struct {
-	db            ethdb.Database
+	db            highdb.Database
 	stateBloom    *stateBloom
 	datadir       string
 	trieCachePath string
@@ -85,7 +85,7 @@ type Pruner struct {
 }
 
 // NewPruner creates the pruner instance.
-func NewPruner(db ethdb.Database, headHeader *types.Header, datadir, trieCachePath string, bloomSize uint64) (*Pruner, error) {
+func NewPruner(db highdb.Database, headHeader *types.Header, datadir, trieCachePath string, bloomSize uint64) (*Pruner, error) {
 	snaptree, err := snapshot.New(db, trie.NewDatabase(db), 256, headHeader.Root, false, false, false)
 	if err != nil {
 		return nil, err // The relevant snapshot(s) might not exist
@@ -109,7 +109,7 @@ func NewPruner(db ethdb.Database, headHeader *types.Header, datadir, trieCachePa
 	}, nil
 }
 
-func prune(maindb ethdb.Database, stateBloom *stateBloom, middleStateRoots map[common.Hash]struct{}, start time.Time) error {
+func prune(maindb highdb.Database, stateBloom *stateBloom, middleStateRoots map[common.Hash]struct{}, start time.Time) error {
 	// Delete all stale trie nodes in the disk. With the help of state bloom
 	// the trie nodes(and codes) belong to the active state will be filtered
 	// out. A very small part of stale tries will also be filtered because of
@@ -166,7 +166,7 @@ func prune(maindb ethdb.Database, stateBloom *stateBloom, middleStateRoots map[c
 			}
 			// Recreate the iterator after every batch commit in order
 			// to allow the underlying compactor to delete the entries.
-			if batch.ValueSize() >= ethdb.IdealBatchSize {
+			if batch.ValueSize() >= highdb.IdealBatchSize {
 				batch.Write()
 				batch.Reset()
 
@@ -244,7 +244,7 @@ func (p *Pruner) Prune(root common.Hash) error {
 	// is the presence of root can indicate the presence of the
 	// entire trie.
 	if blob := rawdb.ReadTrieNode(p.db, root); len(blob) == 0 {
-		// The special case is for clique based networks(rinkeby, goerli
+		// The special case is for clique based networks(ruderalis, goerli
 		// and some other private networks), it's possible that two
 		// consecutive blocks will have same root. In this case snapshot
 		// difflayer won't be created. So HEAD-127 may not paired with
@@ -342,7 +342,7 @@ func (p *Pruner) Prune(root common.Hash) error {
 // pruning can be resumed. What's more if the bloom filter is constructed, the
 // pruning **has to be resumed**. Otherwise a lot of dangling nodes may be left
 // in the disk.
-func RecoverPruning(datadir string, db ethdb.Database, trieCachePath string) error {
+func RecoverPruning(datadir string, db highdb.Database, trieCachePath string) error {
 	stateBloomPath, stateBloomRoot, err := findBloomFilter(datadir)
 	if err != nil {
 		return err
@@ -422,7 +422,7 @@ func RecoverPruning(datadir string, db ethdb.Database, trieCachePath string) err
 
 // extractGenesis loads the genesis state and commits all the state entries
 // into the given bloomfilter.
-func extractGenesis(db ethdb.Database, stateBloom *stateBloom) error {
+func extractGenesis(db highdb.Database, stateBloom *stateBloom) error {
 	genesisHash := rawdb.ReadCanonicalHash(db, 0)
 	if genesisHash == (common.Hash{}) {
 		return errors.New("missing genesis hash")
@@ -506,7 +506,7 @@ func findBloomFilter(datadir string) (string, common.Hash, error) {
 	return stateBloomPath, stateBloomRoot, nil
 }
 
-func getHeadHeader(db ethdb.Database) (*types.Header, error) {
+func getHeadHeader(db highdb.Database) (*types.Header, error) {
 	headHeaderHash := rawdb.ReadHeadBlockHash(db)
 	if headHeaderHash == (common.Hash{}) {
 		return nil, errors.New("empty head block hash")

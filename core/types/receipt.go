@@ -54,7 +54,7 @@ type Receipt struct {
 	Type              uint8  `json:"type,omitempty"`
 	PostState         []byte `json:"root"`
 	Status            uint64 `json:"status"`
-	CumulativeGasUsed uint64 `json:"cumulativeGasUsed" gencodec:"required"`
+	CumulativeSmokeUsed uint64 `json:"cumulativeSmokeUsed" gencodec:"required"`
 	Bloom             Bloom  `json:"logsBloom"         gencodec:"required"`
 	Logs              []*Log `json:"logs"              gencodec:"required"`
 
@@ -62,7 +62,7 @@ type Receipt struct {
 	// They are stored in the chain database.
 	TxHash          common.Hash    `json:"transactionHash" gencodec:"required"`
 	ContractAddress common.Address `json:"contractAddress"`
-	GasUsed         uint64         `json:"gasUsed" gencodec:"required"`
+	SmokeUsed         uint64         `json:"smokeUsed" gencodec:"required"`
 
 	// Inclusion information: These fields provide information about the inclusion of the
 	// transaction corresponding to this receipt.
@@ -75,8 +75,8 @@ type receiptMarshaling struct {
 	Type              hexutil.Uint64
 	PostState         hexutil.Bytes
 	Status            hexutil.Uint64
-	CumulativeGasUsed hexutil.Uint64
-	GasUsed           hexutil.Uint64
+	CumulativeSmokeUsed hexutil.Uint64
+	SmokeUsed           hexutil.Uint64
 	BlockNumber       *hexutil.Big
 	TransactionIndex  hexutil.Uint
 }
@@ -84,7 +84,7 @@ type receiptMarshaling struct {
 // receiptRLP is the consensus encoding of a receipt.
 type receiptRLP struct {
 	PostStateOrStatus []byte
-	CumulativeGasUsed uint64
+	CumulativeSmokeUsed uint64
 	Bloom             Bloom
 	Logs              []*Log
 }
@@ -92,38 +92,38 @@ type receiptRLP struct {
 // storedReceiptRLP is the storage encoding of a receipt.
 type storedReceiptRLP struct {
 	PostStateOrStatus []byte
-	CumulativeGasUsed uint64
+	CumulativeSmokeUsed uint64
 	Logs              []*LogForStorage
 }
 
 // v4StoredReceiptRLP is the storage encoding of a receipt used in database version 4.
 type v4StoredReceiptRLP struct {
 	PostStateOrStatus []byte
-	CumulativeGasUsed uint64
+	CumulativeSmokeUsed uint64
 	TxHash            common.Hash
 	ContractAddress   common.Address
 	Logs              []*LogForStorage
-	GasUsed           uint64
+	SmokeUsed           uint64
 }
 
 // v3StoredReceiptRLP is the original storage encoding of a receipt including some unnecessary fields.
 type v3StoredReceiptRLP struct {
 	PostStateOrStatus []byte
-	CumulativeGasUsed uint64
+	CumulativeSmokeUsed uint64
 	Bloom             Bloom
 	TxHash            common.Hash
 	ContractAddress   common.Address
 	Logs              []*LogForStorage
-	GasUsed           uint64
+	SmokeUsed           uint64
 }
 
 // NewReceipt creates a barebone transaction receipt, copying the init fields.
 // Deprecated: create receipts using a struct literal instead.
-func NewReceipt(root []byte, failed bool, cumulativeGasUsed uint64) *Receipt {
+func NewReceipt(root []byte, failed bool, cumulativeSmokeUsed uint64) *Receipt {
 	r := &Receipt{
 		Type:              LegacyTxType,
 		PostState:         common.CopyBytes(root),
-		CumulativeGasUsed: cumulativeGasUsed,
+		CumulativeSmokeUsed: cumulativeSmokeUsed,
 	}
 	if failed {
 		r.Status = ReceiptStatusFailed
@@ -136,7 +136,7 @@ func NewReceipt(root []byte, failed bool, cumulativeGasUsed uint64) *Receipt {
 // EncodeRLP implements rlp.Encoder, and flattens the consensus fields of a receipt
 // into an RLP stream. If no post state is present, byzantium fork is assumed.
 func (r *Receipt) EncodeRLP(w io.Writer) error {
-	data := &receiptRLP{r.statusEncoding(), r.CumulativeGasUsed, r.Bloom, r.Logs}
+	data := &receiptRLP{r.statusEncoding(), r.CumulativeSmokeUsed, r.Bloom, r.Logs}
 	if r.Type == LegacyTxType {
 		return rlp.Encode(w, data)
 	}
@@ -193,7 +193,7 @@ func (r *Receipt) DecodeRLP(s *rlp.Stream) error {
 }
 
 func (r *Receipt) setFromRLP(data receiptRLP) error {
-	r.CumulativeGasUsed, r.Bloom, r.Logs = data.CumulativeGasUsed, data.Bloom, data.Logs
+	r.CumulativeSmokeUsed, r.Bloom, r.Logs = data.CumulativeSmokeUsed, data.Bloom, data.Logs
 	return r.setStatus(data.PostStateOrStatus)
 }
 
@@ -241,7 +241,7 @@ type ReceiptForStorage Receipt
 func (r *ReceiptForStorage) EncodeRLP(w io.Writer) error {
 	enc := &storedReceiptRLP{
 		PostStateOrStatus: (*Receipt)(r).statusEncoding(),
-		CumulativeGasUsed: r.CumulativeGasUsed,
+		CumulativeSmokeUsed: r.CumulativeSmokeUsed,
 		Logs:              make([]*LogForStorage, len(r.Logs)),
 	}
 	for i, log := range r.Logs {
@@ -278,7 +278,7 @@ func decodeStoredReceiptRLP(r *ReceiptForStorage, blob []byte) error {
 	if err := (*Receipt)(r).setStatus(stored.PostStateOrStatus); err != nil {
 		return err
 	}
-	r.CumulativeGasUsed = stored.CumulativeGasUsed
+	r.CumulativeSmokeUsed = stored.CumulativeSmokeUsed
 	r.Logs = make([]*Log, len(stored.Logs))
 	for i, log := range stored.Logs {
 		r.Logs[i] = (*Log)(log)
@@ -296,10 +296,10 @@ func decodeV4StoredReceiptRLP(r *ReceiptForStorage, blob []byte) error {
 	if err := (*Receipt)(r).setStatus(stored.PostStateOrStatus); err != nil {
 		return err
 	}
-	r.CumulativeGasUsed = stored.CumulativeGasUsed
+	r.CumulativeSmokeUsed = stored.CumulativeSmokeUsed
 	r.TxHash = stored.TxHash
 	r.ContractAddress = stored.ContractAddress
-	r.GasUsed = stored.GasUsed
+	r.SmokeUsed = stored.SmokeUsed
 	r.Logs = make([]*Log, len(stored.Logs))
 	for i, log := range stored.Logs {
 		r.Logs[i] = (*Log)(log)
@@ -317,11 +317,11 @@ func decodeV3StoredReceiptRLP(r *ReceiptForStorage, blob []byte) error {
 	if err := (*Receipt)(r).setStatus(stored.PostStateOrStatus); err != nil {
 		return err
 	}
-	r.CumulativeGasUsed = stored.CumulativeGasUsed
+	r.CumulativeSmokeUsed = stored.CumulativeSmokeUsed
 	r.Bloom = stored.Bloom
 	r.TxHash = stored.TxHash
 	r.ContractAddress = stored.ContractAddress
-	r.GasUsed = stored.GasUsed
+	r.SmokeUsed = stored.SmokeUsed
 	r.Logs = make([]*Log, len(stored.Logs))
 	for i, log := range stored.Logs {
 		r.Logs[i] = (*Log)(log)
@@ -338,7 +338,7 @@ func (rs Receipts) Len() int { return len(rs) }
 // EncodeIndex encodes the i'th receipt to w.
 func (rs Receipts) EncodeIndex(i int, w *bytes.Buffer) {
 	r := rs[i]
-	data := &receiptRLP{r.statusEncoding(), r.CumulativeGasUsed, r.Bloom, r.Logs}
+	data := &receiptRLP{r.statusEncoding(), r.CumulativeSmokeUsed, r.Bloom, r.Logs}
 	switch r.Type {
 	case LegacyTxType:
 		rlp.Encode(w, data)
@@ -377,11 +377,11 @@ func (r Receipts) DeriveFields(config *params.ChainConfig, hash common.Hash, num
 			from, _ := Sender(signer, txs[i])
 			r[i].ContractAddress = crypto.CreateAddress(from, txs[i].Nonce())
 		}
-		// The used gas can be calculated based on previous r
+		// The used smoke can be calculated based on previous r
 		if i == 0 {
-			r[i].GasUsed = r[i].CumulativeGasUsed
+			r[i].SmokeUsed = r[i].CumulativeSmokeUsed
 		} else {
-			r[i].GasUsed = r[i].CumulativeGasUsed - r[i-1].CumulativeGasUsed
+			r[i].SmokeUsed = r[i].CumulativeSmokeUsed - r[i-1].CumulativeSmokeUsed
 		}
 		// The derived log fields can simply be set from the block and transaction
 		for j := 0; j < len(r[i].Logs); j++ {

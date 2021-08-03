@@ -78,14 +78,14 @@ func checkInput(id byte, inputLen int) bool {
 // 0  otherwise
 // other values are reserved for future use.
 func fuzz(id byte, data []byte) int {
-	// Even on bad input, it should not crash, so we still test the gas calc
+	// Even on bad input, it should not crash, so we still test the smoke calc
 	precompile := vm.PrecompiledContractsBLS[common.BytesToAddress([]byte{id})]
-	gas := precompile.RequiredGas(data)
+	smoke := precompile.RequiredSmoke(data)
 	if !checkInput(id, len(data)) {
 		return 0
 	}
-	// If the gas cost is too large (25M), bail out
-	if gas > 25*1000*1000 {
+	// If the smoke cost is too large (25M), bail out
+	if smoke > 25*1000*1000 {
 		return 0
 	}
 	cpy := make([]byte, len(data))

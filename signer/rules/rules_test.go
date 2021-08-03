@@ -26,7 +26,7 @@ import (
 	"github.com/420integrated/go-highcoin/common"
 	"github.com/420integrated/go-highcoin/common/hexutil"
 	"github.com/420integrated/go-highcoin/core/types"
-	"github.com/420integrated/go-highcoin/internal/ethapi"
+	"github.com/420integrated/go-highcoin/internal/highapi"
 	"github.com/420integrated/go-highcoin/signer/core"
 	"github.com/420integrated/go-highcoin/signer/storage"
 )
@@ -107,7 +107,7 @@ func (alwaysDenyUI) ShowInfo(message string) {
 	panic("implement me")
 }
 
-func (alwaysDenyUI) OnApprovedTx(tx ethapi.SignTransactionResult) {
+func (alwaysDenyUI) OnApprovedTx(tx highapi.SignTransactionResult) {
 	panic("implement me")
 }
 
@@ -235,7 +235,7 @@ func (d *dummyUI) ShowInfo(message string) {
 	d.calls = append(d.calls, "ShowInfo")
 }
 
-func (d *dummyUI) OnApprovedTx(tx ethapi.SignTransactionResult) {
+func (d *dummyUI) OnApprovedTx(tx highapi.SignTransactionResult) {
 	d.calls = append(d.calls, "OnApprovedTx")
 }
 
@@ -263,7 +263,7 @@ func TestForwarding(t *testing.T) {
 	r.ShowInfo("test")
 
 	//This one is not forwarded
-	r.OnApprovedTx(ethapi.SignTransactionResult{})
+	r.OnApprovedTx(highapi.SignTransactionResult{})
 
 	expCalls := 6
 	if len(ui.calls) != expCalls {
@@ -428,8 +428,8 @@ func dummyTx(value hexutil.Big) *core.SignTxRequest {
 	to, _ := mixAddr("000000000000000000000000000000000000dead")
 	from, _ := mixAddr("000000000000000000000000000000000000dead")
 	n := hexutil.Uint64(3)
-	gas := hexutil.Uint64(21000)
-	gasPrice := hexutil.Big(*big.NewInt(2000000))
+	smoke := hexutil.Uint64(21000)
+	smokePrice := hexutil.Big(*big.NewInt(2000000))
 
 	return &core.SignTxRequest{
 		Transaction: core.SendTxArgs{
@@ -437,8 +437,8 @@ func dummyTx(value hexutil.Big) *core.SignTxRequest {
 			To:       to,
 			Value:    value,
 			Nonce:    n,
-			GasPrice: gasPrice,
-			Gas:      gas,
+			SmokePrice: smokePrice,
+			Smoke:      smoke,
 		},
 		Callinfo: []core.ValidationInfo{
 			{Typ: "Warning", Message: "All your base are bellong to us"},
@@ -455,10 +455,10 @@ func dummyTxWithV(value uint64) *core.SignTxRequest {
 
 func dummySigned(value *big.Int) *types.Transaction {
 	to := common.HexToAddress("000000000000000000000000000000000000dead")
-	gas := uint64(21000)
-	gasPrice := big.NewInt(2000000)
+	smoke := uint64(21000)
+	smokePrice := big.NewInt(2000000)
 	data := make([]byte, 0)
-	return types.NewTransaction(3, to, value, gas, gasPrice, data)
+	return types.NewTransaction(3, to, value, smoke, smokePrice, data)
 }
 
 func TestLimitWindow(t *testing.T) {
@@ -482,7 +482,7 @@ func TestLimitWindow(t *testing.T) {
 		}
 		// Create a dummy signed transaction
 
-		response := ethapi.SignTransactionResult{
+		response := highapi.SignTransactionResult{
 			Tx:  dummySigned(v),
 			Raw: common.Hex2Bytes("deadbeef"),
 		}
@@ -539,7 +539,7 @@ func (d *dontCallMe) ShowInfo(message string) {
 	d.t.Fatalf("Did not expect next-handler to be called")
 }
 
-func (d *dontCallMe) OnApprovedTx(tx ethapi.SignTransactionResult) {
+func (d *dontCallMe) OnApprovedTx(tx highapi.SignTransactionResult) {
 	d.t.Fatalf("Did not expect next-handler to be called")
 }
 

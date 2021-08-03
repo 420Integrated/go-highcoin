@@ -93,7 +93,7 @@ type nodeFilterC struct {
 var filterFlags = map[string]nodeFilterC{
 	"-ip":          {1, ipFilter},
 	"-min-age":     {1, minAgeFilter},
-	"-eth-network": {1, ethFilter},
+	"-high-network": {1, highFilter},
 	"-les-server":  {0, lesFilter},
 	"-snap":        {0, snapFilter},
 }
@@ -155,13 +155,13 @@ func minAgeFilter(args []string) (nodeFilter, error) {
 	return f, nil
 }
 
-func ethFilter(args []string) (nodeFilter, error) {
+func highFilter(args []string) (nodeFilter, error) {
 	var filter forkid.Filter
 	switch args[0] {
 	case "mainnet":
 		filter = forkid.NewStaticFilter(params.MainnetChainConfig, params.MainnetGenesisHash)
-	case "rinkeby":
-		filter = forkid.NewStaticFilter(params.RinkebyChainConfig, params.RinkebyGenesisHash)
+	case "ruderalis":
+		filter = forkid.NewStaticFilter(params.RuderalisChainConfig, params.RuderalisGenesisHash)
 	case "goerli":
 		filter = forkid.NewStaticFilter(params.GoerliChainConfig, params.GoerliGenesisHash)
 	case "ropsten":
@@ -171,11 +171,11 @@ func ethFilter(args []string) (nodeFilter, error) {
 	}
 
 	f := func(n nodeJSON) bool {
-		var eth struct {
+		var high struct {
 			ForkID forkid.ID
 			_      []rlp.RawValue `rlp:"tail"`
 		}
-		if n.N.Load(enr.WithEntry("eth", &eth)) != nil {
+		if n.N.Load(enr.WithEntry("high", &high)) != nil {
 			return false
 		}
 		return filter(high.ForkID) == nil

@@ -23,7 +23,7 @@ import (
 
 	"github.com/420integrated/go-highcoin/common"
 	"github.com/420integrated/go-highcoin/common/mclock"
-	"github.com/420integrated/go-highcoin/ethdb"
+	"github.com/420integrated/go-highcoin/highdb"
 	"github.com/420integrated/go-highcoin/les/utils"
 	"github.com/420integrated/go-highcoin/log"
 	"github.com/420integrated/go-highcoin/p2p/enode"
@@ -56,7 +56,7 @@ var (
 )
 
 type nodeDB struct {
-	db            ethdb.KeyValueStore
+	db            highdb.KeyValueStore
 	cache         *lru.Cache
 	auxbuf        []byte                                              // 37-byte auxiliary buffer for key encoding
 	verbuf        [2]byte                                             // 2-byte auxiliary buffer for db version
@@ -66,7 +66,7 @@ type nodeDB struct {
 	cleanupHook   func() // Test hook used for testing
 }
 
-func newNodeDB(db ethdb.KeyValueStore, clock mclock.Clock) *nodeDB {
+func newNodeDB(db highdb.KeyValueStore, clock mclock.Clock) *nodeDB {
 	cache, _ := lru.New(balanceCacheLimit)
 	ndb := &nodeDB{
 		db:      db,

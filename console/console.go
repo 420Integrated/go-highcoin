@@ -191,7 +191,7 @@ func (c *Console) initExtensions() error {
 	if err != nil {
 		return fmt.Errorf("api modules: %v", err)
 	}
-	aliases := map[string]struct{}{"eth": {}, "personal": {}}
+	aliases := map[string]struct{}{"high": {}, "personal": {}}
 	for api := range apis {
 		if api == "web3" {
 			continue
@@ -229,15 +229,15 @@ func (c *Console) initAdmin(vm *goja.Runtime, bridge *bridge) {
 //
 // If the console is in interactive mode and the 'personal' API is available, override
 // the openWallet, unlockAccount, newAccount and sign methods since these require user
-// interaction. The original web3 callbacks are stored in 'jeth'. These will be called
+// interaction. The original web3 callbacks are stored in 'jhigh'. These will be called
 // by the bridge after the prompt and send the original web3 request to the backend.
 func (c *Console) initPersonal(vm *goja.Runtime, bridge *bridge) {
 	personal := getObject(vm, "personal")
 	if personal == nil || c.prompter == nil {
 		return
 	}
-	jeth := vm.NewObject()
-	vm.Set("jeth", jeth)
+	jhigh := vm.NewObject()
+	vm.Set("jhigh", jhigh)
 	jhigh.Set("openWallet", personal.Get("openWallet"))
 	jhigh.Set("unlockAccount", personal.Get("unlockAccount"))
 	jhigh.Set("newAccount", personal.Get("newAccount"))

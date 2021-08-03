@@ -5,7 +5,7 @@ The `signer` binary contains a ruleset engine, implemented with [OttoVM](https:/
 It enables usecases like the following:
 
 * I want to auto-approve transactions with contract `CasinoDapp`, with up to `0.05 highcoin` in value to maximum `1 highcoin` per 24h period
-* I want to auto-approve transaction to contract `HighAlarmClock` with `data`=`0xdeadbeef`, if `value=0`, `gas < 44k` and `gasPrice < 40Gmarleys`
+* I want to auto-approve transaction to contract `HighAlarmClock` with `data`=`0xdeadbeef`, if `value=0`, `smoke < 44k` and `smokePrice < 40Gmarleys`
 
 The two main features that are required for this to work well are;
 
@@ -98,7 +98,7 @@ to be gained from attacking the actual `signer` process from the `js` side would
 ##### Security in usability
 
 Javascript is flexible, but also easy to get wrong, especially when users assume that `js` can handle large integers natively. Typical errors
-include trying to multiply `gasCost` with `gas` without using `bigint`:s.
+include trying to multiply `smokeCost` with `smoke` without using `bigint`:s.
 
 It's unclear if any other DSL could be more secure; since there's always the possibility of erroneously implementing a rule.
 

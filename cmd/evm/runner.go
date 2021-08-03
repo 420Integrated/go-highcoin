@@ -76,11 +76,11 @@ type execStats struct {
 	bytesAllocated int64         // The cumulative number of bytes allocated during execution.
 }
 
-func timedExec(bench bool, execFunc func() ([]byte, uint64, error)) (output []byte, gasLeft uint64, stats execStats, err error) {
+func timedExec(bench bool, execFunc func() ([]byte, uint64, error)) (output []byte, smokeLeft uint64, stats execStats, err error) {
 	if bench {
 		result := testing.Benchmark(func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
-				output, gasLeft, err = execFunc()
+				output, smokeLeft, err = execFunc()
 			}
 		})
 
@@ -93,14 +93,14 @@ func timedExec(bench bool, execFunc func() ([]byte, uint64, error)) (output []by
 		var memStatsBefore, memStatsAfter goruntime.MemStats
 		goruntime.ReadMemStats(&memStatsBefore)
 		startTime := time.Now()
-		output, gasLeft, err = execFunc()
+		output, smokeLeft, err = execFunc()
 		stats.time = time.Since(startTime)
 		goruntime.ReadMemStats(&memStatsAfter)
 		stats.allocs = int64(memStatsAfter.Mallocs - memStatsBefore.Mallocs)
 		stats.bytesAllocated = int64(memStatsAfter.TotalAlloc - memStatsBefore.TotalAlloc)
 	}
 
-	return output, gasLeft, stats, err
+	return output, smokeLeft, stats, err
 }
 
 func runCmd(ctx *cli.Context) error {
@@ -196,15 +196,15 @@ func runCmd(ctx *cli.Context) error {
 		}
 		code = common.Hex2Bytes(bin)
 	}
-	initialGas := ctx.GlobalUint64(GasFlag.Name)
-	if genesisConfig.GasLimit != 0 {
-		initialGas = genesisConfig.GasLimit
+	initialSmoke := ctx.GlobalUint64(SmokeFlag.Name)
+	if genesisConfig.SmokeLimit != 0 {
+		initialSmoke = genesisConfig.SmokeLimit
 	}
 	runtimeConfig := runtime.Config{
 		Origin:      sender,
 		State:       statedb,
-		GasLimit:    initialGas,
-		GasPrice:    utils.GlobalBig(ctx, PriceFlag.Name),
+		SmokeLimit:    initialSmoke,
+		SmokePrice:    utils.GlobalBig(ctx, PriceFlag.Name),
 		Value:       utils.GlobalBig(ctx, ValueFlag.Name),
 		Difficulty:  genesisConfig.Difficulty,
 		Time:        new(big.Int).SetUint64(genesisConfig.Timestamp),
@@ -252,8 +252,8 @@ func runCmd(ctx *cli.Context) error {
 	if ctx.GlobalBool(CreateFlag.Name) {
 		input = append(code, input...)
 		execFunc = func() ([]byte, uint64, error) {
-			output, _, gasLeft, err := runtime.Create(input, &runtimeConfig)
-			return output, gasLeft, err
+			output, _, smokeLeft, err := runtime.Create(input, &runtimeConfig)
+			return output, smokeLeft, err
 		}
 	} else {
 		if len(code) > 0 {
@@ -265,7 +265,7 @@ func runCmd(ctx *cli.Context) error {
 	}
 
 	bench := ctx.GlobalBool(BenchFlag.Name)
-	output, leftOverGas, stats, err := timedExec(bench, execFunc)
+	output, leftOverSmoke, stats, err := timedExec(bench, execFunc)
 
 	if ctx.GlobalBool(DumpFlag.Name) {
 		statedb.Commit(true)
@@ -296,11 +296,11 @@ func runCmd(ctx *cli.Context) error {
 	}
 
 	if bench || ctx.GlobalBool(StatDumpFlag.Name) {
-		fmt.Fprintf(os.Stderr, `EVM gas used:    %d
+		fmt.Fprintf(os.Stderr, `EVM smoke used:    %d
 execution time:  %v
 allocations:     %d
 allocated bytes: %d
-`, initialGas-leftOverGas, stats.time, stats.allocs, stats.bytesAllocated)
+`, initialSmoke-leftOverSmoke, stats.time, stats.allocs, stats.bytesAllocated)
 	}
 	if tracer == nil {
 		fmt.Printf("0x%x\n", output)

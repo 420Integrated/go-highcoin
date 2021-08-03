@@ -33,8 +33,8 @@ import (
 	"github.com/420integrated/go-highcoin/core/rawdb"
 	"github.com/420integrated/go-highcoin/core/types"
 	"github.com/420integrated/go-highcoin/crypto"
-	"github.com/420integrated/go-highcoin/eth/ethconfig"
-	"github.com/420integrated/go-highcoin/ethdb"
+	"github.com/420integrated/go-highcoin/high/highconfig"
+	"github.com/420integrated/go-highcoin/highdb"
 	"github.com/420integrated/go-highcoin/internal/debug"
 	"github.com/420integrated/go-highcoin/log"
 	"github.com/420integrated/go-highcoin/node"
@@ -75,7 +75,7 @@ func StartNode(ctx *cli.Context, stack *node.Node) {
 		signal.Notify(sigc, syscall.SIGINT, syscall.SIGTERM)
 		defer signal.Stop(sigc)
 
-		minFreeDiskSpace := ethconfig.Defaults.TrieDirtyCache
+		minFreeDiskSpace := highconfig.Defaults.TrieDirtyCache
 		if ctx.GlobalIsSet(MinFreeDiskSpaceFlag.Name) {
 			minFreeDiskSpace = ctx.GlobalInt(MinFreeDiskSpaceFlag.Name)
 		} else if ctx.GlobalIsSet(CacheFlag.Name) || ctx.GlobalIsSet(CacheGCFlag.Name) {
@@ -270,7 +270,7 @@ func ExportAppendChain(blockchain *core.BlockChain, fn string, first uint64, las
 }
 
 // ImportPreimages imports a batch of exported hash preimages into the database.
-func ImportPreimages(db ethdb.Database, fn string) error {
+func ImportPreimages(db highdb.Database, fn string) error {
 	log.Info("Importing preimages", "file", fn)
 
 	// Open the file handle and potentially unwrap the gzip stream
@@ -317,7 +317,7 @@ func ImportPreimages(db ethdb.Database, fn string) error {
 
 // ExportPreimages exports all known hash preimages into the specified file,
 // truncating any data already present in the file.
-func ExportPreimages(db ethdb.Database, fn string) error {
+func ExportPreimages(db highdb.Database, fn string) error {
 	log.Info("Exporting preimages", "file", fn)
 
 	// Open the file handle and potentially wrap with a gzip stream

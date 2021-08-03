@@ -65,8 +65,8 @@ type LogConfig struct {
 type StructLog struct {
 	Pc            uint64                      `json:"pc"`
 	Op            OpCode                      `json:"op"`
-	Gas           uint64                      `json:"gas"`
-	GasCost       uint64                      `json:"gasCost"`
+	Smoke           uint64                      `json:"smoke"`
+	SmokeCost       uint64                      `json:"smokeCost"`
 	Memory        []byte                      `json:"memory"`
 	MemorySize    int                         `json:"memSize"`
 	Stack         []*big.Int                  `json:"stack"`
@@ -82,8 +82,8 @@ type StructLog struct {
 type structLogMarshaling struct {
 	Stack       []*math.HexOrDecimal256
 	ReturnStack []math.HexOrDecimal64
-	Gas         math.HexOrDecimal64
-	GasCost     math.HexOrDecimal64
+	Smoke         math.HexOrDecimal64
+	SmokeCost     math.HexOrDecimal64
 	Memory      hexutil.Bytes
 	ReturnData  hexutil.Bytes
 	OpName      string `json:"opName"` // adds call to OpName() in MarshalJSON
@@ -109,10 +109,10 @@ func (s *StructLog) ErrorString() string {
 // Note that reference types are actual VM data structures; make copies
 // if you need to retain them beyond the current call.
 type Tracer interface {
-	CaptureStart(from common.Address, to common.Address, create bool, input []byte, gas uint64, value *big.Int) error
-	CaptureState(env *EVM, pc uint64, op OpCode, gas, cost uint64, memory *Memory, stack *Stack, rStack *ReturnStack, rData []byte, contract *Contract, depth int, err error) error
-	CaptureFault(env *EVM, pc uint64, op OpCode, gas, cost uint64, memory *Memory, stack *Stack, rStack *ReturnStack, contract *Contract, depth int, err error) error
-	CaptureEnd(output []byte, gasUsed uint64, t time.Duration, err error) error
+	CaptureStart(from common.Address, to common.Address, create bool, input []byte, smoke uint64, value *big.Int) error
+	CaptureState(env *EVM, pc uint64, op OpCode, smoke, cost uint64, memory *Memory, stack *Stack, rStack *ReturnStack, rData []byte, contract *Contract, depth int, err error) error
+	CaptureFault(env *EVM, pc uint64, op OpCode, smoke, cost uint64, memory *Memory, stack *Stack, rStack *ReturnStack, contract *Contract, depth int, err error) error
+	CaptureEnd(output []byte, smokeUsed uint64, t time.Duration, err error) error
 }
 
 // StructLogger is an EVM state logger and implements Tracer.
@@ -141,14 +141,14 @@ func NewStructLogger(cfg *LogConfig) *StructLogger {
 }
 
 // CaptureStart implements the Tracer interface to initialize the tracing operation.
-func (l *StructLogger) CaptureStart(from common.Address, to common.Address, create bool, input []byte, gas uint64, value *big.Int) error {
+func (l *StructLogger) CaptureStart(from common.Address, to common.Address, create bool, input []byte, smoke uint64, value *big.Int) error {
 	return nil
 }
 
 // CaptureState logs a new structured log message and pushes it out to the environment
 //
 // CaptureState also tracks SLOAD/SSTORE ops to track storage change.
-func (l *StructLogger) CaptureState(env *EVM, pc uint64, op OpCode, gas, cost uint64, memory *Memory, stack *Stack, rStack *ReturnStack, rData []byte, contract *Contract, depth int, err error) error {
+func (l *StructLogger) CaptureState(env *EVM, pc uint64, op OpCode, smoke, cost uint64, memory *Memory, stack *Stack, rStack *ReturnStack, rData []byte, contract *Contract, depth int, err error) error {
 	// check if already accumulated the specified number of logs
 	if l.cfg.Limit != 0 && l.cfg.Limit <= len(l.logs) {
 		return errTraceLimitReached
@@ -204,19 +204,19 @@ func (l *StructLogger) CaptureState(env *EVM, pc uint64, op OpCode, gas, cost ui
 		copy(rdata, rData)
 	}
 	// create a new snapshot of the EVM.
-	log := StructLog{pc, op, gas, cost, mem, memory.Len(), stck, rstack, rdata, storage, depth, env.StateDB.GetRefund(), err}
+	log := StructLog{pc, op, smoke, cost, mem, memory.Len(), stck, rstack, rdata, storage, depth, env.StateDB.GetRefund(), err}
 	l.logs = append(l.logs, log)
 	return nil
 }
 
 // CaptureFault implements the Tracer interface to trace an execution fault
 // while running an opcode.
-func (l *StructLogger) CaptureFault(env *EVM, pc uint64, op OpCode, gas, cost uint64, memory *Memory, stack *Stack, rStack *ReturnStack, contract *Contract, depth int, err error) error {
+func (l *StructLogger) CaptureFault(env *EVM, pc uint64, op OpCode, smoke, cost uint64, memory *Memory, stack *Stack, rStack *ReturnStack, contract *Contract, depth int, err error) error {
 	return nil
 }
 
 // CaptureEnd is called after the call finishes to finalize the tracing.
-func (l *StructLogger) CaptureEnd(output []byte, gasUsed uint64, t time.Duration, err error) error {
+func (l *StructLogger) CaptureEnd(output []byte, smokeUsed uint64, t time.Duration, err error) error {
 	l.output = output
 	l.err = err
 	if l.cfg.Debug {
@@ -240,7 +240,7 @@ func (l *StructLogger) Output() []byte { return l.output }
 // WriteTrace writes a formatted trace to the given writer
 func WriteTrace(writer io.Writer, logs []StructLog) {
 	for _, log := range logs {
-		fmt.Fprintf(writer, "%-16spc=%08d gas=%v cost=%v", log.Op, log.Pc, log.Gas, log.GasCost)
+		fmt.Fprintf(writer, "%-16spc=%08d smoke=%v cost=%v", log.Op, log.Pc, log.Smoke, log.SmokeCost)
 		if log.Err != nil {
 			fmt.Fprintf(writer, " ERROR: %v", log.Err)
 		}
@@ -305,15 +305,15 @@ func NewMarkdownLogger(cfg *LogConfig, writer io.Writer) *mdLogger {
 	return l
 }
 
-func (t *mdLogger) CaptureStart(from common.Address, to common.Address, create bool, input []byte, gas uint64, value *big.Int) error {
+func (t *mdLogger) CaptureStart(from common.Address, to common.Address, create bool, input []byte, smoke uint64, value *big.Int) error {
 	if !create {
-		fmt.Fprintf(t.out, "From: `%v`\nTo: `%v`\nData: `0x%x`\nGas: `%d`\nValue `%v` marleys\n",
+		fmt.Fprintf(t.out, "From: `%v`\nTo: `%v`\nData: `0x%x`\nSmoke: `%d`\nValue `%v` marleys\n",
 			from.String(), to.String(),
-			input, gas, value)
+			input, smoke, value)
 	} else {
-		fmt.Fprintf(t.out, "From: `%v`\nCreate at: `%v`\nData: `0x%x`\nGas: `%d`\nValue `%v` marleys\n",
+		fmt.Fprintf(t.out, "From: `%v`\nCreate at: `%v`\nData: `0x%x`\nSmoke: `%d`\nValue `%v` marleys\n",
 			from.String(), to.String(),
-			input, gas, value)
+			input, smoke, value)
 	}
 
 	fmt.Fprintf(t.out, `
@@ -323,7 +323,7 @@ func (t *mdLogger) CaptureStart(from common.Address, to common.Address, create b
 	return nil
 }
 
-func (t *mdLogger) CaptureState(env *EVM, pc uint64, op OpCode, gas, cost uint64, memory *Memory, stack *Stack, rStack *ReturnStack, rData []byte, contract *Contract, depth int, err error) error {
+func (t *mdLogger) CaptureState(env *EVM, pc uint64, op OpCode, smoke, cost uint64, memory *Memory, stack *Stack, rStack *ReturnStack, rData []byte, contract *Contract, depth int, err error) error {
 	fmt.Fprintf(t.out, "| %4d  | %10v  |  %3d |", pc, op, cost)
 
 	if !t.cfg.DisableStack {
@@ -351,15 +351,15 @@ func (t *mdLogger) CaptureState(env *EVM, pc uint64, op OpCode, gas, cost uint64
 	return nil
 }
 
-func (t *mdLogger) CaptureFault(env *EVM, pc uint64, op OpCode, gas, cost uint64, memory *Memory, stack *Stack, rStack *ReturnStack, contract *Contract, depth int, err error) error {
+func (t *mdLogger) CaptureFault(env *EVM, pc uint64, op OpCode, smoke, cost uint64, memory *Memory, stack *Stack, rStack *ReturnStack, contract *Contract, depth int, err error) error {
 
 	fmt.Fprintf(t.out, "\nError: at pc=%d, op=%v: %v\n", pc, op, err)
 
 	return nil
 }
 
-func (t *mdLogger) CaptureEnd(output []byte, gasUsed uint64, tm time.Duration, err error) error {
-	fmt.Fprintf(t.out, "\nOutput: `0x%x`\nConsumed gas: `%d`\nError: `%v`\n",
-		output, gasUsed, err)
+func (t *mdLogger) CaptureEnd(output []byte, smokeUsed uint64, tm time.Duration, err error) error {
+	fmt.Fprintf(t.out, "\nOutput: `0x%x`\nConsumed smoke: `%d`\nError: `%v`\n",
+		output, smokeUsed, err)
 	return nil
 }

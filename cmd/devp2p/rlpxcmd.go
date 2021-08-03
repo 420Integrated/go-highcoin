@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/420integrated/go-highcoin/cmd/devp2p/internal/ethtest"
+	"github.com/420integrated/go-highcoin/cmd/devp2p/internal/hightest"
 	"github.com/420integrated/go-highcoin/crypto"
 	"github.com/420integrated/go-highcoin/p2p"
 	"github.com/420integrated/go-highcoin/p2p/rlpx"
@@ -43,7 +43,7 @@ var (
 		Action: rlpxPing,
 	}
 	rlpxHighTestCommand = cli.Command{
-		Name:      "eth-test",
+		Name:      "high-test",
 		Usage:     "Runs tests against a node",
 		ArgsUsage: "<node> <chain.rlp> <genesis.json>",
 		Action:    rlpxHighTest,
@@ -72,7 +72,7 @@ func rlpxPing(ctx *cli.Context) error {
 	}
 	switch code {
 	case 0:
-		var h ethtest.Hello
+		var h hightest.Hello
 		if err := rlp.DecodeBytes(data, &h); err != nil {
 			return fmt.Errorf("invalid handshake: %v", err)
 		}
@@ -89,12 +89,12 @@ func rlpxPing(ctx *cli.Context) error {
 	return nil
 }
 
-// rlpxHighTest runs the eth protocol test suite.
+// rlpxHighTest runs the high protocol test suite.
 func rlpxHighTest(ctx *cli.Context) error {
 	if ctx.NArg() < 3 {
 		exit("missing path to chain.rlp as command-line argument")
 	}
-	suite, err := ethtest.NewSuite(getNodeArg(ctx), ctx.Args()[1], ctx.Args()[2])
+	suite, err := hightest.NewSuite(getNodeArg(ctx), ctx.Args()[1], ctx.Args()[2])
 	if err != nil {
 		exit(err)
 	}

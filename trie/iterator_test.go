@@ -23,7 +23,7 @@ import (
 	"testing"
 
 	"github.com/420integrated/go-highcoin/common"
-	"github.com/420integrated/go-highcoin/ethdb/memorydb"
+	"github.com/420integrated/go-highcoin/highdb/memorydb"
 )
 
 func TestIterator(t *testing.T) {

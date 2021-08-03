@@ -58,9 +58,9 @@ var (
 		Name:  "codefile",
 		Usage: "File containing EVM code. If '-' is specified, code is read from stdin ",
 	}
-	GasFlag = cli.Uint64Flag{
-		Name:  "gas",
-		Usage: "gas limit for the evm",
+	SmokeFlag = cli.Uint64Flag{
+		Name:  "smoke",
+		Usage: "smoke limit for the evm",
 		Value: 10000000000,
 	}
 	PriceFlag = utils.BigFlag{
@@ -168,7 +168,7 @@ func init() {
 		VerbosityFlag,
 		CodeFlag,
 		CodeFileFlag,
-		GasFlag,
+		SmokeFlag,
 		PriceFlag,
 		ValueFlag,
 		DumpFlag,

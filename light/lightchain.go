@@ -32,7 +32,7 @@ import (
 	"github.com/420integrated/go-highcoin/core/rawdb"
 	"github.com/420integrated/go-highcoin/core/state"
 	"github.com/420integrated/go-highcoin/core/types"
-	"github.com/420integrated/go-highcoin/ethdb"
+	"github.com/420integrated/go-highcoin/highdb"
 	"github.com/420integrated/go-highcoin/event"
 	"github.com/420integrated/go-highcoin/log"
 	"github.com/420integrated/go-highcoin/params"
@@ -51,7 +51,7 @@ var (
 type LightChain struct {
 	hc            *core.HeaderChain
 	indexerConfig *IndexerConfig
-	chainDb       ethdb.Database
+	chainDb       highdb.Database
 	engine        consensus.Engine
 	odr           OdrBackend
 	chainFeed     event.Feed
@@ -180,9 +180,9 @@ func (lc *LightChain) SetHead(head uint64) error {
 	return lc.loadLastState()
 }
 
-// GasLimit returns the gas limit of the current HEAD block.
-func (lc *LightChain) GasLimit() uint64 {
-	return lc.hc.CurrentHeader().GasLimit
+// SmokeLimit returns the smoke limit of the current HEAD block.
+func (lc *LightChain) SmokeLimit() uint64 {
+	return lc.hc.CurrentHeader().SmokeLimit
 }
 
 // Reset purges the entire blockchain, restoring it to its genesis state.

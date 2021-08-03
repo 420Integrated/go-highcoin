@@ -28,7 +28,7 @@ import (
 	"github.com/420integrated/go-highcoin/common/hexutil"
 	"github.com/420integrated/go-highcoin/common/math"
 	"github.com/420integrated/go-highcoin/consensus"
-	"github.com/420integrated/go-highcoin/consensus/othash"
+	"github.com/420integrated/go-highcoin/consensus/ethash"
 	"github.com/420integrated/go-highcoin/core"
 	"github.com/420integrated/go-highcoin/core/rawdb"
 	"github.com/420integrated/go-highcoin/core/state"
@@ -80,8 +80,8 @@ type btHeader struct {
 	UncleHash        common.Hash
 	ExtraData        []byte
 	Difficulty       *big.Int
-	GasLimit         uint64
-	GasUsed          uint64
+	SmokeLimit         uint64
+	SmokeUsed          uint64
 	Timestamp        uint64
 }
 
@@ -89,8 +89,8 @@ type btHeaderMarshaling struct {
 	ExtraData  hexutil.Bytes
 	Number     *math.HexOrDecimal256
 	Difficulty *math.HexOrDecimal256
-	GasLimit   math.HexOrDecimal64
-	GasUsed    math.HexOrDecimal64
+	SmokeLimit   math.HexOrDecimal64
+	SmokeUsed    math.HexOrDecimal64
 	Timestamp  math.HexOrDecimal64
 }
 
@@ -114,9 +114,9 @@ func (t *BlockTest) Run(snapshotter bool) error {
 	}
 	var engine consensus.Engine
 	if t.json.SealEngine == "NoProof" {
-		engine = othash.NewFaker()
+		engine = ethash.NewFaker()
 	} else {
-		engine = othash.NewShared()
+		engine = ethash.NewShared()
 	}
 	cache := &core.CacheConfig{TrieCleanLimit: 0}
 	if snapshotter {
@@ -160,8 +160,8 @@ func (t *BlockTest) genesis(config *params.ChainConfig) *core.Genesis {
 		Timestamp:  t.json.Genesis.Timestamp,
 		ParentHash: t.json.Genesis.ParentHash,
 		ExtraData:  t.json.Genesis.ExtraData,
-		GasLimit:   t.json.Genesis.GasLimit,
-		GasUsed:    t.json.Genesis.GasUsed,
+		SmokeLimit:   t.json.Genesis.SmokeLimit,
+		SmokeUsed:    t.json.Genesis.SmokeUsed,
 		Difficulty: t.json.Genesis.Difficulty,
 		Mixhash:    t.json.Genesis.MixHash,
 		Coinbase:   t.json.Genesis.Coinbase,
@@ -253,11 +253,11 @@ func validateHeader(h *btHeader, h2 *types.Header) error {
 	if h.Difficulty.Cmp(h2.Difficulty) != 0 {
 		return fmt.Errorf("difficulty: want: %v have: %v", h.Difficulty, h2.Difficulty)
 	}
-	if h.GasLimit != h2.GasLimit {
-		return fmt.Errorf("gasLimit: want: %d have: %d", h.GasLimit, h2.GasLimit)
+	if h.SmokeLimit != h2.SmokeLimit {
+		return fmt.Errorf("smokeLimit: want: %d have: %d", h.SmokeLimit, h2.SmokeLimit)
 	}
-	if h.GasUsed != h2.GasUsed {
-		return fmt.Errorf("gasUsed: want: %d have: %d", h.GasUsed, h2.GasUsed)
+	if h.SmokeUsed != h2.SmokeUsed {
+		return fmt.Errorf("smokeUsed: want: %d have: %d", h.SmokeUsed, h2.SmokeUsed)
 	}
 	if h.Timestamp != h2.Time {
 		return fmt.Errorf("timestamp: want: %v have: %v", h.Timestamp, h2.Time)

@@ -16,7 +16,7 @@
 
 // This file contains the implementation for interacting with the Ledger hardware
 // wallets. The wire protocol spec can be found in the Ledger Blue GitHub repo:
-// https://raw.githubusercontent.com/LedgerHQ/blue-app-eth/master/doc/ethapp.asc
+// https://raw.githubusercontent.com/LedgerHQ/blue-app-high/master/doc/ethapp.asc
 
 package usbwallet
 
@@ -312,11 +312,11 @@ func (w *ledgerDriver) ledgerSign(derivationPath []uint32, tx *types.Transaction
 		err   error
 	)
 	if chainID == nil {
-		if txrlp, err = rlp.EncodeToBytes([]interface{}{tx.Nonce(), tx.GasPrice(), tx.Gas(), tx.To(), tx.Value(), tx.Data()}); err != nil {
+		if txrlp, err = rlp.EncodeToBytes([]interface{}{tx.Nonce(), tx.SmokePrice(), tx.Smoke(), tx.To(), tx.Value(), tx.Data()}); err != nil {
 			return common.Address{}, nil, err
 		}
 	} else {
-		if txrlp, err = rlp.EncodeToBytes([]interface{}{tx.Nonce(), tx.GasPrice(), tx.Gas(), tx.To(), tx.Value(), tx.Data(), chainID, big.NewInt(0), big.NewInt(0)}); err != nil {
+		if txrlp, err = rlp.EncodeToBytes([]interface{}{tx.Nonce(), tx.SmokePrice(), tx.Smoke(), tx.To(), tx.Value(), tx.Data(), chainID, big.NewInt(0), big.NewInt(0)}); err != nil {
 			return common.Address{}, nil, err
 		}
 	}

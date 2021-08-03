@@ -251,7 +251,7 @@ type txList struct {
 	txs    *txSortedMap // Heap indexed sorted hash map of the transactions
 
 	costcap *big.Int // Price of the highest costing transaction (reset only if exceeds balance)
-	gascap  uint64   // Gas limit of the highest spending transaction (reset only if exceeds block limit)
+	smokecap  uint64   // Smoke limit of the highest spending transaction (reset only if exceeds block limit)
 }
 
 // newTxList create a new transaction list for maintaining nonce-indexable fast,
@@ -273,7 +273,7 @@ func (l *txList) Overlaps(tx *types.Transaction) bool {
 // Add tries to insert a new transaction into the list, returning if the
 // transaction was accepted, and if yes, any previous transaction it replaced.
 //
-// If the new transaction is accepted into the list, the lists' cost and gas
+// If the new transaction is accepted into the list, the lists' cost and smoke
 // thresholds are also potentially updated.
 func (l *txList) Add(tx *types.Transaction, priceBump uint64) (bool, *types.Transaction) {
 	// If there's an older better transaction, abort
@@ -281,13 +281,13 @@ func (l *txList) Add(tx *types.Transaction, priceBump uint64) (bool, *types.Tran
 	if old != nil {
 		// threshold = oldGP * (100 + priceBump) / 100
 		a := big.NewInt(100 + int64(priceBump))
-		a = a.Mul(a, old.GasPrice())
+		a = a.Mul(a, old.SmokePrice())
 		b := big.NewInt(100)
 		threshold := a.Div(a, b)
-		// Have to ensure that the new gas price is higher than the old gas
+		// Have to ensure that the new smoke price is higher than the old smoke
 		// price as well as checking the percentage threshold to ensure that
-		// this is accurate for low (Marleys-level) gas price replacements
-		if old.GasPriceCmp(tx) >= 0 || tx.GasPriceIntCmp(threshold) < 0 {
+		// this is accurate for low (Marleys-level) smoke price replacements
+		if old.SmokePriceCmp(tx) >= 0 || tx.SmokePriceIntCmp(threshold) < 0 {
 			return false, nil
 		}
 	}
@@ -296,8 +296,8 @@ func (l *txList) Add(tx *types.Transaction, priceBump uint64) (bool, *types.Tran
 	if cost := tx.Cost(); l.costcap.Cmp(cost) < 0 {
 		l.costcap = cost
 	}
-	if gas := tx.Gas(); l.gascap < gas {
-		l.gascap = gas
+	if smoke := tx.Smoke(); l.smokecap < smoke {
+		l.smokecap = smoke
 	}
 	return true, old
 }
@@ -309,26 +309,26 @@ func (l *txList) Forward(threshold uint64) types.Transactions {
 	return l.txs.Forward(threshold)
 }
 
-// Filter removes all transactions from the list with a cost or gas limit higher
+// Filter removes all transactions from the list with a cost or smoke limit higher
 // than the provided thresholds. Every removed transaction is returned for any
 // post-removal maintenance. Strict-mode invalidated transactions are also
 // returned.
 //
-// This method uses the cached costcap and gascap to quickly decide if there's even
+// This method uses the cached costcap and smokecap to quickly decide if there's even
 // a point in calculating all the costs or if the balance covers all. If the threshold
-// is lower than the costgas cap, the caps will be reset to a new high after removing
+// is lower than the costsmoke cap, the caps will be reset to a new high after removing
 // the newly invalidated transactions.
-func (l *txList) Filter(costLimit *big.Int, gasLimit uint64) (types.Transactions, types.Transactions) {
+func (l *txList) Filter(costLimit *big.Int, smokeLimit uint64) (types.Transactions, types.Transactions) {
 	// If all transactions are below the threshold, short circuit
-	if l.costcap.Cmp(costLimit) <= 0 && l.gascap <= gasLimit {
+	if l.costcap.Cmp(costLimit) <= 0 && l.smokecap <= smokeLimit {
 		return nil, nil
 	}
 	l.costcap = new(big.Int).Set(costLimit) // Lower the caps to the thresholds
-	l.gascap = gasLimit
+	l.smokecap = smokeLimit
 
 	// Filter out all the transactions above the account's funds
 	removed := l.txs.Filter(func(tx *types.Transaction) bool {
-		return tx.Gas() > gasLimit || tx.Cost().Cmp(costLimit) > 0
+		return tx.Smoke() > smokeLimit || tx.Cost().Cmp(costLimit) > 0
 	})
 
 	if len(removed) == 0 {
@@ -414,7 +414,7 @@ func (h priceHeap) Swap(i, j int) { h[i], h[j] = h[j], h[i] }
 
 func (h priceHeap) Less(i, j int) bool {
 	// Sort primarily by price, returning the cheaper one
-	switch h[i].GasPriceCmp(h[j]) {
+	switch h[i].SmokePriceCmp(h[j]) {
 	case -1:
 		return true
 	case 1:
@@ -491,7 +491,7 @@ func (l *txPricedList) Cap(threshold *big.Int) types.Transactions {
 			continue
 		}
 		// Stop the discards if we've reached the threshold
-		if cheapest.GasPriceIntCmp(threshold) >= 0 {
+		if cheapest.SmokePriceIntCmp(threshold) >= 0 {
 			break
 		}
 		heap.Pop(l.remotes)
@@ -520,7 +520,7 @@ func (l *txPricedList) Underpriced(tx *types.Transaction) bool {
 	// If the remote transaction is even cheaper than the
 	// cheapest one tracked locally, reject it.
 	cheapest := []*types.Transaction(*l.remotes)[0]
-	return cheapest.GasPriceCmp(tx) >= 0
+	return cheapest.SmokePriceCmp(tx) >= 0
 }
 
 // Discard finds a number of most underpriced transactions, removes them from the

@@ -21,13 +21,13 @@ type GnosisSafeTx struct {
 	Safe           common.MixedcaseAddress `json:"safe"`
 	To             common.MixedcaseAddress `json:"to"`
 	Value          math.Decimal256         `json:"value"`
-	GasPrice       math.Decimal256         `json:"gasPrice"`
+	SmokePrice       math.Decimal256         `json:"smokePrice"`
 	Data           *hexutil.Bytes          `json:"data"`
 	Operation      uint8                   `json:"operation"`
-	GasToken       common.Address          `json:"gasToken"`
+	SmokeToken       common.Address          `json:"smokeToken"`
 	RefundReceiver common.Address          `json:"refundReceiver"`
-	BaseGas        big.Int                 `json:"baseGas"`
-	SafeTxGas      big.Int                 `json:"safeTxGas"`
+	BaseSmoke        big.Int                 `json:"baseSmoke"`
+	SafeTxSmoke      big.Int                 `json:"safeTxSmoke"`
 	Nonce          big.Int                 `json:"nonce"`
 	InputExpHash   common.Hash             `json:"safeTxHash"`
 }
@@ -46,10 +46,10 @@ func (tx *GnosisSafeTx) ToTypedData() TypedData {
 				{Name: "value", Type: "uint256"},
 				{Name: "data", Type: "bytes"},
 				{Name: "operation", Type: "uint8"},
-				{Name: "safeTxGas", Type: "uint256"},
-				{Name: "baseGas", Type: "uint256"},
-				{Name: "gasPrice", Type: "uint256"},
-				{Name: "gasToken", Type: "address"},
+				{Name: "safeTxSmoke", Type: "uint256"},
+				{Name: "baseSmoke", Type: "uint256"},
+				{Name: "smokePrice", Type: "uint256"},
+				{Name: "smokeToken", Type: "address"},
 				{Name: "refundReceiver", Type: "address"},
 				{Name: "nonce", Type: "uint256"},
 			},
@@ -63,10 +63,10 @@ func (tx *GnosisSafeTx) ToTypedData() TypedData {
 			"value":          tx.Value.String(),
 			"data":           data,
 			"operation":      fmt.Sprintf("%d", tx.Operation),
-			"safeTxGas":      fmt.Sprintf("%#d", &tx.SafeTxGas),
-			"baseGas":        fmt.Sprintf("%#d", &tx.BaseGas),
-			"gasPrice":       tx.GasPrice.String(),
-			"gasToken":       tx.GasToken.Hex(),
+			"safeTxSmoke":      fmt.Sprintf("%#d", &tx.SafeTxSmoke),
+			"baseSmoke":        fmt.Sprintf("%#d", &tx.BaseSmoke),
+			"smokePrice":       tx.SmokePrice.String(),
+			"smokeToken":       tx.SmokeToken.Hex(),
 			"refundReceiver": tx.RefundReceiver.Hex(),
 			"nonce":          fmt.Sprintf("%d", tx.Nonce.Uint64()),
 		},
@@ -80,8 +80,8 @@ func (tx *GnosisSafeTx) ArgsForValidation() *SendTxArgs {
 	args := &SendTxArgs{
 		From:     tx.Safe,
 		To:       &tx.To,
-		Gas:      hexutil.Uint64(tx.SafeTxGas.Uint64()),
-		GasPrice: hexutil.Big(tx.GasPrice),
+		Smoke:      hexutil.Uint64(tx.SafeTxSmoke.Uint64()),
+		SmokePrice: hexutil.Big(tx.SmokePrice),
 		Value:    hexutil.Big(tx.Value),
 		Nonce:    hexutil.Uint64(tx.Nonce.Uint64()),
 		Data:     tx.Data,

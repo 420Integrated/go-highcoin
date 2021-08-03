@@ -41,9 +41,9 @@ func RopstenGenesis() string {
 	return string(enc)
 }
 
-// RinkebyGenesis returns the JSON spec to use for the Rinkeby test network
-func RinkebyGenesis() string {
-	enc, err := json.Marshal(core.DefaultRinkebyGenesisBlock())
+// RuderalisGenesis returns the JSON spec to use for the Ruderalis test network
+func RuderalisGenesis() string {
+	enc, err := json.Marshal(core.DefaultRuderalisGenesisBlock())
 	if err != nil {
 		panic(err)
 	}

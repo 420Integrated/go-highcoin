@@ -28,14 +28,14 @@ func TestTransaction(t *testing.T) {
 	txt := new(testMatcher)
 	// These can't be parsed, invalid hex in RLP
 	txt.skipLoad("^ttWrongRLP/.*")
-	// We don't allow more than uint64 in gas amount
+	// We don't allow more than uint64 in smoke amount
 	// This is a pseudo-consensus vulnerability, but not in practice
-	// because of the gas limit
-	txt.skipLoad("^ttGasLimit/TransactionWithGasLimitxPriceOverflow.json")
-	// We _do_ allow more than uint64 in gas price, as opposed to the tests
+	// because of the smoke limit
+	txt.skipLoad("^ttSmokeLimit/TransactionWithSmokeLimitxPriceOverflow.json")
+	// We _do_ allow more than uint64 in smoke price, as opposed to the tests
 	// This is also not a concern, as long as tx.Cost() uses big.Int for
 	// calculating the final cozt
-	txt.skipLoad(".*TransactionWithGasPriceOverflow.*")
+	txt.skipLoad(".*TransactionWithSmokePriceOverflow.*")
 
 	// The nonce is too large for uint64. Not a concern, it means highcoin won't
 	// accept transactions at a certain point in the distant future

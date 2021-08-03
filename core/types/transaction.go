@@ -72,8 +72,8 @@ type TxData interface {
 	chainID() *big.Int
 	accessList() AccessList
 	data() []byte
-	gas() uint64
-	gasPrice() *big.Int
+	smoke() uint64
+	smokePrice() *big.Int
 	value() *big.Int
 	nonce() uint64
 	to() *common.Address
@@ -254,11 +254,11 @@ func (tx *Transaction) Data() []byte { return tx.inner.data() }
 // AccessList returns the access list of the transaction.
 func (tx *Transaction) AccessList() AccessList { return tx.inner.accessList() }
 
-// Gas returns the gas limit of the transaction.
-func (tx *Transaction) Gas() uint64 { return tx.inner.gas() }
+// Smoke returns the smoke limit of the transaction.
+func (tx *Transaction) Smoke() uint64 { return tx.inner.smoke() }
 
-// GasPrice returns the gas price of the transaction.
-func (tx *Transaction) GasPrice() *big.Int { return new(big.Int).Set(tx.inner.gasPrice()) }
+// SmokePrice returns the smoke price of the transaction.
+func (tx *Transaction) SmokePrice() *big.Int { return new(big.Int).Set(tx.inner.smokePrice()) }
 
 // Value returns the highcoin amount of the transaction.
 func (tx *Transaction) Value() *big.Int { return new(big.Int).Set(tx.inner.value()) }
@@ -278,9 +278,9 @@ func (tx *Transaction) To() *common.Address {
 	return &cpy
 }
 
-// Cost returns gas * gasPrice + value.
+// Cost returns smoke * smokePrice + value.
 func (tx *Transaction) Cost() *big.Int {
-	total := new(big.Int).Mul(tx.GasPrice(), new(big.Int).SetUint64(tx.Gas()))
+	total := new(big.Int).Mul(tx.SmokePrice(), new(big.Int).SetUint64(tx.Smoke()))
 	total.Add(total, tx.Value())
 	return total
 }
@@ -291,14 +291,14 @@ func (tx *Transaction) RawSignatureValues() (v, r, s *big.Int) {
 	return tx.inner.rawSignatureValues()
 }
 
-// GasPriceCmp compares the gas prices of two transactions.
-func (tx *Transaction) GasPriceCmp(other *Transaction) int {
-	return tx.inner.gasPrice().Cmp(other.GasPrice())
+// SmokePriceCmp compares the smoke prices of two transactions.
+func (tx *Transaction) SmokePriceCmp(other *Transaction) int {
+	return tx.inner.smokePrice().Cmp(other.SmokePrice())
 }
 
-// GasPriceIntCmp compares the gas price of the transaction against the given price.
-func (tx *Transaction) GasPriceIntCmp(other *big.Int) int {
-	return tx.inner.gasPrice().Cmp(other)
+// SmokePriceIntCmp compares the smoke price of the transaction against the given price.
+func (tx *Transaction) SmokePriceIntCmp(other *big.Int) int {
+	return tx.inner.smokePrice().Cmp(other)
 }
 
 // Hash returns the transaction hash.
@@ -394,7 +394,7 @@ func (s TxByPriceAndTime) Len() int { return len(s) }
 func (s TxByPriceAndTime) Less(i, j int) bool {
 	// If the prices are equal, use the time the transaction was first seen for
 	// deterministic sorting
-	cmp := s[i].GasPrice().Cmp(s[j].GasPrice())
+	cmp := s[i].SmokePrice().Cmp(s[j].SmokePrice())
 	if cmp == 0 {
 		return s[i].time.Before(s[j].time)
 	}
@@ -484,21 +484,21 @@ type Message struct {
 	from       common.Address
 	nonce      uint64
 	amount     *big.Int
-	gasLimit   uint64
-	gasPrice   *big.Int
+	smokeLimit   uint64
+	smokePrice   *big.Int
 	data       []byte
 	accessList AccessList
 	checkNonce bool
 }
 
-func NewMessage(from common.Address, to *common.Address, nonce uint64, amount *big.Int, gasLimit uint64, gasPrice *big.Int, data []byte, accessList AccessList, checkNonce bool) Message {
+func NewMessage(from common.Address, to *common.Address, nonce uint64, amount *big.Int, smokeLimit uint64, smokePrice *big.Int, data []byte, accessList AccessList, checkNonce bool) Message {
 	return Message{
 		from:       from,
 		to:         to,
 		nonce:      nonce,
 		amount:     amount,
-		gasLimit:   gasLimit,
-		gasPrice:   gasPrice,
+		smokeLimit:   smokeLimit,
+		smokePrice:   smokePrice,
 		data:       data,
 		accessList: accessList,
 		checkNonce: checkNonce,
@@ -509,8 +509,8 @@ func NewMessage(from common.Address, to *common.Address, nonce uint64, amount *b
 func (tx *Transaction) AsMessage(s Signer) (Message, error) {
 	msg := Message{
 		nonce:      tx.Nonce(),
-		gasLimit:   tx.Gas(),
-		gasPrice:   new(big.Int).Set(tx.GasPrice()),
+		smokeLimit:   tx.Smoke(),
+		smokePrice:   new(big.Int).Set(tx.SmokePrice()),
 		to:         tx.To(),
 		amount:     tx.Value(),
 		data:       tx.Data(),
@@ -525,9 +525,9 @@ func (tx *Transaction) AsMessage(s Signer) (Message, error) {
 
 func (m Message) From() common.Address   { return m.from }
 func (m Message) To() *common.Address    { return m.to }
-func (m Message) GasPrice() *big.Int     { return m.gasPrice }
+func (m Message) SmokePrice() *big.Int     { return m.smokePrice }
 func (m Message) Value() *big.Int        { return m.amount }
-func (m Message) Gas() uint64            { return m.gasLimit }
+func (m Message) Smoke() uint64            { return m.smokeLimit }
 func (m Message) Nonce() uint64          { return m.nonce }
 func (m Message) Data() []byte           { return m.data }
 func (m Message) AccessList() AccessList { return m.accessList }

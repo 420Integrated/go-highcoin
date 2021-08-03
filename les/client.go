@@ -30,12 +30,12 @@ import (
 	"github.com/420integrated/go-highcoin/core/bloombits"
 	"github.com/420integrated/go-highcoin/core/rawdb"
 	"github.com/420integrated/go-highcoin/core/types"
-	"github.com/420integrated/go-highcoin/eth/downloader"
-	"github.com/420integrated/go-highcoin/eth/ethconfig"
-	"github.com/420integrated/go-highcoin/eth/filters"
-	"github.com/420integrated/go-highcoin/eth/gasprice"
+	"github.com/420integrated/go-highcoin/high/downloader"
+	"github.com/420integrated/go-highcoin/high/highconfig"
+	"github.com/420integrated/go-highcoin/high/filters"
+	"github.com/420integrated/go-highcoin/high/smokeprice"
 	"github.com/420integrated/go-highcoin/event"
-	"github.com/420integrated/go-highcoin/internal/ethapi"
+	"github.com/420integrated/go-highcoin/internal/highapi"
 	vfc "github.com/420integrated/go-highcoin/les/vflux/client"
 	"github.com/420integrated/go-highcoin/light"
 	"github.com/420integrated/go-highcoin/log"
@@ -68,19 +68,19 @@ type LightHighcoin struct {
 	eventMux       *event.TypeMux
 	engine         consensus.Engine
 	accountManager *accounts.Manager
-	netRPCService  *ethapi.PublicNetAPI
+	netRPCService  *highapi.PublicNetAPI
 
 	p2pServer *p2p.Server
 	p2pConfig *p2p.Config
 }
 
 // New creates an instance of the light client.
-func New(stack *node.Node, config *ethconfig.Config) (*LightHighcoin, error) {
-	chainDb, err := stack.OpenDatabase("lightchaindata", config.DatabaseCache, config.DatabaseHandles, "eth/db/chaindata/")
+func New(stack *node.Node, config *highconfig.Config) (*LightHighcoin, error) {
+	chainDb, err := stack.OpenDatabase("lightchaindata", config.DatabaseCache, config.DatabaseHandles, "high/db/chaindata/")
 	if err != nil {
 		return nil, err
 	}
-	lesDb, err := stack.OpenDatabase("les.client", 0, 0, "eth/db/les.client")
+	lesDb, err := stack.OpenDatabase("les.client", 0, 0, "high/db/les.client")
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +91,7 @@ func New(stack *node.Node, config *ethconfig.Config) (*LightHighcoin, error) {
 	log.Info("Initialised chain configuration", "config", chainConfig)
 
 	peers := newServerPeerSet()
-	leth := &LightHighcoin{
+	lhigh := &LightHighcoin{
 		lesCommons: lesCommons{
 			genesis:     genesisHash,
 			config:      config,
@@ -105,7 +105,7 @@ func New(stack *node.Node, config *ethconfig.Config) (*LightHighcoin, error) {
 		eventMux:       stack.EventMux(),
 		reqDist:        newRequestDistributor(peers, &mclock.System{}),
 		accountManager: stack.AccountManager(),
-		engine:         ethconfig.CreateConsensusEngine(stack, chainConfig, &config.Ethash, nil, false, chainDb),
+		engine:         highconfig.CreateConsensusEngine(stack, chainConfig, &config.Ethash, nil, false, chainDb),
 		bloomRequests:  make(chan chan *bloombits.Retrieval),
 		bloomIndexer:   core.NewBloomIndexer(chainDb, params.BloomBitsBlocksClient, params.HelperTrieConfirmations),
 		p2pServer:      stack.Server(),
@@ -153,25 +153,25 @@ func New(stack *node.Node, config *ethconfig.Config) (*LightHighcoin, error) {
 		rawdb.WriteChainConfig(chainDb, genesisHash, chainConfig)
 	}
 
-	lhigh.ApiBackend = &LesApiBackend{stack.Config().ExtRPCEnabled(), stack.Config().AllowUnprotectedTxs, leth, nil}
+	lhigh.ApiBackend = &LesApiBackend{stack.Config().ExtRPCEnabled(), stack.Config().AllowUnprotectedTxs, lhigh, nil}
 	gpoParams := config.GPO
 	if gpoParams.Default == nil {
-		gpoParams.Default = config.Miner.GasPrice
+		gpoParams.Default = config.Miner.SmokePrice
 	}
-	lhigh.ApiBackend.gpo = gasprice.NewOracle(lhigh.ApiBackend, gpoParams)
+	lhigh.ApiBackend.gpo = smokeprice.NewOracle(lhigh.ApiBackend, gpoParams)
 
-	lhigh.handler = newClientHandler(config.UltraLightServers, config.UltraLightFraction, checkpoint, leth)
+	lhigh.handler = newClientHandler(config.UltraLightServers, config.UltraLightFraction, checkpoint, lhigh)
 	if lhigh.handler.ulc != nil {
 		log.Warn("Ultra light client is enabled", "trustedNodes", len(lhigh.handler.ulc.keys), "minTrustedFraction", lhigh.handler.ulc.fraction)
 		lhigh.blockchain.DisableCheckFreq()
 	}
 
-	lhigh.netRPCService = ethapi.NewPublicNetAPI(lhigh.p2pServer, lhigh.config.NetworkId)
+	lhigh.netRPCService = highapi.NewPublicNetAPI(lhigh.p2pServer, lhigh.config.NetworkId)
 
 	// Register the backend on the node
 	stack.RegisterAPIs(lhigh.APIs())
 	stack.RegisterProtocols(lhigh.Protocols())
-	stack.RegisterLifecycle(leth)
+	stack.RegisterLifecycle(lhigh)
 
 	// Check for unclean shutdown
 	if uncleanShutdowns, discards, err := rawdb.PushUncleanShutdownMarker(chainDb); err != nil {
@@ -186,7 +186,7 @@ func New(stack *node.Node, config *ethconfig.Config) (*LightHighcoin, error) {
 				"age", common.PrettyAge(t))
 		}
 	}
-	return leth, nil
+	return lhigh, nil
 }
 
 type LightDummyAPI struct{}
@@ -214,21 +214,21 @@ func (s *LightDummyAPI) Mining() bool {
 // APIs returns the collection of RPC services the highcoin package offers.
 // NOTE, some of these services probably need to be moved to somewhere else.
 func (s *LightHighcoin) APIs() []rpc.API {
-	apis := ethapi.GetAPIs(s.ApiBackend)
+	apis := highapi.GetAPIs(s.ApiBackend)
 	apis = append(apis, s.engine.APIs(s.BlockChain().HeaderChain())...)
 	return append(apis, []rpc.API{
 		{
-			Namespace: "eth",
+			Namespace: "high",
 			Version:   "1.0",
 			Service:   &LightDummyAPI{},
 			Public:    true,
 		}, {
-			Namespace: "eth",
+			Namespace: "high",
 			Version:   "1.0",
 			Service:   downloader.NewPublicDownloaderAPI(s.handler.downloader, s.eventMux),
 			Public:    true,
 		}, {
-			Namespace: "eth",
+			Namespace: "high",
 			Version:   "1.0",
 			Service:   filters.NewPublicFilterAPI(s.ApiBackend, true, 5*time.Minute),
 			Public:    true,

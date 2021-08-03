@@ -31,12 +31,12 @@ import (
 	"github.com/420integrated/go-highcoin/accounts/keystore"
 	"github.com/420integrated/go-highcoin/common"
 	"github.com/420integrated/go-highcoin/common/fdlimit"
-	"github.com/420integrated/go-highcoin/consensus/othash"
+	"github.com/420integrated/go-highcoin/consensus/ethash"
 	"github.com/420integrated/go-highcoin/core"
 	"github.com/420integrated/go-highcoin/core/types"
 	"github.com/420integrated/go-highcoin/crypto"
-	"github.com/420integrated/go-highcoin/eth"
-	"github.com/420integrated/go-highcoin/eth/downloader"
+	"github.com/420integrated/go-highcoin/high"
+	"github.com/420integrated/go-highcoin/high/downloader"
 	"github.com/420integrated/go-highcoin/log"
 	"github.com/420integrated/go-highcoin/miner"
 	"github.com/420integrated/go-highcoin/node"
@@ -54,8 +54,8 @@ func main() {
 	for i := 0; i < len(faucets); i++ {
 		faucets[i], _ = crypto.GenerateKey()
 	}
-	// Pre-generate the othash mining DAG so we don't race
-	othash.MakeDataset(1, filepath.Join(os.Getenv("HOME"), ".othash"))
+	// Pre-generate the ethash mining DAG so we don't race
+	ethash.MakeDataset(1, filepath.Join(os.Getenv("HOME"), ".ethash"))
 
 	// Create an Ethash network based off of the Ropsten config
 	genesis := makeGenesis(faucets)
@@ -66,7 +66,7 @@ func main() {
 	)
 	for i := 0; i < 4; i++ {
 		// Start the node and wait until it's up
-		stack, ethBackend, err := makeMiner(genesis)
+		stack, highBackend, err := makeMiner(genesis)
 		if err != nil {
 			panic(err)
 		}
@@ -80,7 +80,7 @@ func main() {
 			stack.Server().AddPeer(n)
 		}
 		// Start tracking the node and its enode
-		nodes = append(nodes, ethBackend)
+		nodes = append(nodes, highBackend)
 		enodes = append(enodes, stack.Server().Self())
 
 		// Inject the signer key and start sealing with it
@@ -128,7 +128,7 @@ func main() {
 func makeGenesis(faucets []*ecdsa.PrivateKey) *core.Genesis {
 	genesis := core.DefaultRopstenGenesisBlock()
 	genesis.Difficulty = params.MinimumDifficulty
-	genesis.GasLimit = 25000000
+	genesis.SmokeLimit = 25000000
 
 	genesis.Config.ChainID = big.NewInt(18)
 	genesis.Config.EIP150Hash = common.Hash{}
@@ -162,7 +162,7 @@ func makeMiner(genesis *core.Genesis) (*node.Node, *high.Highcoin, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	ethBackend, err := high.New(stack, &ethconfig.Config{
+	highBackend, err := high.New(stack, &highconfig.Config{
 		Genesis:         genesis,
 		NetworkId:       genesis.Config.ChainID.Uint64(),
 		SyncMode:        downloader.FullSync,
@@ -172,9 +172,9 @@ func makeMiner(genesis *core.Genesis) (*node.Node, *high.Highcoin, error) {
 		GPO:             high.DefaultConfig.GPO,
 		Ethash:          high.DefaultConfig.Ethash,
 		Miner: miner.Config{
-			GasFloor: genesis.GasLimit * 9 / 10,
-			GasCeil:  genesis.GasLimit * 11 / 10,
-			GasPrice: big.NewInt(1),
+			SmokeFloor: genesis.SmokeLimit * 9 / 10,
+			SmokeCeil:  genesis.SmokeLimit * 11 / 10,
+			SmokePrice: big.NewInt(1),
 			Recommit: time.Second,
 		},
 	})
@@ -183,5 +183,5 @@ func makeMiner(genesis *core.Genesis) (*node.Node, *high.Highcoin, error) {
 	}
 
 	err = stack.Start()
-	return stack, ethBackend, err
+	return stack, highBackend, err
 }

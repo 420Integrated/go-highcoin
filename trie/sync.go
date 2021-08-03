@@ -23,7 +23,7 @@ import (
 	"github.com/420integrated/go-highcoin/common"
 	"github.com/420integrated/go-highcoin/common/prque"
 	"github.com/420integrated/go-highcoin/core/rawdb"
-	"github.com/420integrated/go-highcoin/ethdb"
+	"github.com/420integrated/go-highcoin/highdb"
 )
 
 // ErrNotRequested is returned by the trie sync when it's requested to process a
@@ -122,7 +122,7 @@ func (batch *syncMemBatch) hasCode(hash common.Hash) bool {
 // unknown trie hashes to retrieve, accepts node data associated with said hashes
 // and reconstructs the trie step by step until all is done.
 type Sync struct {
-	database ethdb.KeyValueReader     // Persistent database to check for existing entries
+	database highdb.KeyValueReader     // Persistent database to check for existing entries
 	membatch *syncMemBatch            // Memory buffer to avoid frequent database writes
 	nodeReqs map[common.Hash]*request // Pending requests pertaining to a trie node hash
 	codeReqs map[common.Hash]*request // Pending requests pertaining to a code hash
@@ -132,7 +132,7 @@ type Sync struct {
 }
 
 // NewSync creates a new trie data download scheduler.
-func NewSync(root common.Hash, database ethdb.KeyValueReader, callback LeafCallback, bloom *SyncBloom) *Sync {
+func NewSync(root common.Hash, database highdb.KeyValueReader, callback LeafCallback, bloom *SyncBloom) *Sync {
 	ts := &Sync{
 		database: database,
 		membatch: newSyncMemBatch(),
@@ -227,7 +227,7 @@ func (s *Sync) AddCodeEntry(hash common.Hash, path []byte, parent common.Hash) {
 }
 
 // Missing retrieves the known missing nodes from the trie for retrieval. To aid
-// both eth/6x style fast sync and snap/1x style state sync, the paths of trie
+// both high/6x style fast sync and snap/1x style state sync, the paths of trie
 // nodes are returned too, as well as separate hash list for codes.
 func (s *Sync) Missing(max int) (nodes []common.Hash, paths []SyncPath, codes []common.Hash) {
 	var (
@@ -309,7 +309,7 @@ func (s *Sync) Process(result SyncResult) error {
 
 // Commit flushes the data stored in the internal membatch out to persistent
 // storage, returning any occurred error.
-func (s *Sync) Commit(dbw ethdb.Batch) error {
+func (s *Sync) Commit(dbw highdb.Batch) error {
 	// Dump the membatch into a database dbw
 	for key, value := range s.membatch.nodes {
 		rawdb.WriteTrieNode(dbw, key, value)

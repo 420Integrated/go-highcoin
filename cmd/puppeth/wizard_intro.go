@@ -29,7 +29,7 @@ import (
 	"github.com/420integrated/go-highcoin/log"
 )
 
-// makeWizard creates and returns a new puppeth wizard.
+// makeWizard creates and returns a new pupphigh wizard.
 func makeWizard(network string) *wizard {
 	return &wizard{
 		network: network,
@@ -46,13 +46,13 @@ func makeWizard(network string) *wizard {
 // setting up a new or managing an existing Highcoin private network.
 func (w *wizard) run() {
 	fmt.Println("+-----------------------------------------------------------+")
-	fmt.Println("| Welcome to puppeth, your Highcoin private network manager |")
+	fmt.Println("| Welcome to pupphigh, your Highcoin private network manager |")
 	fmt.Println("|                                                           |")
 	fmt.Println("| This tool lets you create a new Highcoin network down to  |")
-	fmt.Println("| the genesis block, bootnodes, miners and ethstats servers |")
+	fmt.Println("| the genesis block, bootnodes, miners and highstats servers |")
 	fmt.Println("| without the hassle that it would normally entail.         |")
 	fmt.Println("|                                                           |")
-	fmt.Println("| Puppeth uses SSH to dial in to remote servers, and builds |")
+	fmt.Println("| Pupphigh uses SSH to dial in to remote servers, and builds |")
 	fmt.Println("| its network components out of Docker containers using the |")
 	fmt.Println("| docker-compose toolset.                                   |")
 	fmt.Println("+-----------------------------------------------------------+")
@@ -74,7 +74,7 @@ func (w *wizard) run() {
 	log.Info("Administering Highcoin network", "name", w.network)
 
 	// Load initial configurations and connect to all live servers
-	w.conf.path = filepath.Join(os.Getenv("HOME"), ".puppeth", w.network)
+	w.conf.path = filepath.Join(os.Getenv("HOME"), ".pupphigh", w.network)
 
 	blob, err := ioutil.ReadFile(w.conf.path)
 	if err != nil {

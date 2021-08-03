@@ -24,7 +24,7 @@ import (
 func NewEnv(cfg *Config) *vm.EVM {
 	txContext := vm.TxContext{
 		Origin:   cfg.Origin,
-		GasPrice: cfg.GasPrice,
+		SmokePrice: cfg.SmokePrice,
 	}
 	blockContext := vm.BlockContext{
 		CanTransfer: core.CanTransfer,
@@ -34,7 +34,7 @@ func NewEnv(cfg *Config) *vm.EVM {
 		BlockNumber: cfg.BlockNumber,
 		Time:        cfg.Time,
 		Difficulty:  cfg.Difficulty,
-		GasLimit:    cfg.GasLimit,
+		SmokeLimit:    cfg.SmokeLimit,
 	}
 
 	return vm.NewEVM(blockContext, txContext, cfg.State, cfg.ChainConfig, cfg.EVMConfig)

@@ -23,14 +23,14 @@ import (
 	"github.com/VictoriaMetrics/fastcache"
 	"github.com/420integrated/go-highcoin/common"
 	"github.com/420integrated/go-highcoin/core/rawdb"
-	"github.com/420integrated/go-highcoin/ethdb"
+	"github.com/420integrated/go-highcoin/highdb"
 	"github.com/420integrated/go-highcoin/rlp"
 	"github.com/420integrated/go-highcoin/trie"
 )
 
 // diskLayer is a low level persistent snapshot built on top of a key-value store.
 type diskLayer struct {
-	diskdb ethdb.KeyValueStore // Key-value store containing the base snapshot
+	diskdb highdb.KeyValueStore // Key-value store containing the base snapshot
 	triedb *trie.Database      // Trie node cache for reconstruction purposes
 	cache  *fastcache.Cache    // Cache to avoid hitting the disk for direct access
 

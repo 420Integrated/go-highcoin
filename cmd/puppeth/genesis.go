@@ -25,15 +25,15 @@ import (
 	"github.com/420integrated/go-highcoin/common"
 	"github.com/420integrated/go-highcoin/common/hexutil"
 	math2 "github.com/420integrated/go-highcoin/common/math"
-	"github.com/420integrated/go-highcoin/consensus/othash"
+	"github.com/420integrated/go-highcoin/consensus/ethash"
 	"github.com/420integrated/go-highcoin/core"
 	"github.com/420integrated/go-highcoin/core/types"
 	"github.com/420integrated/go-highcoin/params"
 )
 
-// alethGenesisSpec represents the genesis specification format used by the
+// alhighGenesisSpec represents the genesis specification format used by the
 // C++ Highcoin implementation.
-type alethGenesisSpec struct {
+type alhighGenesisSpec struct {
 	SealEngine string `json:"sealEngine"`
 	Params     struct {
 		AccountStartNonce          math2.HexOrDecimal64   `json:"accountStartNonce"`
@@ -46,10 +46,10 @@ type alethGenesisSpec struct {
 		ConstantinopleForkBlock    *hexutil.Big           `json:"constantinopleForkBlock,omitempty"`
 		ConstantinopleFixForkBlock *hexutil.Big           `json:"constantinopleFixForkBlock,omitempty"`
 		IstanbulForkBlock          *hexutil.Big           `json:"istanbulForkBlock,omitempty"`
-		MinGasLimit                hexutil.Uint64         `json:"minGasLimit"`
-		MaxGasLimit                hexutil.Uint64         `json:"maxGasLimit"`
-		TieBreakingGas             bool                   `json:"tieBreakingGas"`
-		GasLimitBoundDivisor       math2.HexOrDecimal64   `json:"gasLimitBoundDivisor"`
+		MinSmokeLimit                hexutil.Uint64         `json:"minSmokeLimit"`
+		MaxSmokeLimit                hexutil.Uint64         `json:"maxSmokeLimit"`
+		TieBreakingSmoke             bool                   `json:"tieBreakingSmoke"`
+		SmokeLimitBoundDivisor       math2.HexOrDecimal64   `json:"smokeLimitBoundDivisor"`
 		MinimumDifficulty          *hexutil.Big           `json:"minimumDifficulty"`
 		DifficultyBoundDivisor     *math2.HexOrDecimal256 `json:"difficultyBoundDivisor"`
 		DurationLimit              *math2.HexOrDecimal256 `json:"durationLimit"`
@@ -67,50 +67,50 @@ type alethGenesisSpec struct {
 		Timestamp  hexutil.Uint64   `json:"timestamp"`
 		ParentHash common.Hash      `json:"parentHash"`
 		ExtraData  hexutil.Bytes    `json:"extraData"`
-		GasLimit   hexutil.Uint64   `json:"gasLimit"`
+		SmokeLimit   hexutil.Uint64   `json:"smokeLimit"`
 	} `json:"genesis"`
 
-	Accounts map[common.UnprefixedAddress]*alethGenesisSpecAccount `json:"accounts"`
+	Accounts map[common.UnprefixedAddress]*alhighGenesisSpecAccount `json:"accounts"`
 }
 
-// alethGenesisSpecAccount is the prefunded genesis account and/or precompiled
+// alhighGenesisSpecAccount is the prefunded genesis account and/or precompiled
 // contract definition.
-type alethGenesisSpecAccount struct {
+type alhighGenesisSpecAccount struct {
 	Balance     *math2.HexOrDecimal256   `json:"balance,omitempty"`
 	Nonce       uint64                   `json:"nonce,omitempty"`
-	Precompiled *alethGenesisSpecBuiltin `json:"precompiled,omitempty"`
+	Precompiled *alhighGenesisSpecBuiltin `json:"precompiled,omitempty"`
 }
 
-// alethGenesisSpecBuiltin is the precompiled contract definition.
-type alethGenesisSpecBuiltin struct {
+// alhighGenesisSpecBuiltin is the precompiled contract definition.
+type alhighGenesisSpecBuiltin struct {
 	Name          string                         `json:"name,omitempty"`
 	StartingBlock *hexutil.Big                   `json:"startingBlock,omitempty"`
-	Linear        *alethGenesisSpecLinearPricing `json:"linear,omitempty"`
+	Linear        *alhighGenesisSpecLinearPricing `json:"linear,omitempty"`
 }
 
-type alethGenesisSpecLinearPricing struct {
+type alhighGenesisSpecLinearPricing struct {
 	Base uint64 `json:"base"`
 	Word uint64 `json:"word"`
 }
 
-// newAlethGenesisSpec converts a go-highcoin genesis block into a Aleth-specific
+// newAlhighGenesisSpec converts a go-highcoin genesis block into a Alhigh-specific
 // chain specification format.
-func newAlethGenesisSpec(network string, genesis *core.Genesis) (*alethGenesisSpec, error) {
-	// Only othash is currently supported between go-highcoin and aleth
+func newAlhighGenesisSpec(network string, genesis *core.Genesis) (*alhighGenesisSpec, error) {
+	// Only ethash is currently supported between go-highcoin and alhigh
 	if genesis.Config.Ethash == nil {
 		return nil, errors.New("unsupported consensus engine")
 	}
-	// Reconstruct the chain spec in Aleth format
-	spec := &alethGenesisSpec{
+	// Reconstruct the chain spec in Alhigh format
+	spec := &alhighGenesisSpec{
 		SealEngine: "Ethash",
 	}
 	// Some defaults
 	spec.Params.AccountStartNonce = 0
-	spec.Params.TieBreakingGas = false
+	spec.Params.TieBreakingSmoke = false
 	spec.Params.AllowFutureBlocks = false
 
 	// Dao hardfork block is a special one. The fork block is listed as 0 in the
-	// config but aleth will sync with ETC clients up until the actual dao hard
+	// config but alhigh will sync with ETC clients up until the actual dao hard
 	// fork block.
 	spec.Params.DaoHardforkBlock = 0
 
@@ -138,13 +138,13 @@ func newAlethGenesisSpec(network string, genesis *core.Genesis) (*alethGenesisSp
 	spec.Params.NetworkID = (hexutil.Uint64)(genesis.Config.ChainID.Uint64())
 	spec.Params.ChainID = (hexutil.Uint64)(genesis.Config.ChainID.Uint64())
 	spec.Params.MaximumExtraDataSize = (hexutil.Uint64)(params.MaximumExtraDataSize)
-	spec.Params.MinGasLimit = (hexutil.Uint64)(params.MinGasLimit)
-	spec.Params.MaxGasLimit = (hexutil.Uint64)(math.MaxInt64)
+	spec.Params.MinSmokeLimit = (hexutil.Uint64)(params.MinSmokeLimit)
+	spec.Params.MaxSmokeLimit = (hexutil.Uint64)(math.MaxInt64)
 	spec.Params.MinimumDifficulty = (*hexutil.Big)(params.MinimumDifficulty)
 	spec.Params.DifficultyBoundDivisor = (*math2.HexOrDecimal256)(params.DifficultyBoundDivisor)
-	spec.Params.GasLimitBoundDivisor = (math2.HexOrDecimal64)(params.GasLimitBoundDivisor)
+	spec.Params.SmokeLimitBoundDivisor = (math2.HexOrDecimal64)(params.SmokeLimitBoundDivisor)
 	spec.Params.DurationLimit = (*math2.HexOrDecimal256)(params.DurationLimit)
-	spec.Params.BlockReward = (*hexutil.Big)(othash.FrontierBlockReward)
+	spec.Params.BlockReward = (*hexutil.Big)(ethash.FrontierBlockReward)
 
 	spec.Genesis.Nonce = types.EncodeNonce(genesis.Nonce)
 	spec.Genesis.MixHash = genesis.Mixhash
@@ -153,45 +153,45 @@ func newAlethGenesisSpec(network string, genesis *core.Genesis) (*alethGenesisSp
 	spec.Genesis.Timestamp = (hexutil.Uint64)(genesis.Timestamp)
 	spec.Genesis.ParentHash = genesis.ParentHash
 	spec.Genesis.ExtraData = genesis.ExtraData
-	spec.Genesis.GasLimit = (hexutil.Uint64)(genesis.GasLimit)
+	spec.Genesis.SmokeLimit = (hexutil.Uint64)(genesis.SmokeLimit)
 
 	for address, account := range genesis.Alloc {
 		spec.setAccount(address, account)
 	}
 
-	spec.setPrecompile(1, &alethGenesisSpecBuiltin{Name: "ecrecover",
-		Linear: &alethGenesisSpecLinearPricing{Base: 3000}})
-	spec.setPrecompile(2, &alethGenesisSpecBuiltin{Name: "sha256",
-		Linear: &alethGenesisSpecLinearPricing{Base: 60, Word: 12}})
-	spec.setPrecompile(3, &alethGenesisSpecBuiltin{Name: "ripemd160",
-		Linear: &alethGenesisSpecLinearPricing{Base: 600, Word: 120}})
-	spec.setPrecompile(4, &alethGenesisSpecBuiltin{Name: "identity",
-		Linear: &alethGenesisSpecLinearPricing{Base: 15, Word: 3}})
+	spec.setPrecompile(1, &alhighGenesisSpecBuiltin{Name: "ecrecover",
+		Linear: &alhighGenesisSpecLinearPricing{Base: 3000}})
+	spec.setPrecompile(2, &alhighGenesisSpecBuiltin{Name: "sha256",
+		Linear: &alhighGenesisSpecLinearPricing{Base: 60, Word: 12}})
+	spec.setPrecompile(3, &alhighGenesisSpecBuiltin{Name: "ripemd160",
+		Linear: &alhighGenesisSpecLinearPricing{Base: 600, Word: 120}})
+	spec.setPrecompile(4, &alhighGenesisSpecBuiltin{Name: "identity",
+		Linear: &alhighGenesisSpecLinearPricing{Base: 15, Word: 3}})
 	if genesis.Config.ByzantiumBlock != nil {
-		spec.setPrecompile(5, &alethGenesisSpecBuiltin{Name: "modexp",
+		spec.setPrecompile(5, &alhighGenesisSpecBuiltin{Name: "modexp",
 			StartingBlock: (*hexutil.Big)(genesis.Config.ByzantiumBlock)})
-		spec.setPrecompile(6, &alethGenesisSpecBuiltin{Name: "alt_bn128_G1_add",
+		spec.setPrecompile(6, &alhighGenesisSpecBuiltin{Name: "alt_bn128_G1_add",
 			StartingBlock: (*hexutil.Big)(genesis.Config.ByzantiumBlock),
-			Linear:        &alethGenesisSpecLinearPricing{Base: 500}})
-		spec.setPrecompile(7, &alethGenesisSpecBuiltin{Name: "alt_bn128_G1_mul",
+			Linear:        &alhighGenesisSpecLinearPricing{Base: 500}})
+		spec.setPrecompile(7, &alhighGenesisSpecBuiltin{Name: "alt_bn128_G1_mul",
 			StartingBlock: (*hexutil.Big)(genesis.Config.ByzantiumBlock),
-			Linear:        &alethGenesisSpecLinearPricing{Base: 40000}})
-		spec.setPrecompile(8, &alethGenesisSpecBuiltin{Name: "alt_bn128_pairing_product",
+			Linear:        &alhighGenesisSpecLinearPricing{Base: 40000}})
+		spec.setPrecompile(8, &alhighGenesisSpecBuiltin{Name: "alt_bn128_pairing_product",
 			StartingBlock: (*hexutil.Big)(genesis.Config.ByzantiumBlock)})
 	}
 	if genesis.Config.IstanbulBlock != nil {
 		if genesis.Config.ByzantiumBlock == nil {
 			return nil, errors.New("invalid genesis, istanbul fork is enabled while byzantium is not")
 		}
-		spec.setPrecompile(6, &alethGenesisSpecBuiltin{
+		spec.setPrecompile(6, &alhighGenesisSpecBuiltin{
 			Name:          "alt_bn128_G1_add",
 			StartingBlock: (*hexutil.Big)(genesis.Config.ByzantiumBlock),
-		}) // Aleth hardcoded the gas policy
-		spec.setPrecompile(7, &alethGenesisSpecBuiltin{
+		}) // Alhigh hardcoded the smoke policy
+		spec.setPrecompile(7, &alhighGenesisSpecBuiltin{
 			Name:          "alt_bn128_G1_mul",
 			StartingBlock: (*hexutil.Big)(genesis.Config.ByzantiumBlock),
-		}) // Aleth hardcoded the gas policy
-		spec.setPrecompile(9, &alethGenesisSpecBuiltin{
+		}) // Alhigh hardcoded the smoke policy
+		spec.setPrecompile(9, &alhighGenesisSpecBuiltin{
 			Name:          "blake2_compression",
 			StartingBlock: (*hexutil.Big)(genesis.Config.IstanbulBlock),
 		})
@@ -199,25 +199,25 @@ func newAlethGenesisSpec(network string, genesis *core.Genesis) (*alethGenesisSp
 	return spec, nil
 }
 
-func (spec *alethGenesisSpec) setPrecompile(address byte, data *alethGenesisSpecBuiltin) {
+func (spec *alhighGenesisSpec) setPrecompile(address byte, data *alhighGenesisSpecBuiltin) {
 	if spec.Accounts == nil {
-		spec.Accounts = make(map[common.UnprefixedAddress]*alethGenesisSpecAccount)
+		spec.Accounts = make(map[common.UnprefixedAddress]*alhighGenesisSpecAccount)
 	}
 	addr := common.UnprefixedAddress(common.BytesToAddress([]byte{address}))
 	if _, exist := spec.Accounts[addr]; !exist {
-		spec.Accounts[addr] = &alethGenesisSpecAccount{}
+		spec.Accounts[addr] = &alhighGenesisSpecAccount{}
 	}
 	spec.Accounts[addr].Precompiled = data
 }
 
-func (spec *alethGenesisSpec) setAccount(address common.Address, account core.GenesisAccount) {
+func (spec *alhighGenesisSpec) setAccount(address common.Address, account core.GenesisAccount) {
 	if spec.Accounts == nil {
-		spec.Accounts = make(map[common.UnprefixedAddress]*alethGenesisSpecAccount)
+		spec.Accounts = make(map[common.UnprefixedAddress]*alhighGenesisSpecAccount)
 	}
 
 	a, exist := spec.Accounts[common.UnprefixedAddress(address)]
 	if !exist {
-		a = &alethGenesisSpecAccount{}
+		a = &alhighGenesisSpecAccount{}
 		spec.Accounts[common.UnprefixedAddress(address)] = a
 	}
 	a.Balance = (*math2.HexOrDecimal256)(account.Balance)
@@ -246,8 +246,8 @@ type parityChainSpec struct {
 	Params struct {
 		AccountStartNonce         hexutil.Uint64       `json:"accountStartNonce"`
 		MaximumExtraDataSize      hexutil.Uint64       `json:"maximumExtraDataSize"`
-		MinGasLimit               hexutil.Uint64       `json:"minGasLimit"`
-		GasLimitBoundDivisor      math2.HexOrDecimal64 `json:"gasLimitBoundDivisor"`
+		MinSmokeLimit               hexutil.Uint64       `json:"minSmokeLimit"`
+		SmokeLimitBoundDivisor      math2.HexOrDecimal64 `json:"smokeLimitBoundDivisor"`
 		NetworkID                 hexutil.Uint64       `json:"networkID"`
 		ChainID                   hexutil.Uint64       `json:"chainID"`
 		MaxCodeSize               hexutil.Uint64       `json:"maxCodeSize"`
@@ -286,7 +286,7 @@ type parityChainSpec struct {
 		Timestamp  hexutil.Uint64 `json:"timestamp"`
 		ParentHash common.Hash    `json:"parentHash"`
 		ExtraData  hexutil.Bytes  `json:"extraData"`
-		GasLimit   hexutil.Uint64 `json:"gasLimit"`
+		SmokeLimit   hexutil.Uint64 `json:"smokeLimit"`
 	} `json:"genesis"`
 
 	Nodes    []string                                             `json:"nodes"`
@@ -346,7 +346,7 @@ type parityChainSepcAltBnPairingPricing struct {
 // parityChainSpecBlakePricing defines the price policy for blake2 f
 // compression.
 type parityChainSpecBlakePricing struct {
-	GasPerRound uint64 `json:"gas_per_round"`
+	SmokePerRound uint64 `json:"smoke_per_round"`
 }
 
 type parityChainSpecAlternativePrice struct {
@@ -363,7 +363,7 @@ type parityChainSpecVersionedPricing struct {
 // newParityChainSpec converts a go-highcoin genesis block into a Parity specific
 // chain specification format.
 func newParityChainSpec(network string, genesis *core.Genesis, bootnodes []string) (*parityChainSpec, error) {
-	// Only othash is currently supported between go-highcoin and Parity
+	// Only ethash is currently supported between go-highcoin and Parity
 	if genesis.Config.Ethash == nil {
 		return nil, errors.New("unsupported consensus engine")
 	}
@@ -379,7 +379,7 @@ func newParityChainSpec(network string, genesis *core.Genesis, bootnodes []strin
 	spec.Engine.Ethash.Params.MinimumDifficulty = (*hexutil.Big)(params.MinimumDifficulty)
 	spec.Engine.Ethash.Params.DifficultyBoundDivisor = (*hexutil.Big)(params.DifficultyBoundDivisor)
 	spec.Engine.Ethash.Params.DurationLimit = (*hexutil.Big)(params.DurationLimit)
-	spec.Engine.Ethash.Params.BlockReward["0x0"] = hexutil.EncodeBig(othash.FrontierBlockReward)
+	spec.Engine.Ethash.Params.BlockReward["0x0"] = hexutil.EncodeBig(ethash.FrontierBlockReward)
 
 	// Homestead
 	spec.Engine.Ethash.Params.HomesteadTransition = hexutil.Uint64(genesis.Config.HomesteadBlock.Uint64())
@@ -412,8 +412,8 @@ func newParityChainSpec(network string, genesis *core.Genesis, bootnodes []strin
 		spec.setIstanbul(num)
 	}
 	spec.Params.MaximumExtraDataSize = (hexutil.Uint64)(params.MaximumExtraDataSize)
-	spec.Params.MinGasLimit = (hexutil.Uint64)(params.MinGasLimit)
-	spec.Params.GasLimitBoundDivisor = (math2.HexOrDecimal64)(params.GasLimitBoundDivisor)
+	spec.Params.MinSmokeLimit = (hexutil.Uint64)(params.MinSmokeLimit)
+	spec.Params.SmokeLimitBoundDivisor = (math2.HexOrDecimal64)(params.SmokeLimitBoundDivisor)
 	spec.Params.NetworkID = (hexutil.Uint64)(genesis.Config.ChainID.Uint64())
 	spec.Params.ChainID = (hexutil.Uint64)(genesis.Config.ChainID.Uint64())
 	spec.Params.MaxCodeSize = params.MaxCodeSize
@@ -430,7 +430,7 @@ func newParityChainSpec(network string, genesis *core.Genesis, bootnodes []strin
 	spec.Genesis.Timestamp = (hexutil.Uint64)(genesis.Timestamp)
 	spec.Genesis.ParentHash = genesis.ParentHash
 	spec.Genesis.ExtraData = genesis.ExtraData
-	spec.Genesis.GasLimit = (hexutil.Uint64)(genesis.GasLimit)
+	spec.Genesis.SmokeLimit = (hexutil.Uint64)(genesis.SmokeLimit)
 
 	spec.Accounts = make(map[common.UnprefixedAddress]*parityChainSpecAccount)
 	for address, account := range genesis.Alloc {
@@ -539,7 +539,7 @@ func newParityChainSpec(network string, genesis *core.Genesis, bootnodes []strin
 			Name:       "blake2_f",
 			ActivateAt: (*hexutil.Big)(genesis.Config.IstanbulBlock),
 			Pricing: &parityChainSpecPricing{
-				Blake2F: &parityChainSpecBlakePricing{GasPerRound: 1},
+				Blake2F: &parityChainSpecBlakePricing{SmokePerRound: 1},
 			},
 		})
 	}
@@ -558,7 +558,7 @@ func (spec *parityChainSpec) setPrecompile(address byte, data *parityChainSpecBu
 }
 
 func (spec *parityChainSpec) setByzantium(num *big.Int) {
-	spec.Engine.Ethash.Params.BlockReward[hexutil.EncodeBig(num)] = hexutil.EncodeBig(othash.ByzantiumBlockReward)
+	spec.Engine.Ethash.Params.BlockReward[hexutil.EncodeBig(num)] = hexutil.EncodeBig(ethash.ByzantiumBlockReward)
 	spec.Engine.Ethash.Params.DifficultyBombDelays[hexutil.EncodeBig(num)] = hexutil.EncodeUint64(3000000)
 	n := hexutil.Uint64(num.Uint64())
 	spec.Engine.Ethash.Params.EIP100bTransition = n
@@ -569,7 +569,7 @@ func (spec *parityChainSpec) setByzantium(num *big.Int) {
 }
 
 func (spec *parityChainSpec) setConstantinople(num *big.Int) {
-	spec.Engine.Ethash.Params.BlockReward[hexutil.EncodeBig(num)] = hexutil.EncodeBig(othash.ConstantinopleBlockReward)
+	spec.Engine.Ethash.Params.BlockReward[hexutil.EncodeBig(num)] = hexutil.EncodeBig(ethash.ConstantinopleBlockReward)
 	spec.Engine.Ethash.Params.DifficultyBombDelays[hexutil.EncodeBig(num)] = hexutil.EncodeUint64(2000000)
 	n := hexutil.Uint64(num.Uint64())
 	spec.Params.EIP145Transition = n
@@ -595,7 +595,7 @@ type pyHighcoinGenesisSpec struct {
 	Nonce      types.BlockNonce  `json:"nonce"`
 	Timestamp  hexutil.Uint64    `json:"timestamp"`
 	ExtraData  hexutil.Bytes     `json:"extraData"`
-	GasLimit   hexutil.Uint64    `json:"gasLimit"`
+	SmokeLimit   hexutil.Uint64    `json:"smokeLimit"`
 	Difficulty *hexutil.Big      `json:"difficulty"`
 	Mixhash    common.Hash       `json:"mixhash"`
 	Coinbase   common.Address    `json:"coinbase"`
@@ -606,7 +606,7 @@ type pyHighcoinGenesisSpec struct {
 // newPyHighcoinGenesisSpec converts a go-highcoin genesis block into a Parity specific
 // chain specification format.
 func newPyHighcoinGenesisSpec(network string, genesis *core.Genesis) (*pyHighcoinGenesisSpec, error) {
-	// Only othash is currently supported between go-highcoin and pyhighcoin
+	// Only ethash is currently supported between go-highcoin and pyhighcoin
 	if genesis.Config.Ethash == nil {
 		return nil, errors.New("unsupported consensus engine")
 	}
@@ -614,7 +614,7 @@ func newPyHighcoinGenesisSpec(network string, genesis *core.Genesis) (*pyHighcoi
 		Nonce:      types.EncodeNonce(genesis.Nonce),
 		Timestamp:  (hexutil.Uint64)(genesis.Timestamp),
 		ExtraData:  genesis.ExtraData,
-		GasLimit:   (hexutil.Uint64)(genesis.GasLimit),
+		SmokeLimit:   (hexutil.Uint64)(genesis.SmokeLimit),
 		Difficulty: (*hexutil.Big)(genesis.Difficulty),
 		Mixhash:    genesis.Mixhash,
 		Coinbase:   genesis.Coinbase,

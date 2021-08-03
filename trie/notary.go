@@ -17,20 +17,20 @@
 package trie
 
 import (
-	"github.com/420integrated/go-highcoin/ethdb"
-	"github.com/420integrated/go-highcoin/ethdb/memorydb"
+	"github.com/420integrated/go-highcoin/highdb"
+	"github.com/420integrated/go-highcoin/highdb/memorydb"
 )
 
 // KeyValueNotary tracks which keys have been accessed through a key-value reader
 // with te scope of verifying if certain proof datasets are maliciously bloated.
 type KeyValueNotary struct {
-	ethdb.KeyValueReader
+	highdb.KeyValueReader
 	reads map[string]struct{}
 }
 
 // NewKeyValueNotary wraps a key-value database with an access notary to track
 // which items have bene accessed.
-func NewKeyValueNotary(db ethdb.KeyValueReader) *KeyValueNotary {
+func NewKeyValueNotary(db highdb.KeyValueReader) *KeyValueNotary {
 	return &KeyValueNotary{
 		KeyValueReader: db,
 		reads:          make(map[string]struct{}),
@@ -46,7 +46,7 @@ func (k *KeyValueNotary) Get(key []byte) ([]byte, error) {
 
 // Accessed returns s snapshot of the original key-value store containing only the
 // data accessed through the notary.
-func (k *KeyValueNotary) Accessed() ethdb.KeyValueStore {
+func (k *KeyValueNotary) Accessed() highdb.KeyValueStore {
 	db := memorydb.New()
 	for keystr := range k.reads {
 		key := []byte(keystr)

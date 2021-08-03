@@ -50,10 +50,10 @@ func newBridge(client *rpc.Client, prompter prompt.UserPrompter, printer io.Writ
 	}
 }
 
-func getJeth(vm *goja.Runtime) *goja.Object {
-	jeth := vm.Get("jeth")
-	if jeth == nil {
-		panic(vm.ToValue("jeth object does not exist"))
+func getJhigh(vm *goja.Runtime) *goja.Object {
+	jhigh := vm.Get("jhigh")
+	if jhigh == nil {
+		panic(vm.ToValue("jhigh object does not exist"))
 	}
 	return jhigh.ToObject(vm)
 }
@@ -86,7 +86,7 @@ func (b *bridge) NewAccount(call jsre.Call) (goja.Value, error) {
 		return nil, fmt.Errorf("expected 0 or 1 string argument")
 	}
 	// Password acquired, execute the call and return
-	newAccount, callable := goja.AssertFunction(getJeth(call.VM).Get("newAccount"))
+	newAccount, callable := goja.AssertFunction(getJhigh(call.VM).Get("newAccount"))
 	if !callable {
 		return nil, fmt.Errorf("jhigh.newAccount is not callable")
 	}
@@ -113,7 +113,7 @@ func (b *bridge) OpenWallet(call jsre.Call) (goja.Value, error) {
 		passwd = call.Argument(1)
 	}
 	// Open the wallet and return if successful in itself
-	openWallet, callable := goja.AssertFunction(getJeth(call.VM).Get("openWallet"))
+	openWallet, callable := goja.AssertFunction(getJhigh(call.VM).Get("openWallet"))
 	if !callable {
 		return nil, fmt.Errorf("jhigh.openWallet is not callable")
 	}
@@ -196,7 +196,7 @@ func (b *bridge) readPassphraseAndReopenWallet(call jsre.Call) (goja.Value, erro
 	if err != nil {
 		return nil, err
 	}
-	openWallet, callable := goja.AssertFunction(getJeth(call.VM).Get("openWallet"))
+	openWallet, callable := goja.AssertFunction(getJhigh(call.VM).Get("openWallet"))
 	if !callable {
 		return nil, fmt.Errorf("jhigh.openWallet is not callable")
 	}
@@ -217,7 +217,7 @@ func (b *bridge) readPinAndReopenWallet(call jsre.Call) (goja.Value, error) {
 	if err != nil {
 		return nil, err
 	}
-	openWallet, callable := goja.AssertFunction(getJeth(call.VM).Get("openWallet"))
+	openWallet, callable := goja.AssertFunction(getJhigh(call.VM).Get("openWallet"))
 	if !callable {
 		return nil, fmt.Errorf("jhigh.openWallet is not callable")
 	}
@@ -265,7 +265,7 @@ func (b *bridge) UnlockAccount(call jsre.Call) (goja.Value, error) {
 	}
 
 	// Send the request to the backend and return.
-	unlockAccount, callable := goja.AssertFunction(getJeth(call.VM).Get("unlockAccount"))
+	unlockAccount, callable := goja.AssertFunction(getJhigh(call.VM).Get("unlockAccount"))
 	if !callable {
 		return nil, fmt.Errorf("jhigh.unlockAccount is not callable")
 	}
@@ -305,7 +305,7 @@ func (b *bridge) Sign(call jsre.Call) (goja.Value, error) {
 	}
 
 	// Send the request to the backend and return
-	sign, callable := goja.AssertFunction(getJeth(call.VM).Get("sign"))
+	sign, callable := goja.AssertFunction(getJhigh(call.VM).Get("sign"))
 	if !callable {
 		return nil, fmt.Errorf("jhigh.sign is not callable")
 	}
@@ -354,12 +354,12 @@ func (b *bridge) SleepBlocks(call jsre.Call) (goja.Value, error) {
 	// Poll the current block number until either it or a timeout is reached.
 	deadline := time.Now().Add(time.Duration(sleep) * time.Second)
 	var lastNumber hexutil.Uint64
-	if err := b.client.Call(&lastNumber, "eth_blockNumber"); err != nil {
+	if err := b.client.Call(&lastNumber, "high_blockNumber"); err != nil {
 		return nil, err
 	}
 	for time.Now().Before(deadline) {
 		var number hexutil.Uint64
-		if err := b.client.Call(&number, "eth_blockNumber"); err != nil {
+		if err := b.client.Call(&number, "high_blockNumber"); err != nil {
 			return nil, err
 		}
 		if number != lastNumber {

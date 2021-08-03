@@ -25,9 +25,9 @@ import (
 	"github.com/420integrated/go-highcoin/core"
 	"github.com/420integrated/go-highcoin/core/rawdb"
 	"github.com/420integrated/go-highcoin/core/types"
-	"github.com/420integrated/go-highcoin/eth/ethconfig"
-	"github.com/420integrated/go-highcoin/ethclient"
-	"github.com/420integrated/go-highcoin/ethdb"
+	"github.com/420integrated/go-highcoin/high/highconfig"
+	"github.com/420integrated/go-highcoin/highclient"
+	"github.com/420integrated/go-highcoin/highdb"
 	"github.com/420integrated/go-highcoin/les/checkpointoracle"
 	"github.com/420integrated/go-highcoin/light"
 	"github.com/420integrated/go-highcoin/log"
@@ -48,10 +48,10 @@ type chainReader interface {
 // lesCommons contains fields needed by both server and client.
 type lesCommons struct {
 	genesis                      common.Hash
-	config                       *ethconfig.Config
+	config                       *highconfig.Config
 	chainConfig                  *params.ChainConfig
 	iConfig                      *light.IndexerConfig
-	chainDb, lesDb               ethdb.Database
+	chainDb, lesDb               highdb.Database
 	chainReader                  chainReader
 	chtIndexer, bloomTrieIndexer *core.ChainIndexer
 	oracle                       *checkpointoracle.CheckpointOracle
@@ -63,7 +63,7 @@ type lesCommons struct {
 // NodeInfo represents a short summary of the Highcoin sub-protocol metadata
 // known about the host peer.
 type NodeInfo struct {
-	Network    uint64                   `json:"network"`    // Highcoin network ID (1=Frontier, 2=Morden, Ropsten=3, Rinkeby=4)
+	Network    uint64                   `json:"network"`    // Highcoin network ID (1=Frontier, 2=Morden, Ropsten=3, Ruderalis=4)
 	Difficulty *big.Int                 `json:"difficulty"` // Total difficulty of the host's blockchain
 	Genesis    common.Hash              `json:"genesis"`    // SHA3 hash of the host's genesis block
 	Config     *params.ChainConfig      `json:"config"`     // Chain configuration for the fork rules
@@ -138,8 +138,8 @@ func (c *lesCommons) localCheckpoint(index uint64) params.TrustedCheckpoint {
 }
 
 // setupOracle sets up the checkpoint oracle contract client.
-func (c *lesCommons) setupOracle(node *node.Node, genesis common.Hash, ethconfig *ethconfig.Config) *checkpointoracle.CheckpointOracle {
-	config := ethconfig.CheckpointOracle
+func (c *lesCommons) setupOracle(node *node.Node, genesis common.Hash, highconfig *highconfig.Config) *checkpointoracle.CheckpointOracle {
+	config := highconfig.CheckpointOracle
 	if config == nil {
 		// Try loading default config.
 		config = params.CheckpointOracles[genesis]
@@ -154,7 +154,7 @@ func (c *lesCommons) setupOracle(node *node.Node, genesis common.Hash, ethconfig
 	}
 	oracle := checkpointoracle.New(config, c.localCheckpoint)
 	rpcClient, _ := node.Attach()
-	client := ethclient.NewClient(rpcClient)
+	client := highclient.NewClient(rpcClient)
 	oracle.Start(client)
 	log.Info("Configured checkpoint oracle", "address", config.Address, "signers", len(config.Signers), "threshold", config.Threshold)
 	return oracle

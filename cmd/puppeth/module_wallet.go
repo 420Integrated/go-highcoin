@@ -30,21 +30,21 @@ import (
 
 // walletDockerfile is the Dockerfile required to run a web wallet.
 var walletDockerfile = `
-FROM puppeth/wallet:latest
+FROM pupphigh/wallet:latest
 
 ADD genesis.json /genesis.json
 
 RUN \
   echo 'node server.js &'                     > wallet.sh && \
 	echo 'highcoin --cache 512 init /genesis.json' >> wallet.sh && \
-	echo $'exec highcoin --networkid {{.NetworkID}} --port {{.NodePort}} --bootnodes {{.Bootnodes}} --ethstats \'{{.Highstats}}\' --cache=512 --http --http.addr=0.0.0.0 --http.corsdomain "*" --http.vhosts "*"' >> wallet.sh
+	echo $'exec highcoin --networkid {{.NetworkID}} --port {{.NodePort}} --bootnodes {{.Bootnodes}} --highstats \'{{.Highstats}}\' --cache=512 --http --http.addr=0.0.0.0 --http.corsdomain "*" --http.vhosts "*"' >> wallet.sh
 
 RUN \
-	sed -i 's/PuppethNetworkID/{{.NetworkID}}/g' dist/js/highcoinwallet-master.js && \
-	sed -i 's/PuppethNetwork/{{.Network}}/g'     dist/js/highcoinwallet-master.js && \
-	sed -i 's/PuppethDenom/{{.Denom}}/g'         dist/js/highcoinwallet-master.js && \
-	sed -i 's/PuppethHost/{{.Host}}/g'           dist/js/highcoinwallet-master.js && \
-	sed -i 's/PuppethRPCPort/{{.RPCPort}}/g'     dist/js/highcoinwallet-master.js
+	sed -i 's/PupphighNetworkID/{{.NetworkID}}/g' dist/js/highcoinwallet-master.js && \
+	sed -i 's/PupphighNetwork/{{.Network}}/g'     dist/js/highcoinwallet-master.js && \
+	sed -i 's/PupphighDenom/{{.Denom}}/g'         dist/js/highcoinwallet-master.js && \
+	sed -i 's/PupphighHost/{{.Host}}/g'           dist/js/highcoinwallet-master.js && \
+	sed -i 's/PupphighRPCPort/{{.RPCPort}}/g'     dist/js/highcoinwallet-master.js
 
 ENTRYPOINT ["/bin/sh", "wallet.sh"]
 `
@@ -132,7 +132,7 @@ type walletInfos struct {
 	genesis  []byte
 	network  int64
 	datadir  string
-	ethstats string
+	highstats string
 	nodePort int
 	rpcPort  int
 	webHost  string
@@ -195,7 +195,7 @@ func checkWallet(client *sshClient, network string) (*walletInfos, error) {
 		rpcPort:  rpcPort,
 		webHost:  host,
 		webPort:  webPort,
-		ethstats: infos.envvars["STATS"],
+		highstats: infos.envvars["STATS"],
 	}
 	return stats, nil
 }

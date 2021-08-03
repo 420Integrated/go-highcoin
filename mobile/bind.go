@@ -58,14 +58,14 @@ func NewCallOpts() *CallOpts {
 }
 
 func (opts *CallOpts) IsPending() bool    { return opts.opts.Pending }
-func (opts *CallOpts) GetGasLimit() int64 { return 0 /* TODO(karalabe) */ }
+func (opts *CallOpts) GetSmokeLimit() int64 { return 0 /* TODO(karalabe) */ }
 
 // GetContext cannot be reliably implemented without identity preservation (https://github.com/golang/go/issues/16876)
 // Even then it's awkward to unpack the subtleties of a Go context out to Java.
 // func (opts *CallOpts) GetContext() *Context { return &Context{opts.opts.Context} }
 
 func (opts *CallOpts) SetPending(pending bool)     { opts.opts.Pending = pending }
-func (opts *CallOpts) SetGasLimit(limit int64)     { /* TODO(karalabe) */ }
+func (opts *CallOpts) SetSmokeLimit(limit int64)     { /* TODO(karalabe) */ }
 func (opts *CallOpts) SetContext(context *Context) { opts.opts.Context = context.context }
 func (opts *CallOpts) SetFrom(addr *Address)       { opts.opts.From = addr.address }
 
@@ -97,8 +97,8 @@ func NewKeyedTransactOpts(keyJson []byte, passphrase string, chainID *big.Int) (
 func (opts *TransactOpts) GetFrom() *Address    { return &Address{opts.opts.From} }
 func (opts *TransactOpts) GetNonce() int64      { return opts.opts.Nonce.Int64() }
 func (opts *TransactOpts) GetValue() *BigInt    { return &BigInt{opts.opts.Value} }
-func (opts *TransactOpts) GetGasPrice() *BigInt { return &BigInt{opts.opts.GasPrice} }
-func (opts *TransactOpts) GetGasLimit() int64   { return int64(opts.opts.GasLimit) }
+func (opts *TransactOpts) GetSmokePrice() *BigInt { return &BigInt{opts.opts.SmokePrice} }
+func (opts *TransactOpts) GetSmokeLimit() int64   { return int64(opts.opts.SmokeLimit) }
 
 // GetSigner cannot be reliably implemented without identity preservation (https://github.com/golang/go/issues/16876)
 // func (opts *TransactOpts) GetSigner() Signer { return &signer{opts.opts.Signer} }
@@ -119,8 +119,8 @@ func (opts *TransactOpts) SetSigner(s Signer) {
 	}
 }
 func (opts *TransactOpts) SetValue(value *BigInt)      { opts.opts.Value = value.bigint }
-func (opts *TransactOpts) SetGasPrice(price *BigInt)   { opts.opts.GasPrice = price.bigint }
-func (opts *TransactOpts) SetGasLimit(limit int64)     { opts.opts.GasLimit = uint64(limit) }
+func (opts *TransactOpts) SetSmokePrice(price *BigInt)   { opts.opts.SmokePrice = price.bigint }
+func (opts *TransactOpts) SetSmokeLimit(limit int64)     { opts.opts.SmokeLimit = uint64(limit) }
 func (opts *TransactOpts) SetContext(context *Context) { opts.opts.Context = context.context }
 
 // BoundContract is the base wrapper object that reflects a contract on the

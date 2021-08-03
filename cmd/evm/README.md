@@ -99,12 +99,12 @@ Two resulting files:
   {
    "root": "0x",
    "status": "0x1",
-   "cumulativeGasUsed": "0x5208",
+   "cumulativeSmokeUsed": "0x5208",
    "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
    "logs": null,
    "transactionHash": "0x0557bacce3375c98d806609b8d5043072f0b6a8bae45ae5a67a00d3a1a18d673",
    "contractAddress": "0x0000000000000000000000000000000000000000",
-   "gasUsed": "0x5208",
+   "smokeUsed": "0x5208",
    "blockHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
    "transactionIndex": "0x0"
   }
@@ -145,12 +145,12 @@ Output:
    {
     "root": "0x",
     "status": "0x1",
-    "cumulativeGasUsed": "0x5208",
+    "cumulativeSmokeUsed": "0x5208",
     "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
     "logs": null,
     "transactionHash": "0x0557bacce3375c98d806609b8d5043072f0b6a8bae45ae5a67a00d3a1a18d673",
     "contractAddress": "0x0000000000000000000000000000000000000000",
-    "gasUsed": "0x5208",
+    "smokeUsed": "0x5208",
     "blockHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
     "transactionIndex": "0x0"
    }
@@ -175,7 +175,7 @@ Mining rewards and ommer rewards might need to be added. This is how those are a
 To make `state_t8n` apply these, the following inputs are required:
 
 - `state.reward`
-  - For othash, it is `5000000000000000000` `marleys`,
+  - For ethash, it is `5000000000000000000` `marleys`,
   - If this is not defined, mining rewards are not applied,
   - A value of `0` is valid, and causes accounts to be 'touched'.
 - For each ommer, the tool needs to be given an `address` and a `delta`. This
@@ -191,7 +191,7 @@ Example:
 {
   "currentCoinbase": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
   "currentDifficulty": "0x20000",
-  "currentGasLimit": "0x750a163df65e8a",
+  "currentSmokeLimit": "0x750a163df65e8a",
   "currentNumber": "1",
   "currentTimestamp": "1000",
   "ommers": [
@@ -237,10 +237,10 @@ Example where blockhashes are provided:
 cat trace-0-0x72fadbef39cd251a437eea619cfeda752271a5faaaa2147df012e112159ffb81.jsonl | grep BLOCKHASH -C2
 ```
 ```
-{"pc":0,"op":96,"gas":"0x5f58ef8","gasCost":"0x3","memory":"0x","memSize":0,"stack":[],"returnStack":[],"returnData":"0x","depth":1,"refund":0,"opName":"PUSH1","error":""}
-{"pc":2,"op":64,"gas":"0x5f58ef5","gasCost":"0x14","memory":"0x","memSize":0,"stack":["0x1"],"returnStack":[],"returnData":"0x","depth":1,"refund":0,"opName":"BLOCKHASH","error":""}
-{"pc":3,"op":0,"gas":"0x5f58ee1","gasCost":"0x0","memory":"0x","memSize":0,"stack":["0xdac58aa524e50956d0c0bae7f3f8bb9d35381365d07804dd5b48a5a297c06af4"],"returnStack":[],"returnData":"0x","depth":1,"refund":0,"opName":"STOP","error":""}
-{"output":"","gasUsed":"0x17","time":142709}
+{"pc":0,"op":96,"smoke":"0x5f58ef8","smokeCost":"0x3","memory":"0x","memSize":0,"stack":[],"returnStack":[],"returnData":"0x","depth":1,"refund":0,"opName":"PUSH1","error":""}
+{"pc":2,"op":64,"smoke":"0x5f58ef5","smokeCost":"0x14","memory":"0x","memSize":0,"stack":["0x1"],"returnStack":[],"returnData":"0x","depth":1,"refund":0,"opName":"BLOCKHASH","error":""}
+{"pc":3,"op":0,"smoke":"0x5f58ee1","smokeCost":"0x0","memory":"0x","memSize":0,"stack":["0xdac58aa524e50956d0c0bae7f3f8bb9d35381365d07804dd5b48a5a297c06af4"],"returnStack":[],"returnData":"0x","depth":1,"refund":0,"opName":"STOP","error":""}
+{"output":"","smokeUsed":"0x17","time":142709}
 ```
 
 In this example, the caller has not provided the required blockhash:

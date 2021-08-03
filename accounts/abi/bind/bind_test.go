@@ -672,16 +672,16 @@ var bindTests = []struct {
 		nil,
 		nil,
 	},
-	// Tests that gas estimation works for contracts with weird gas mechanics too.
+	// Tests that smoke estimation works for contracts with weird smoke mechanics too.
 	{
-		`FunkyGasPattern`,
+		`FunkySmokePattern`,
 		`
-			contract FunkyGasPattern {
+			contract FunkySmokePattern {
 				string public field;
 
 				function SetField(string value) {
-					// This check will screw gas estimation! Good, good!
-					if (msg.gas < 100000) {
+					// This check will screw smoke estimation! Good, good!
+					if (msg.smoke < 100000) {
 						throw;
 					}
 					field = value;
@@ -706,8 +706,8 @@ var bindTests = []struct {
 			sim := backends.NewSimulatedBackend(core.GenesisAlloc{auth.From: {Balance: big.NewInt(10000000000)}}, 10000000)
 			defer sim.Close()
 
-			// Deploy a funky gas pattern contract
-			_, _, limiter, err := DeployFunkyGasPattern(auth, sim)
+			// Deploy a funky smoke pattern contract
+			_, _, limiter, err := DeployFunkySmokePattern(auth, sim)
 			if err != nil {
 				t.Fatalf("Failed to deploy funky contract: %v", err)
 			}
@@ -715,7 +715,7 @@ var bindTests = []struct {
 
 			// Set the field with automatic estimation and check that it succeeds
 			if _, err := limiter.SetField(auth, "automatic"); err != nil {
-				t.Fatalf("Failed to call automatically gased transaction: %v", err)
+				t.Fatalf("Failed to call automatically smokeed transaction: %v", err)
 			}
 			sim.Commit()
 

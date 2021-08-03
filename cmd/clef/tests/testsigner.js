@@ -44,7 +44,7 @@ init()
 function testTx(){
     if( accts && accts.length > 0) {
         var a = accts[0]
-        var txdata = high.signTransaction({from: a, to: a, value: 1, nonce: 1, gas: 1, gasPrice: 1})
+        var txdata = high.signTransaction({from: a, to: a, value: 1, nonce: 1, smoke: 1, smokePrice: 1})
         var v = parseInt(txdata.tx.v)
         console.log("V value: ", v)
         if (v == 37 || v == 38){

@@ -25,7 +25,7 @@ import (
 
 	"github.com/420integrated/go-highcoin/common"
 	"github.com/420integrated/go-highcoin/core/rawdb"
-	"github.com/420integrated/go-highcoin/ethdb"
+	"github.com/420integrated/go-highcoin/highdb"
 	"github.com/420integrated/go-highcoin/log"
 	"github.com/420integrated/go-highcoin/metrics"
 	bloomfilter "github.com/holiman/bloomfilter/v2"
@@ -54,7 +54,7 @@ type SyncBloom struct {
 
 // NewSyncBloom creates a new bloom filter of the given size (in megabytes) and
 // initializes it from the database. The bloom is hard coded to use 3 filters.
-func NewSyncBloom(memory uint64, database ethdb.Iteratee) *SyncBloom {
+func NewSyncBloom(memory uint64, database highdb.Iteratee) *SyncBloom {
 	// Create the bloom filter to track known trie nodes
 	bloom, err := bloomfilter.New(memory*1024*1024*8, 4)
 	if err != nil {
@@ -79,7 +79,7 @@ func NewSyncBloom(memory uint64, database ethdb.Iteratee) *SyncBloom {
 }
 
 // init iterates over the database, pushing every trie hash into the bloom filter.
-func (b *SyncBloom) init(database ethdb.Iteratee) {
+func (b *SyncBloom) init(database highdb.Iteratee) {
 	// Iterate over the database, but restart every now and again to avoid holding
 	// a persistent snapshot since fast sync can push a ton of data concurrently,
 	// bloating the disk.

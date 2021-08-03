@@ -24,8 +24,8 @@ import (
 	"time"
 
 	"github.com/420integrated/go-highcoin/common/mclock"
-	"github.com/420integrated/go-highcoin/ethdb"
-	"github.com/420integrated/go-highcoin/ethdb/memorydb"
+	"github.com/420integrated/go-highcoin/highdb"
+	"github.com/420integrated/go-highcoin/highdb/memorydb"
 	"github.com/420integrated/go-highcoin/p2p/enode"
 	"github.com/420integrated/go-highcoin/p2p/enr"
 )
@@ -50,7 +50,7 @@ func testNodeIndex(id enode.ID) int {
 }
 
 type ServerPoolTest struct {
-	db                   ethdb.KeyValueStore
+	db                   highdb.KeyValueStore
 	clock                *mclock.Simulated
 	quit                 chan struct{}
 	preNeg, preNegFail   bool

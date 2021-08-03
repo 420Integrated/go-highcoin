@@ -23,8 +23,8 @@ import (
 
 	"github.com/420integrated/go-highcoin/common/mclock"
 	"github.com/420integrated/go-highcoin/core"
-	"github.com/420integrated/go-highcoin/eth/ethconfig"
-	"github.com/420integrated/go-highcoin/ethdb"
+	"github.com/420integrated/go-highcoin/high/highconfig"
+	"github.com/420integrated/go-highcoin/highdb"
 	"github.com/420integrated/go-highcoin/les/flowcontrol"
 	vfs "github.com/420integrated/go-highcoin/les/vflux/server"
 	"github.com/420integrated/go-highcoin/light"
@@ -52,11 +52,11 @@ func init() {
 	priorityPoolSetup.Connect(balanceTrackerSetup.BalanceField, balanceTrackerSetup.UpdateFlag) // NodeBalance implements nodePriority
 }
 
-type ethBackend interface {
+type highBackend interface {
 	ArchiveMode() bool
 	BlockChain() *core.BlockChain
 	BloomIndexer() *core.ChainIndexer
-	ChainDb() ethdb.Database
+	ChainDb() highdb.Database
 	Synced() bool
 	TxPool() *core.TxPool
 }
@@ -84,8 +84,8 @@ type LesServer struct {
 	p2pSrv *p2p.Server
 }
 
-func NewLesServer(node *node.Node, e ethBackend, config *ethconfig.Config) (*LesServer, error) {
-	lesDb, err := node.OpenDatabase("les.server", 0, 0, "eth/db/les.server")
+func NewLesServer(node *node.Node, e highBackend, config *highconfig.Config) (*LesServer, error) {
+	lesDb, err := node.OpenDatabase("les.server", 0, 0, "high/db/les.server")
 	if err != nil {
 		return nil, err
 	}

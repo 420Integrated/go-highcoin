@@ -35,7 +35,7 @@ import (
 	"github.com/420integrated/go-highcoin/core/types"
 	"github.com/420integrated/go-highcoin/core/vm"
 	"github.com/420integrated/go-highcoin/crypto"
-	"github.com/420integrated/go-highcoin/ethdb"
+	"github.com/420integrated/go-highcoin/highdb"
 	"github.com/420integrated/go-highcoin/params"
 	"github.com/420integrated/go-highcoin/rlp"
 	"golang.org/x/crypto/sha3"
@@ -70,7 +70,7 @@ type stPostState struct {
 	Logs    common.UnprefixedHash `json:"logs"`
 	Indexes struct {
 		Data  int `json:"data"`
-		Gas   int `json:"gas"`
+		Smoke   int `json:"smoke"`
 		Value int `json:"value"`
 	}
 }
@@ -80,7 +80,7 @@ type stPostState struct {
 type stEnv struct {
 	Coinbase   common.Address `json:"currentCoinbase"   gencodec:"required"`
 	Difficulty *big.Int       `json:"currentDifficulty" gencodec:"required"`
-	GasLimit   uint64         `json:"currentGasLimit"   gencodec:"required"`
+	SmokeLimit   uint64         `json:"currentSmokeLimit"   gencodec:"required"`
 	Number     uint64         `json:"currentNumber"     gencodec:"required"`
 	Timestamp  uint64         `json:"currentTimestamp"  gencodec:"required"`
 }
@@ -88,7 +88,7 @@ type stEnv struct {
 type stEnvMarshaling struct {
 	Coinbase   common.UnprefixedAddress
 	Difficulty *math.HexOrDecimal256
-	GasLimit   math.HexOrDecimal64
+	SmokeLimit   math.HexOrDecimal64
 	Number     math.HexOrDecimal64
 	Timestamp  math.HexOrDecimal64
 }
@@ -96,19 +96,19 @@ type stEnvMarshaling struct {
 //go:generate gencodec -type stTransaction -field-override stTransactionMarshaling -out gen_sttransaction.go
 
 type stTransaction struct {
-	GasPrice   *big.Int `json:"gasPrice"`
+	SmokePrice   *big.Int `json:"smokePrice"`
 	Nonce      uint64   `json:"nonce"`
 	To         string   `json:"to"`
 	Data       []string `json:"data"`
-	GasLimit   []uint64 `json:"gasLimit"`
+	SmokeLimit   []uint64 `json:"smokeLimit"`
 	Value      []string `json:"value"`
 	PrivateKey []byte   `json:"secretKey"`
 }
 
 type stTransactionMarshaling struct {
-	GasPrice   *math.HexOrDecimal256
+	SmokePrice   *math.HexOrDecimal256
 	Nonce      math.HexOrDecimal64
-	GasLimit   []math.HexOrDecimal64
+	SmokeLimit   []math.HexOrDecimal64
 	PrivateKey hexutil.Bytes
 }
 
@@ -191,9 +191,9 @@ func (t *StateTest) RunNoVerify(subtest StateSubtest, vmconfig vm.Config, snapsh
 
 	// Execute the message.
 	snapshot := statedb.Snapshot()
-	gaspool := new(core.GasPool)
-	gaspool.AddGas(block.GasLimit())
-	if _, err := core.ApplyMessage(evm, msg, gaspool); err != nil {
+	smokepool := new(core.SmokePool)
+	smokepool.AddSmoke(block.SmokeLimit())
+	if _, err := core.ApplyMessage(evm, msg, smokepool); err != nil {
 		statedb.RevertToSnapshot(snapshot)
 	}
 
@@ -210,11 +210,11 @@ func (t *StateTest) RunNoVerify(subtest StateSubtest, vmconfig vm.Config, snapsh
 	return snaps, statedb, root, nil
 }
 
-func (t *StateTest) gasLimit(subtest StateSubtest) uint64 {
-	return t.json.Tx.GasLimit[t.json.Post[subtest.Fork][subtest.Index].Indexes.Gas]
+func (t *StateTest) smokeLimit(subtest StateSubtest) uint64 {
+	return t.json.Tx.SmokeLimit[t.json.Post[subtest.Fork][subtest.Index].Indexes.Smoke]
 }
 
-func MakePreState(db ethdb.Database, accounts core.GenesisAlloc, snapshotter bool) (*snapshot.Tree, *state.StateDB) {
+func MakePreState(db highdb.Database, accounts core.GenesisAlloc, snapshotter bool) (*snapshot.Tree, *state.StateDB) {
 	sdb := state.NewDatabase(db)
 	statedb, _ := state.New(common.Hash{}, sdb, nil)
 	for addr, a := range accounts {
@@ -241,7 +241,7 @@ func (t *StateTest) genesis(config *params.ChainConfig) *core.Genesis {
 		Config:     config,
 		Coinbase:   t.json.Env.Coinbase,
 		Difficulty: t.json.Env.Difficulty,
-		GasLimit:   t.json.Env.GasLimit,
+		SmokeLimit:   t.json.Env.SmokeLimit,
 		Number:     t.json.Env.Number,
 		Timestamp:  t.json.Env.Timestamp,
 		Alloc:      t.json.Pre,
@@ -274,12 +274,12 @@ func (tx *stTransaction) toMessage(ps stPostState) (core.Message, error) {
 	if ps.Indexes.Value > len(tx.Value) {
 		return nil, fmt.Errorf("tx value index %d out of bounds", ps.Indexes.Value)
 	}
-	if ps.Indexes.Gas > len(tx.GasLimit) {
-		return nil, fmt.Errorf("tx gas limit index %d out of bounds", ps.Indexes.Gas)
+	if ps.Indexes.Smoke > len(tx.SmokeLimit) {
+		return nil, fmt.Errorf("tx smoke limit index %d out of bounds", ps.Indexes.Smoke)
 	}
 	dataHex := tx.Data[ps.Indexes.Data]
 	valueHex := tx.Value[ps.Indexes.Value]
-	gasLimit := tx.GasLimit[ps.Indexes.Gas]
+	smokeLimit := tx.SmokeLimit[ps.Indexes.Smoke]
 	// Value, Data hex encoding is messy: https://github.com/420integrated/tests/issues/203
 	value := new(big.Int)
 	if valueHex != "0x" {
@@ -294,7 +294,7 @@ func (tx *stTransaction) toMessage(ps stPostState) (core.Message, error) {
 		return nil, fmt.Errorf("invalid tx data %q", dataHex)
 	}
 
-	msg := types.NewMessage(from, to, tx.Nonce, value, gasLimit, tx.GasPrice, data, nil, true)
+	msg := types.NewMessage(from, to, tx.Nonce, value, smokeLimit, tx.SmokePrice, data, nil, true)
 	return msg, nil
 }
 

@@ -15,8 +15,8 @@ type txJSON struct {
 
 	// Common transaction fields:
 	Nonce    *hexutil.Uint64 `json:"nonce"`
-	GasPrice *hexutil.Big    `json:"gasPrice"`
-	Gas      *hexutil.Uint64 `json:"gas"`
+	SmokePrice *hexutil.Big    `json:"smokePrice"`
+	Smoke      *hexutil.Uint64 `json:"smoke"`
 	Value    *hexutil.Big    `json:"value"`
 	Data     *hexutil.Bytes  `json:"input"`
 	V        *hexutil.Big    `json:"v"`
@@ -43,8 +43,8 @@ func (t *Transaction) MarshalJSON() ([]byte, error) {
 	switch tx := t.inner.(type) {
 	case *LegacyTx:
 		enc.Nonce = (*hexutil.Uint64)(&tx.Nonce)
-		enc.Gas = (*hexutil.Uint64)(&tx.Gas)
-		enc.GasPrice = (*hexutil.Big)(tx.GasPrice)
+		enc.Smoke = (*hexutil.Uint64)(&tx.Smoke)
+		enc.SmokePrice = (*hexutil.Big)(tx.SmokePrice)
 		enc.Value = (*hexutil.Big)(tx.Value)
 		enc.Data = (*hexutil.Bytes)(&tx.Data)
 		enc.To = t.To()
@@ -55,8 +55,8 @@ func (t *Transaction) MarshalJSON() ([]byte, error) {
 		enc.ChainID = (*hexutil.Big)(tx.ChainID)
 		enc.AccessList = &tx.AccessList
 		enc.Nonce = (*hexutil.Uint64)(&tx.Nonce)
-		enc.Gas = (*hexutil.Uint64)(&tx.Gas)
-		enc.GasPrice = (*hexutil.Big)(tx.GasPrice)
+		enc.Smoke = (*hexutil.Uint64)(&tx.Smoke)
+		enc.SmokePrice = (*hexutil.Big)(tx.SmokePrice)
 		enc.Value = (*hexutil.Big)(tx.Value)
 		enc.Data = (*hexutil.Bytes)(&tx.Data)
 		enc.To = t.To()
@@ -87,14 +87,14 @@ func (t *Transaction) UnmarshalJSON(input []byte) error {
 			return errors.New("missing required field 'nonce' in transaction")
 		}
 		itx.Nonce = uint64(*dec.Nonce)
-		if dec.GasPrice == nil {
-			return errors.New("missing required field 'gasPrice' in transaction")
+		if dec.SmokePrice == nil {
+			return errors.New("missing required field 'smokePrice' in transaction")
 		}
-		itx.GasPrice = (*big.Int)(dec.GasPrice)
-		if dec.Gas == nil {
-			return errors.New("missing required field 'gas' in transaction")
+		itx.SmokePrice = (*big.Int)(dec.SmokePrice)
+		if dec.Smoke == nil {
+			return errors.New("missing required field 'smoke' in transaction")
 		}
-		itx.Gas = uint64(*dec.Gas)
+		itx.Smoke = uint64(*dec.Smoke)
 		if dec.Value == nil {
 			return errors.New("missing required field 'value' in transaction")
 		}
@@ -140,14 +140,14 @@ func (t *Transaction) UnmarshalJSON(input []byte) error {
 			return errors.New("missing required field 'nonce' in transaction")
 		}
 		itx.Nonce = uint64(*dec.Nonce)
-		if dec.GasPrice == nil {
-			return errors.New("missing required field 'gasPrice' in transaction")
+		if dec.SmokePrice == nil {
+			return errors.New("missing required field 'smokePrice' in transaction")
 		}
-		itx.GasPrice = (*big.Int)(dec.GasPrice)
-		if dec.Gas == nil {
-			return errors.New("missing required field 'gas' in transaction")
+		itx.SmokePrice = (*big.Int)(dec.SmokePrice)
+		if dec.Smoke == nil {
+			return errors.New("missing required field 'smoke' in transaction")
 		}
-		itx.Gas = uint64(*dec.Gas)
+		itx.Smoke = uint64(*dec.Smoke)
 		if dec.Value == nil {
 			return errors.New("missing required field 'value' in transaction")
 		}

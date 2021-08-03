@@ -23,7 +23,7 @@ import (
 
 	"github.com/420integrated/go-highcoin/common"
 	"github.com/420integrated/go-highcoin/core/rawdb"
-	"github.com/420integrated/go-highcoin/ethdb"
+	"github.com/420integrated/go-highcoin/highdb"
 )
 
 // Iterator is an iterator to step over all the accounts or the specific
@@ -163,7 +163,7 @@ func (it *diffAccountIterator) Release() {}
 // contained within a disk layer.
 type diskAccountIterator struct {
 	layer *diskLayer
-	it    ethdb.Iterator
+	it    highdb.Iterator
 }
 
 // AccountIterator creates an account iterator over a disk layer.
@@ -332,7 +332,7 @@ func (it *diffStorageIterator) Release() {}
 type diskStorageIterator struct {
 	layer   *diskLayer
 	account common.Hash
-	it      ethdb.Iterator
+	it      highdb.Iterator
 }
 
 // StorageIterator creates a storage iterator over a disk layer.

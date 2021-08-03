@@ -27,13 +27,13 @@ import (
 	"github.com/420integrated/go-highcoin/common"
 	"github.com/420integrated/go-highcoin/consensus"
 	"github.com/420integrated/go-highcoin/consensus/clique"
-	"github.com/420integrated/go-highcoin/consensus/othash"
+	"github.com/420integrated/go-highcoin/consensus/ethash"
 	"github.com/420integrated/go-highcoin/core"
 	"github.com/420integrated/go-highcoin/core/rawdb"
 	"github.com/420integrated/go-highcoin/core/types"
 	"github.com/420integrated/go-highcoin/core/vm"
 	"github.com/420integrated/go-highcoin/crypto"
-	"github.com/420integrated/go-highcoin/ethdb"
+	"github.com/420integrated/go-highcoin/highdb"
 	"github.com/420integrated/go-highcoin/event"
 	"github.com/420integrated/go-highcoin/params"
 )
@@ -43,14 +43,14 @@ const (
 	// variables in constructor
 	testCode = "0x60806040527fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff0060005534801561003457600080fd5b5060fc806100436000396000f3fe6080604052348015600f57600080fd5b506004361060325760003560e01c80630c4dae8814603757806398a213cf146053575b600080fd5b603d607e565b6040518082815260200191505060405180910390f35b607c60048036036020811015606757600080fd5b81019080803590602001909291905050506084565b005b60005481565b806000819055507fe9e44f9f7da8c559de847a3232b57364adc0354f15a2cd8dc636d54396f9587a6000546040518082815260200191505060405180910390a15056fea265627a7a723058208ae31d9424f2d0bc2a3da1a5dd659db2d71ec322a17db8f87e19e209e3a1ff4a64736f6c634300050a0032"
 
-	// testGas is the gas required for contract deployment.
-	testGas = 144109
+	// testSmoke is the smoke required for contract deployment.
+	testSmoke = 144109
 )
 
 var (
 	// Test chain configurations
 	testTxPoolConfig  core.TxPoolConfig
-	othashChainConfig *params.ChainConfig
+	ethashChainConfig *params.ChainConfig
 	cliqueChainConfig *params.ChainConfig
 
 	// Test accounts
@@ -67,15 +67,15 @@ var (
 
 	testConfig = &Config{
 		Recommit: time.Second,
-		GasFloor: params.GenesisGasLimit,
-		GasCeil:  params.GenesisGasLimit,
+		SmokeFloor: params.GenesisSmokeLimit,
+		SmokeCeil:  params.GenesisSmokeLimit,
 	}
 )
 
 func init() {
 	testTxPoolConfig = core.DefaultTxPoolConfig
 	testTxPoolConfig.Journal = ""
-	othashChainConfig = params.TestChainConfig
+	ethashChainConfig = params.TestChainConfig
 	cliqueChainConfig = params.TestChainConfig
 	cliqueChainConfig.Clique = &params.CliqueConfig{
 		Period: 10,
@@ -88,7 +88,7 @@ func init() {
 		Nonce:   0,
 		To:      &testUserAddress,
 		Value:   big.NewInt(1000),
-		Gas:     params.TxGas,
+		Smoke:     params.TxSmoke,
 	})
 	pendingTxs = append(pendingTxs, tx1)
 
@@ -96,7 +96,7 @@ func init() {
 		Nonce: 1,
 		To:    &testUserAddress,
 		Value: big.NewInt(1000),
-		Gas:   params.TxGas,
+		Smoke:   params.TxSmoke,
 	})
 	newTxs = append(newTxs, tx2)
 
@@ -105,7 +105,7 @@ func init() {
 
 // testWorkerBackend implements worker.Backend interfaces and wraps all information needed during the testing.
 type testWorkerBackend struct {
-	db         ethdb.Database
+	db         highdb.Database
 	txPool     *core.TxPool
 	chain      *core.BlockChain
 	testTxFeed event.Feed
@@ -113,7 +113,7 @@ type testWorkerBackend struct {
 	uncleBlock *types.Block
 }
 
-func newTestWorkerBackend(t *testing.T, chainConfig *params.ChainConfig, engine consensus.Engine, db ethdb.Database, n int) *testWorkerBackend {
+func newTestWorkerBackend(t *testing.T, chainConfig *params.ChainConfig, engine consensus.Engine, db highdb.Database, n int) *testWorkerBackend {
 	var gspec = core.Genesis{
 		Config: chainConfig,
 		Alloc:  core.GenesisAlloc{testBankAddress: {Balance: testBankFunds}},
@@ -126,7 +126,7 @@ func newTestWorkerBackend(t *testing.T, chainConfig *params.ChainConfig, engine 
 		e.Authorize(testBankAddress, func(account accounts.Account, s string, data []byte) ([]byte, error) {
 			return crypto.Sign(crypto.Keccak256(data), testBankKey)
 		})
-	case *othash.Ethash:
+	case *ethash.Ethash:
 	default:
 		t.Fatalf("unexpected consensus engine type: %T", engine)
 	}
@@ -183,14 +183,14 @@ func (b *testWorkerBackend) newRandomUncle() *types.Block {
 func (b *testWorkerBackend) newRandomTx(creation bool) *types.Transaction {
 	var tx *types.Transaction
 	if creation {
-		tx, _ = types.SignTx(types.NewContractCreation(b.txPool.Nonce(testBankAddress), big.NewInt(0), testGas, nil, common.FromHex(testCode)), types.HomesteadSigner{}, testBankKey)
+		tx, _ = types.SignTx(types.NewContractCreation(b.txPool.Nonce(testBankAddress), big.NewInt(0), testSmoke, nil, common.FromHex(testCode)), types.HomesteadSigner{}, testBankKey)
 	} else {
-		tx, _ = types.SignTx(types.NewTransaction(b.txPool.Nonce(testBankAddress), testUserAddress, big.NewInt(1000), params.TxGas, nil, nil), types.HomesteadSigner{}, testBankKey)
+		tx, _ = types.SignTx(types.NewTransaction(b.txPool.Nonce(testBankAddress), testUserAddress, big.NewInt(1000), params.TxSmoke, nil, nil), types.HomesteadSigner{}, testBankKey)
 	}
 	return tx
 }
 
-func newTestWorker(t *testing.T, chainConfig *params.ChainConfig, engine consensus.Engine, db ethdb.Database, blocks int) (*worker, *testWorkerBackend) {
+func newTestWorker(t *testing.T, chainConfig *params.ChainConfig, engine consensus.Engine, db highdb.Database, blocks int) (*worker, *testWorkerBackend) {
 	backend := newTestWorkerBackend(t, chainConfig, engine, db, blocks)
 	backend.txPool.AddLocals(pendingTxs)
 	w := newWorker(testConfig, chainConfig, engine, backend, new(event.TypeMux), nil, false)
@@ -218,7 +218,7 @@ func testGenerateBlockAndImport(t *testing.T, isClique bool) {
 		engine = clique.New(chainConfig.Clique, db)
 	} else {
 		chainConfig = params.AllEthashProtocolChanges
-		engine = othash.NewFaker()
+		engine = ethash.NewFaker()
 	}
 
 	w, b := newTestWorker(t, chainConfig, engine, db, 0)
@@ -261,7 +261,7 @@ func testGenerateBlockAndImport(t *testing.T, isClique bool) {
 }
 
 func TestEmptyWorkEthash(t *testing.T) {
-	testEmptyWork(t, othashChainConfig, othash.NewFaker())
+	testEmptyWork(t, ethashChainConfig, ethash.NewFaker())
 }
 func TestEmptyWorkClique(t *testing.T) {
 	testEmptyWork(t, cliqueChainConfig, clique.New(cliqueChainConfig.Clique, rawdb.NewMemoryDatabase()))
@@ -313,10 +313,10 @@ func testEmptyWork(t *testing.T, chainConfig *params.ChainConfig, engine consens
 }
 
 func TestStreamUncleBlock(t *testing.T) {
-	othash := othash.NewFaker()
-	defer othash.Close()
+	ethash := ethash.NewFaker()
+	defer ethash.Close()
 
-	w, b := newTestWorker(t, othashChainConfig, othash, rawdb.NewMemoryDatabase(), 1)
+	w, b := newTestWorker(t, ethashChainConfig, ethash, rawdb.NewMemoryDatabase(), 1)
 	defer w.close()
 
 	var taskCh = make(chan struct{})
@@ -364,7 +364,7 @@ func TestStreamUncleBlock(t *testing.T) {
 }
 
 func TestRegenerateMiningBlockEthash(t *testing.T) {
-	testRegenerateMiningBlock(t, othashChainConfig, othash.NewFaker())
+	testRegenerateMiningBlock(t, ethashChainConfig, ethash.NewFaker())
 }
 
 func TestRegenerateMiningBlockClique(t *testing.T) {
@@ -424,7 +424,7 @@ func testRegenerateMiningBlock(t *testing.T, chainConfig *params.ChainConfig, en
 }
 
 func TestAdjustIntervalEthash(t *testing.T) {
-	testAdjustInterval(t, othashChainConfig, othash.NewFaker())
+	testAdjustInterval(t, ethashChainConfig, ethash.NewFaker())
 }
 
 func TestAdjustIntervalClique(t *testing.T) {

@@ -34,7 +34,7 @@ func (w *wizard) deployNode(boot bool) {
 		return
 	}
 	if w.conf.highstats == "" {
-		log.Error("No ethstats server configured")
+		log.Error("No highstats server configured")
 		return
 	}
 	// Select the server to interact with
@@ -50,7 +50,7 @@ func (w *wizard) deployNode(boot bool) {
 		if boot {
 			infos = &nodeInfos{port: 30303, peersTotal: 512, peersLight: 256}
 		} else {
-			infos = &nodeInfos{port: 30303, peersTotal: 50, peersLight: 0, gasTarget: 7.5, gasLimit: 10, gasPrice: 1}
+			infos = &nodeInfos{port: 30303, peersTotal: 50, peersLight: 0, smokeTarget: 7.5, smokeLimit: 10, smokePrice: 1}
 		}
 	}
 	existed := err == nil
@@ -69,12 +69,12 @@ func (w *wizard) deployNode(boot bool) {
 	}
 	if w.conf.Genesis.Config.Ethash != nil && !boot {
 		fmt.Println()
-		if infos.othashdir == "" {
-			fmt.Printf("Where should the othash mining DAGs be stored on the remote machine?\n")
-			infos.othashdir = w.readString()
+		if infos.ethashdir == "" {
+			fmt.Printf("Where should the ethash mining DAGs be stored on the remote machine?\n")
+			infos.ethashdir = w.readString()
 		} else {
-			fmt.Printf("Where should the othash mining DAGs be stored on the remote machine? (default = %s)\n", infos.othashdir)
-			infos.othashdir = w.readDefaultString(infos.othashdir)
+			fmt.Printf("Where should the ethash mining DAGs be stored on the remote machine? (default = %s)\n", infos.ethashdir)
+			infos.ethashdir = w.readDefaultString(infos.ethashdir)
 		}
 	}
 	// Figure out which port to listen on
@@ -147,18 +147,18 @@ func (w *wizard) deployNode(boot bool) {
 				}
 			}
 		}
-		// Establish the gas dynamics to be enforced by the signer
+		// Establish the smoke dynamics to be enforced by the signer
 		fmt.Println()
-		fmt.Printf("What gas limit should empty blocks target (MGas)? (default = %0.3f)\n", infos.gasTarget)
-		infos.gasTarget = w.readDefaultFloat(infos.gasTarget)
+		fmt.Printf("What smoke limit should empty blocks target (MSmoke)? (default = %0.3f)\n", infos.smokeTarget)
+		infos.smokeTarget = w.readDefaultFloat(infos.smokeTarget)
 
 		fmt.Println()
-		fmt.Printf("What gas limit should full blocks target (MGas)? (default = %0.3f)\n", infos.gasLimit)
-		infos.gasLimit = w.readDefaultFloat(infos.gasLimit)
+		fmt.Printf("What smoke limit should full blocks target (MSmoke)? (default = %0.3f)\n", infos.smokeLimit)
+		infos.smokeLimit = w.readDefaultFloat(infos.smokeLimit)
 
 		fmt.Println()
-		fmt.Printf("What gas price should the signer require (GMarleys)? (default = %0.3f)\n", infos.gasPrice)
-		infos.gasPrice = w.readDefaultFloat(infos.gasPrice)
+		fmt.Printf("What smoke price should the signer require (GMarleys)? (default = %0.3f)\n", infos.smokePrice)
+		infos.smokePrice = w.readDefaultFloat(infos.smokePrice)
 	}
 	// Try to deploy the full node on the host
 	nocache := false

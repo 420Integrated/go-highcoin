@@ -50,8 +50,8 @@ type TransactOpts struct {
 	Signer SignerFn       // Method to use for signing the transaction (mandatory)
 
 	Value    *big.Int // Funds to transfer along the transaction (nil = 0 = no funds)
-	GasPrice *big.Int // Gas price to use for the transaction execution (nil = gas price oracle)
-	GasLimit uint64   // Gas limit to set for the transaction execution (0 = estimate)
+	SmokePrice *big.Int // Smoke price to use for the transaction execution (nil = smoke price oracle)
+	SmokeLimit uint64   // Smoke limit to set for the transaction execution (0 = estimate)
 
 	Context context.Context // Network context to support cancellation and timeouts (nil = no timeout)
 }
@@ -221,17 +221,17 @@ func (c *BoundContract) transact(opts *TransactOpts, contract *common.Address, i
 	} else {
 		nonce = opts.Nonce.Uint64()
 	}
-	// Figure out the gas allowance and gas price values
-	gasPrice := opts.GasPrice
-	if gasPrice == nil {
-		gasPrice, err = c.transactor.SuggestGasPrice(ensureContext(opts.Context))
+	// Figure out the smoke allowance and smoke price values
+	smokePrice := opts.SmokePrice
+	if smokePrice == nil {
+		smokePrice, err = c.transactor.SuggestSmokePrice(ensureContext(opts.Context))
 		if err != nil {
-			return nil, fmt.Errorf("failed to suggest gas price: %v", err)
+			return nil, fmt.Errorf("failed to suggest smoke price: %v", err)
 		}
 	}
-	gasLimit := opts.GasLimit
-	if gasLimit == 0 {
-		// Gas estimation cannot succeed without code for method invocations
+	smokeLimit := opts.SmokeLimit
+	if smokeLimit == 0 {
+		// Smoke estimation cannot succeed without code for method invocations
 		if contract != nil {
 			if code, err := c.transactor.PendingCodeAt(ensureContext(opts.Context), c.address); err != nil {
 				return nil, err
@@ -240,18 +240,18 @@ func (c *BoundContract) transact(opts *TransactOpts, contract *common.Address, i
 			}
 		}
 		// If the contract surely has code (or code is not needed), estimate the transaction
-		msg := highcoin.CallMsg{From: opts.From, To: contract, GasPrice: gasPrice, Value: value, Data: input}
-		gasLimit, err = c.transactor.EstimateGas(ensureContext(opts.Context), msg)
+		msg := highcoin.CallMsg{From: opts.From, To: contract, SmokePrice: smokePrice, Value: value, Data: input}
+		smokeLimit, err = c.transactor.EstimateSmoke(ensureContext(opts.Context), msg)
 		if err != nil {
-			return nil, fmt.Errorf("failed to estimate gas needed: %v", err)
+			return nil, fmt.Errorf("failed to estimate smoke needed: %v", err)
 		}
 	}
 	// Create the transaction, sign it and schedule it for execution
 	var rawTx *types.Transaction
 	if contract == nil {
-		rawTx = types.NewContractCreation(nonce, value, gasLimit, gasPrice, input)
+		rawTx = types.NewContractCreation(nonce, value, smokeLimit, smokePrice, input)
 	} else {
-		rawTx = types.NewTransaction(nonce, c.address, value, gasLimit, gasPrice, input)
+		rawTx = types.NewTransaction(nonce, c.address, value, smokeLimit, smokePrice, input)
 	}
 	if opts.Signer == nil {
 		return nil, errors.New("no signer to authorize the transaction with")

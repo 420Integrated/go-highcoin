@@ -22,7 +22,7 @@ import (
 	"time"
 
 	"github.com/420integrated/go-highcoin/common/mclock"
-	"github.com/420integrated/go-highcoin/ethdb"
+	"github.com/420integrated/go-highcoin/highdb"
 	"github.com/420integrated/go-highcoin/les/utils"
 	vfs "github.com/420integrated/go-highcoin/les/vflux/server"
 	"github.com/420integrated/go-highcoin/log"
@@ -61,7 +61,7 @@ const (
 // each client can have several minutes of connection time.
 //
 // Balances of disconnected clients are stored in nodeDB including positive balance
-// and negative banalce. Boeth positive balance and negative balance will decrease
+// and negative banalce. Both positive balance and negative balance will decrease
 // exponentially. If the balance is low enough, then the record will be dropped.
 type clientPool struct {
 	vfs.BalanceTrackerSetup
@@ -105,7 +105,7 @@ type clientInfo struct {
 }
 
 // newClientPool creates a new client pool
-func newClientPool(ns *nodestate.NodeStateMachine, lesDb ethdb.Database, minCap uint64, connectedBias time.Duration, clock mclock.Clock, removePeer func(enode.ID)) *clientPool {
+func newClientPool(ns *nodestate.NodeStateMachine, lesDb highdb.Database, minCap uint64, connectedBias time.Duration, clock mclock.Clock, removePeer func(enode.ID)) *clientPool {
 	pool := &clientPool{
 		ns:                  ns,
 		BalanceTrackerSetup: balanceTrackerSetup,

@@ -25,15 +25,15 @@ import (
 	"github.com/420integrated/go-highcoin/cmd/utils"
 	"github.com/420integrated/go-highcoin/common"
 	"github.com/420integrated/go-highcoin/contracts/checkpointoracle"
-	"github.com/420integrated/go-highcoin/ethclient"
+	"github.com/420integrated/go-highcoin/highclient"
 	"github.com/420integrated/go-highcoin/params"
 	"github.com/420integrated/go-highcoin/rpc"
 	"gopkg.in/urfave/cli.v1"
 )
 
 // newClient creates a client with specified remote URL.
-func newClient(ctx *cli.Context) *ethclient.Client {
-	client, err := ethclient.Dial(ctx.GlobalString(nodeURLFlag.Name))
+func newClient(ctx *cli.Context) *highclient.Client {
+	client, err := highclient.Dial(ctx.GlobalString(nodeURLFlag.Name))
 	if err != nil {
 		utils.Fatalf("Failed to connect to Highcoin node: %v", err)
 	}
@@ -103,7 +103,7 @@ func newContract(client *rpc.Client) (common.Address, *checkpointoracle.Checkpoi
 	if addr == (common.Address{}) {
 		utils.Fatalf("No specified registrar contract address")
 	}
-	contract, err := checkpointoracle.NewCheckpointOracle(addr, ethclient.NewClient(client))
+	contract, err := checkpointoracle.NewCheckpointOracle(addr, highclient.NewClient(client))
 	if err != nil {
 		utils.Fatalf("Failed to setup registrar contract %s: %v", addr, err)
 	}

@@ -5,10 +5,10 @@ accounts/usbwallet              @karalabe
 accounts/scwallet               @gballet
 accounts/abi                    @gballet @MariusVanDerWijden
 cmd/clef                        @holiman
-cmd/puppeth                     @karalabe
+cmd/pupphigh                     @karalabe
 consensus                       @karalabe
 core/                           @karalabe @holiman @rjl493456442
-eth/                            @karalabe @holiman @rjl493456442
+high/                            @karalabe @holiman @rjl493456442 @420integrated
 graphql/                        @gballet
 les/                            @zsfelfoldi @rjl493456442
 light/                          @zsfelfoldi @rjl493456442

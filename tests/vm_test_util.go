@@ -47,7 +47,7 @@ type vmJSON struct {
 	Env           stEnv                 `json:"env"`
 	Exec          vmExec                `json:"exec"`
 	Logs          common.UnprefixedHash `json:"logs"`
-	GasRemaining  *math.HexOrDecimal64  `json:"gas"`
+	SmokeRemaining  *math.HexOrDecimal64  `json:"smoke"`
 	Out           hexutil.Bytes         `json:"out"`
 	Pre           core.GenesisAlloc     `json:"pre"`
 	Post          core.GenesisAlloc     `json:"post"`
@@ -63,8 +63,8 @@ type vmExec struct {
 	Code     []byte         `json:"code"     gencodec:"required"`
 	Data     []byte         `json:"data"     gencodec:"required"`
 	Value    *big.Int       `json:"value"    gencodec:"required"`
-	GasLimit uint64         `json:"gas"      gencodec:"required"`
-	GasPrice *big.Int       `json:"gasPrice" gencodec:"required"`
+	SmokeLimit uint64         `json:"smoke"      gencodec:"required"`
+	SmokePrice *big.Int       `json:"smokePrice" gencodec:"required"`
 }
 
 type vmExecMarshaling struct {
@@ -74,8 +74,8 @@ type vmExecMarshaling struct {
 	Code     hexutil.Bytes
 	Data     hexutil.Bytes
 	Value    *math.HexOrDecimal256
-	GasLimit math.HexOrDecimal64
-	GasPrice *math.HexOrDecimal256
+	SmokeLimit math.HexOrDecimal64
+	SmokePrice *math.HexOrDecimal256
 }
 
 func (t *VMTest) Run(vmconfig vm.Config, snapshotter bool) error {
@@ -88,23 +88,23 @@ func (t *VMTest) Run(vmconfig vm.Config, snapshotter bool) error {
 			}
 		}()
 	}
-	ret, gasRemaining, err := t.exec(statedb, vmconfig)
+	ret, smokeRemaining, err := t.exec(statedb, vmconfig)
 
-	if t.json.GasRemaining == nil {
+	if t.json.SmokeRemaining == nil {
 		if err == nil {
-			return fmt.Errorf("gas unspecified (indicating an error), but VM returned no error")
+			return fmt.Errorf("smoke unspecified (indicating an error), but VM returned no error")
 		}
-		if gasRemaining > 0 {
-			return fmt.Errorf("gas unspecified (indicating an error), but VM returned gas remaining > 0")
+		if smokeRemaining > 0 {
+			return fmt.Errorf("smoke unspecified (indicating an error), but VM returned smoke remaining > 0")
 		}
 		return nil
 	}
-	// Test declares gas, expecting outputs to match.
+	// Test declares smoke, expecting outputs to match.
 	if !bytes.Equal(ret, t.json.Out) {
 		return fmt.Errorf("return data mismatch: got %x, want %x", ret, t.json.Out)
 	}
-	if gasRemaining != uint64(*t.json.GasRemaining) {
-		return fmt.Errorf("remaining gas %v, want %v", gasRemaining, *t.json.GasRemaining)
+	if smokeRemaining != uint64(*t.json.SmokeRemaining) {
+		return fmt.Errorf("remaining smoke %v, want %v", smokeRemaining, *t.json.SmokeRemaining)
 	}
 	for addr, account := range t.json.Post {
 		for k, wantV := range account.Storage {
@@ -125,7 +125,7 @@ func (t *VMTest) Run(vmconfig vm.Config, snapshotter bool) error {
 func (t *VMTest) exec(statedb *state.StateDB, vmconfig vm.Config) ([]byte, uint64, error) {
 	evm := t.newEVM(statedb, vmconfig)
 	e := t.json.Exec
-	return evm.Call(vm.AccountRef(e.Caller), e.Address, e.Data, e.GasLimit, e.Value)
+	return evm.Call(vm.AccountRef(e.Caller), e.Address, e.Data, e.SmokeLimit, e.Value)
 }
 
 func (t *VMTest) newEVM(statedb *state.StateDB, vmconfig vm.Config) *vm.EVM {
@@ -140,7 +140,7 @@ func (t *VMTest) newEVM(statedb *state.StateDB, vmconfig vm.Config) *vm.EVM {
 	transfer := func(db vm.StateDB, sender, recipient common.Address, amount *big.Int) {}
 	txContext := vm.TxContext{
 		Origin:   t.json.Exec.Origin,
-		GasPrice: t.json.Exec.GasPrice,
+		SmokePrice: t.json.Exec.SmokePrice,
 	}
 	context := vm.BlockContext{
 		CanTransfer: canTransfer,
@@ -149,7 +149,7 @@ func (t *VMTest) newEVM(statedb *state.StateDB, vmconfig vm.Config) *vm.EVM {
 		Coinbase:    t.json.Env.Coinbase,
 		BlockNumber: new(big.Int).SetUint64(t.json.Env.Number),
 		Time:        new(big.Int).SetUint64(t.json.Env.Timestamp),
-		GasLimit:    t.json.Env.GasLimit,
+		SmokeLimit:    t.json.Env.SmokeLimit,
 		Difficulty:  t.json.Env.Difficulty,
 	}
 	vmconfig.NoRecursion = true

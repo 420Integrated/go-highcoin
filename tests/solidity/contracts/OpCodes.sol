@@ -172,8 +172,8 @@ contract OpCodes {
      //origin
      assembly { pop(origin()) }
 
-     //gas
-     assembly {  pop(gas())}
+     //smoke
+     assembly {  pop(smoke())}
 
      //msize
      assembly {  pop(msize())}
@@ -181,8 +181,8 @@ contract OpCodes {
      //pc
      assembly {  pop(pc())}
 
-     //gasprice
-     assembly {  pop(gasprice())}
+     //smokeprice
+     assembly {  pop(smokeprice())}
 
      //coinbase
      assembly {  pop(coinbase())}
@@ -196,8 +196,8 @@ contract OpCodes {
      //difficulty
      assembly {  pop(difficulty())}
 
-     //gaslimit
-     assembly {  pop(gaslimit())}
+     //smokelimit
+     assembly {  pop(smokelimit())}
 
      //call
      address contractAddr = address(test1);
@@ -213,7 +213,7 @@ contract OpCodes {
           // new free pointer position after the output values of the called function.
 
          let success := call(
-                         5000, //5k gas
+                         5000, //5k smoke
                          contractAddr, //To addr
                          0,    //No marleys passed
                          x,    // Inputs are at location x
@@ -232,7 +232,7 @@ contract OpCodes {
           // new free pointer position after the output values of the called function.
 
          let success := callcode(
-                         5000, //5k gas
+                         5000, //5k smoke
                          contractAddr, //To addr
                          0,    //No marleys passed
                          x,    // Inputs are at location x
@@ -251,7 +251,7 @@ contract OpCodes {
           // new free pointer position after the output values of the called function.
 
          let success := delegatecall(
-                         5000, //5k gas
+                         5000, //5k smoke
                          contractAddr, //To addr
                          x,    // Inputs are at location x
                          0x44, //Inputs size two padded, so 68 bytes

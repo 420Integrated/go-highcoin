@@ -30,9 +30,9 @@ import (
 	"github.com/420integrated/go-highcoin/core/state"
 	"github.com/420integrated/go-highcoin/core/types"
 	"github.com/420integrated/go-highcoin/core/vm"
-	"github.com/420integrated/go-highcoin/eth/downloader"
-	"github.com/420integrated/go-highcoin/eth/gasprice"
-	"github.com/420integrated/go-highcoin/ethdb"
+	"github.com/420integrated/go-highcoin/high/downloader"
+	"github.com/420integrated/go-highcoin/high/smokeprice"
+	"github.com/420integrated/go-highcoin/highdb"
 	"github.com/420integrated/go-highcoin/event"
 	"github.com/420integrated/go-highcoin/light"
 	"github.com/420integrated/go-highcoin/params"
@@ -42,8 +42,8 @@ import (
 type LesApiBackend struct {
 	extRPCEnabled       bool
 	allowUnprotectedTxs bool
-	eth                 *LightHighcoin
-	gpo                 *gasprice.Oracle
+	high                 *LightHighcoin
+	gpo                 *smokeprice.Oracle
 }
 
 func (b *LesApiBackend) ChainConfig() *params.ChainConfig {
@@ -252,7 +252,7 @@ func (b *LesApiBackend) SuggestPrice(ctx context.Context) (*big.Int, error) {
 	return b.gpo.SuggestPrice(ctx)
 }
 
-func (b *LesApiBackend) ChainDb() ethdb.Database {
+func (b *LesApiBackend) ChainDb() highdb.Database {
 	return b.high.chainDb
 }
 
@@ -268,8 +268,8 @@ func (b *LesApiBackend) UnprotectedAllowed() bool {
 	return b.allowUnprotectedTxs
 }
 
-func (b *LesApiBackend) RPCGasCap() uint64 {
-	return b.high.config.RPCGasCap
+func (b *LesApiBackend) RPCSmokeCap() uint64 {
+	return b.high.config.RPCSmokeCap
 }
 
 func (b *LesApiBackend) RPCTxFeeCap() float64 {

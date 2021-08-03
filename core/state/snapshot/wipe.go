@@ -22,7 +22,7 @@ import (
 
 	"github.com/420integrated/go-highcoin/common"
 	"github.com/420integrated/go-highcoin/core/rawdb"
-	"github.com/420integrated/go-highcoin/ethdb"
+	"github.com/420integrated/go-highcoin/highdb"
 	"github.com/420integrated/go-highcoin/log"
 )
 
@@ -30,7 +30,7 @@ import (
 // and delete all the  data associated with the snapshot (accounts, storage,
 // metadata). After all is done, the snapshot range of the database is compacted
 // to free up unused data blocks.
-func wipeSnapshot(db ethdb.KeyValueStore, full bool) chan struct{} {
+func wipeSnapshot(db highdb.KeyValueStore, full bool) chan struct{} {
 	// Wipe the snapshot root marker synchronously
 	if full {
 		rawdb.DeleteSnapshotRoot(db)
@@ -52,7 +52,7 @@ func wipeSnapshot(db ethdb.KeyValueStore, full bool) chan struct{} {
 // as the wiper is meant to run on a background thread but the root needs to be
 // removed in sync to avoid data races. After all is done, the snapshot range of
 // the database is compacted to free up unused data blocks.
-func wipeContent(db ethdb.KeyValueStore) error {
+func wipeContent(db highdb.KeyValueStore) error {
 	if err := wipeKeyRange(db, "accounts", rawdb.SnapshotAccountPrefix, len(rawdb.SnapshotAccountPrefix)+common.HashLength); err != nil {
 		return err
 	}
@@ -83,7 +83,7 @@ func wipeContent(db ethdb.KeyValueStore) error {
 
 // wipeKeyRange deletes a range of keys from the database starting with prefix
 // and having a specific total key length.
-func wipeKeyRange(db ethdb.KeyValueStore, kind string, prefix []byte, keylen int) error {
+func wipeKeyRange(db highdb.KeyValueStore, kind string, prefix []byte, keylen int) error {
 	// Batch deletions togither to avoid holding an iterator for too long
 	var (
 		batch = db.NewBatch()

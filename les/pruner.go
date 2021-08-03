@@ -22,20 +22,20 @@ import (
 
 	"github.com/420integrated/go-highcoin/common/math"
 	"github.com/420integrated/go-highcoin/core"
-	"github.com/420integrated/go-highcoin/ethdb"
+	"github.com/420integrated/go-highcoin/highdb"
 	"github.com/420integrated/go-highcoin/log"
 )
 
 // pruner is responsible for pruning historical light chain data.
 type pruner struct {
-	db       ethdb.Database
+	db       highdb.Database
 	indexers []*core.ChainIndexer
 	closeCh  chan struct{}
 	wg       sync.WaitGroup
 }
 
 // newPruner returns a light chain pruner instance.
-func newPruner(db ethdb.Database, indexers ...*core.ChainIndexer) *pruner {
+func newPruner(db highdb.Database, indexers ...*core.ChainIndexer) *pruner {
 	pruner := &pruner{
 		db:       db,
 		indexers: indexers,

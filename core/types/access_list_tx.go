@@ -46,8 +46,8 @@ func (al AccessList) StorageKeys() int {
 type AccessListTx struct {
 	ChainID    *big.Int        // destination chain ID
 	Nonce      uint64          // nonce of sender account
-	GasPrice   *big.Int        // marleys per gas
-	Gas        uint64          // gas limit
+	SmokePrice   *big.Int        // marleys per smoke
+	Smoke        uint64          // smoke limit
 	To         *common.Address `rlp:"nil"` // nil means contract creation
 	Value      *big.Int        // marleys amount
 	Data       []byte          // contract invocation input data
@@ -61,12 +61,12 @@ func (tx *AccessListTx) copy() TxData {
 		Nonce: tx.Nonce,
 		To:    tx.To, // TODO: copy pointed-to address
 		Data:  common.CopyBytes(tx.Data),
-		Gas:   tx.Gas,
+		Smoke:   tx.Smoke,
 		// These are copied below.
 		AccessList: make(AccessList, len(tx.AccessList)),
 		Value:      new(big.Int),
 		ChainID:    new(big.Int),
-		GasPrice:   new(big.Int),
+		SmokePrice:   new(big.Int),
 		V:          new(big.Int),
 		R:          new(big.Int),
 		S:          new(big.Int),
@@ -78,8 +78,8 @@ func (tx *AccessListTx) copy() TxData {
 	if tx.ChainID != nil {
 		cpy.ChainID.Set(tx.ChainID)
 	}
-	if tx.GasPrice != nil {
-		cpy.GasPrice.Set(tx.GasPrice)
+	if tx.SmokePrice != nil {
+		cpy.SmokePrice.Set(tx.SmokePrice)
 	}
 	if tx.V != nil {
 		cpy.V.Set(tx.V)
@@ -100,8 +100,8 @@ func (tx *AccessListTx) chainID() *big.Int      { return tx.ChainID }
 func (tx *AccessListTx) protected() bool        { return true }
 func (tx *AccessListTx) accessList() AccessList { return tx.AccessList }
 func (tx *AccessListTx) data() []byte           { return tx.Data }
-func (tx *AccessListTx) gas() uint64            { return tx.Gas }
-func (tx *AccessListTx) gasPrice() *big.Int     { return tx.GasPrice }
+func (tx *AccessListTx) smoke() uint64            { return tx.Smoke }
+func (tx *AccessListTx) smokePrice() *big.Int     { return tx.SmokePrice }
 func (tx *AccessListTx) value() *big.Int        { return tx.Value }
 func (tx *AccessListTx) nonce() uint64          { return tx.Nonce }
 func (tx *AccessListTx) to() *common.Address    { return tx.To }

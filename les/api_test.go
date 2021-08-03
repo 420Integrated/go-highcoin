@@ -30,10 +30,10 @@ import (
 
 	"github.com/420integrated/go-highcoin/common"
 	"github.com/420integrated/go-highcoin/common/hexutil"
-	"github.com/420integrated/go-highcoin/consensus/othash"
-	"github.com/420integrated/go-highcoin/eth"
-	"github.com/420integrated/go-highcoin/eth/downloader"
-	"github.com/420integrated/go-highcoin/eth/ethconfig"
+	"github.com/420integrated/go-highcoin/consensus/ethash"
+	"github.com/420integrated/go-highcoin/high"
+	"github.com/420integrated/go-highcoin/high/downloader"
+	"github.com/420integrated/go-highcoin/high/highconfig"
 	"github.com/420integrated/go-highcoin/les/flowcontrol"
 	"github.com/420integrated/go-highcoin/log"
 	"github.com/420integrated/go-highcoin/node"
@@ -304,7 +304,7 @@ func testCapacityAPI(t *testing.T, clientCount int) {
 
 func getHead(ctx context.Context, t *testing.T, client *rpc.Client) (uint64, common.Hash) {
 	res := make(map[string]interface{})
-	if err := client.CallContext(ctx, &res, "eth_getBlockByNumber", "latest", false); err != nil {
+	if err := client.CallContext(ctx, &res, "high_getBlockByNumber", "latest", false); err != nil {
 		t.Fatalf("Failed to obtain head block: %v", err)
 	}
 	numStr, ok := res["number"].(string)
@@ -329,7 +329,7 @@ func testRequest(ctx context.Context, t *testing.T, client *rpc.Client) bool {
 	rand.Read(addr[:])
 	c, cancel := context.WithTimeout(ctx, time.Second*12)
 	defer cancel()
-	err := client.CallContext(c, &res, "eth_getBalance", addr, "latest")
+	err := client.CallContext(c, &res, "high_getBalance", addr, "latest")
 	if err != nil {
 		t.Log("request error:", err)
 	}
@@ -493,14 +493,14 @@ func testSim(t *testing.T, serverCount, clientCount int, serverDir, clientDir []
 }
 
 func newLesClientService(ctx *adapters.ServiceContext, stack *node.Node) (node.Lifecycle, error) {
-	config := ethconfig.Defaults
+	config := highconfig.Defaults
 	config.SyncMode = downloader.LightSync
-	config.Ethash.PowMode = othash.ModeFake
+	config.Ethash.PowMode = ethash.ModeFake
 	return New(stack, &config)
 }
 
 func newLesServerService(ctx *adapters.ServiceContext, stack *node.Node) (node.Lifecycle, error) {
-	config := ethconfig.Defaults
+	config := highconfig.Defaults
 	config.SyncMode = downloader.FullSync
 	config.LightServ = testServerCapacity
 	config.LightPeers = testMaxClients

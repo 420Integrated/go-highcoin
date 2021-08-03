@@ -22,7 +22,7 @@ import (
 	"sync"
 
 	"github.com/420integrated/go-highcoin/common"
-	"github.com/420integrated/go-highcoin/ethdb"
+	"github.com/420integrated/go-highcoin/highdb"
 	"github.com/420integrated/go-highcoin/log"
 	"github.com/420integrated/go-highcoin/rlp"
 )
@@ -35,7 +35,7 @@ var stPool = sync.Pool{
 	},
 }
 
-func stackTrieFromPool(db ethdb.KeyValueWriter) *StackTrie {
+func stackTrieFromPool(db highdb.KeyValueWriter) *StackTrie {
 	st := stPool.Get().(*StackTrie)
 	st.db = db
 	return st
@@ -55,18 +55,18 @@ type StackTrie struct {
 	key       []byte               // key chunk covered by this (full|ext) node
 	keyOffset int                  // offset of the key chunk inside a full key
 	children  [16]*StackTrie       // list of children (for fullnodes and exts)
-	db        ethdb.KeyValueWriter // Pointer to the commit db, can be nil
+	db        highdb.KeyValueWriter // Pointer to the commit db, can be nil
 }
 
 // NewStackTrie allocates and initializes an empty trie.
-func NewStackTrie(db ethdb.KeyValueWriter) *StackTrie {
+func NewStackTrie(db highdb.KeyValueWriter) *StackTrie {
 	return &StackTrie{
 		nodeType: emptyNode,
 		db:       db,
 	}
 }
 
-func newLeaf(ko int, key, val []byte, db ethdb.KeyValueWriter) *StackTrie {
+func newLeaf(ko int, key, val []byte, db highdb.KeyValueWriter) *StackTrie {
 	st := stackTrieFromPool(db)
 	st.nodeType = leafNode
 	st.keyOffset = ko
@@ -75,7 +75,7 @@ func newLeaf(ko int, key, val []byte, db ethdb.KeyValueWriter) *StackTrie {
 	return st
 }
 
-func newExt(ko int, key []byte, child *StackTrie, db ethdb.KeyValueWriter) *StackTrie {
+func newExt(ko int, key []byte, child *StackTrie, db highdb.KeyValueWriter) *StackTrie {
 	st := stackTrieFromPool(db)
 	st.nodeType = extNode
 	st.keyOffset = ko

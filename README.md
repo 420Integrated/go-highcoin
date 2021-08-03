@@ -40,9 +40,9 @@ directory.
 |   `abigen`    | Source code generator to convert HighCoin contract definitions into easy to use, compile-time type-safe Go packages. It operates on plain [HighCoin contract ABIs](https://docs.soliditylang.org/en/develop/abi-spec.html) with expanded functionality if the contract bytecode is also available. However, it also accepts Solidity source files, making development much more streamlined. Please see our [Native DApps](https://highcoin.420integrated.com/docs/dapp/native-bindings) page for details. |
 |  `bootnode`   | Stripped down version of our HighCoin client implementation that only takes part in the network node discovery protocol, but does not run any of the higher level application protocols. It can be used as a lightweight bootstrap node to aid in finding peers in private networks.                                                                                                                                                                                                                                                                 |
 |     `evm`     | Developer utility version of the EVM (HighCoin Virtual Machine) that is capable of running bytecode snippets within a configurable environment and execution mode. Its purpose is to allow isolated, fine-grained debugging of EVM opcodes (e.g. `evm --code 60ff60ff --debug run`).                                                                                                                                                                                                                                                                     |
-| `highcoinrpctest` | Developer utility tool to support our [highcoin/rpc-test](https://github.com/420integrated/rpc-tests) test suite which validates baseline conformity to the [HighCoin JSON RPC](https://eth.wiki/json-rpc/API) specs. Please see the [test suite's readme](https://github.com/420integrated/rpc-tests/blob/master/README.md) for details.                                                                                                                                                                                                     |
-|   `rlpdump`   | Developer utility tool to convert binary RLP ([Recursive Length Prefix](https://eth.wiki/en/fundamentals/rlp)) dumps (data encoding used by the HighCoin protocol both network as well as consensus wise) to user-friendlier hierarchical representation (e.g. `rlpdump --hex CE0183FFFFFFC4C304050583616263`).                                                                                                                                                                                                                                 |
-|   `puppeth`   | a CLI wizard that aids in creating a new HighCoin network.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `highcoinrpctest` | Developer utility tool to support our [highcoin/rpc-test](https://github.com/420integrated/rpc-tests) test suite which validates baseline conformity to the [HighCoin JSON RPC](https://420integrated.com/wiki/json-rpc/API) specs. Please see the [test suite's readme](https://github.com/420integrated/rpc-tests/blob/master/README.md) for details.                                                                                                                                                                                                     |
+|   `rlpdump`   | Developer utility tool to convert binary RLP ([Recursive Length Prefix](https://420integrated.com/wiki/en/fundamentals/rlp)) dumps (data encoding used by the HighCoin protocol both network as well as consensus wise) to user-friendlier hierarchical representation (e.g. `rlpdump --hex CE0183FFFFFFC4C304050583616263`).                                                                                                                                                                                                                                 |
+|   `pupphigh`   | a CLI wizard that aids in creating a new HighCoin network.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 
 ## Running `highcoin`
 
@@ -106,18 +106,18 @@ use separate accounts for play-money and real-money. Unless you manually move
 accounts, `highcoin` will by default correctly separate the two networks and will not make any
 accounts available between them.*
 
-### Full node on the Rinkeby test network
+### Full node on the Ruderalis test network
 
 Go HighCoin also supports connecting to the older proof-of-authority based test network
-called [*Rinkeby*](https://www.rinkeby.io) which is operated by members of the community.
+called [*Ruderalis*](https://www.ruderalis.io) which is operated by members of the community.
 
 ```shell
-$ highcoin --rinkeby console
+$ highcoin --ruderalis console
 ```
 
 ### Full node on the Ropsten test network
 
-In addition to Görli and Rinkeby, Highcoin also supports the ancient Ropsten testnet. The
+In addition to Görli and Ruderalis, Highcoin also supports the ancient Ropsten testnet. The
 Ropsten test network is based on the Ethash proof-of-work consensus algorithm. As such,
 it has certain extra overhead and is more susceptible to reorganization attacks due to the
 network's low difficulty/security.
@@ -170,7 +170,7 @@ accessible from the outside.
 
 As a developer, sooner rather than later you'll want to start interacting with `highcoin` and the
 HighCoin network via your own programs and not manually through the console. To aid
-this, `highcoin` has built-in support for a JSON-RPC based APIs ([standard APIs](https://eth.wiki/json-rpc/API)
+this, `highcoin` has built-in support for a JSON-RPC based APIs ([standard APIs](https://420integrated.com/wiki/json-rpc/API)
 and [`highcoin` specific APIs](https://highcoin.420integrated.com/docs/rpc/server)).
 These can be exposed via HTTP, WebSockets and IPC (UNIX sockets on UNIX based
 platforms, and named pipes on Windows).
@@ -185,15 +185,15 @@ HTTP based JSON-RPC API options:
   * `--http` Enable the HTTP-RPC server
   * `--http.addr` HTTP-RPC server listening interface (default: `localhost`)
   * `--http.port` HTTP-RPC server listening port (default: `42000`)
-  * `--http.api` API's offered over the HTTP-RPC interface (default: `eth,net,web3`)
+  * `--http.api` API's offered over the HTTP-RPC interface (default: `high,net,web3`)
   * `--http.corsdomain` Comma separated list of domains from which to accept cross origin requests (browser enforced)
   * `--ws` Enable the WS-RPC server
   * `--ws.addr` WS-RPC server listening interface (default: `localhost`)
   * `--ws.port` WS-RPC server listening port (default: `41999`)
-  * `--ws.api` API's offered over the WS-RPC interface (default: `eth,net,web3`)
+  * `--ws.api` API's offered over the WS-RPC interface (default: `high,net,web3`)
   * `--ws.origins` Origins from which to accept websockets requests
   * `--ipcdisable` Disable the IPC-RPC server
-  * `--ipcapi` API's offered over the IPC-RPC interface (default: `admin,debug,eth,miner,net,personal,shh,txpool,web3`)
+  * `--ipcapi` API's offered over the IPC-RPC interface (default: `admin,debug,high,miner,net,personal,shh,txpool,web3`)
   * `--ipcpath` Filename for IPC socket/pipe within the datadir (explicit paths escape it)
 
 You'll need to use your own programming environments' capabilities (libraries, tools, etc) to
@@ -234,7 +234,7 @@ aware of and agree upon. This consists of a small JSON file (e.g. call it `genes
   "coinbase": "0x0000000000000000000000000000000000000000",
   "difficulty": "0x20000",
   "extraData": "",
-  "gasLimit": "0x2fefd8",
+  "smokeLimit": "0x2fefd8",
   "nonce": "0x0000000000000042",
   "mixhash": "0x0000000000000000000000000000000000000000000000000000000000000000",
   "parentHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
@@ -277,7 +277,7 @@ $ bootnode --genkey=boot.key
 $ bootnode --nodekey=boot.key
 ```
 
-With the bootnode online, it will display an [`enode` URL](https://eth.wiki/en/fundamentals/enode-url-format)
+With the bootnode online, it will display an [`enode` URL](https://420integrated.com/wiki/en/fundamentals/enode-url-format)
 that other nodes can use to connect to it and exchange peer information. Make sure to
 replace the displayed IP address information (most probably `[::]`) with your externally
 accessible IP to get the actual `enode` URL.
@@ -303,7 +303,7 @@ also need to configure a miner to process transactions and create new blocks for
 #### Running a private miner
 
 Mining on the public HighCoin network is a complex task as it's only feasible using GPUs,
-requiring an OpenCL or CUDA enabled `ethminer` instance.and the [ethminer](https://github.com/420integrated-mining/ethminer) repository.
+requiring an OpenCL or CUDA enabled `highminer` instance.and the [highminer](https://github.com/420integrated-mining/highminer) repository.
 
 In a private network setting, however a single CPU miner instance is more than enough for
 practical purposes as it can produce a stable stream of blocks at the correct intervals
@@ -317,8 +317,8 @@ $ highcoin <usual-flags> --mine --miner.threads=1 --miner.highcoinbase=0x0000000
 
 Which will start mining blocks and transactions on a single CPU thread, crediting all
 proceedings to the account specified by `--miner.highcoinbase`. You can further tune the mining
-by changing the default gas limit blocks converge to (`--miner.targetgaslimit`) and the price
-transactions are accepted at (`--miner.gasprice`).
+by changing the default smoke limit blocks converge to (`--miner.targetsmokelimit`) and the price
+transactions are accepted at (`--miner.smokeprice`).
 
 ## Contribution
 
@@ -340,7 +340,7 @@ Please make sure your contributions adhere to our coding guidelines:
    guidelines.
  * Pull requests need to be based on and opened against the `master` branch.
  * Commit messages should be prefixed with the package(s) they modify.
-   * E.g. "eth, rpc: make trace configs optional"
+   * E.g. "high, rpc: make trace configs optional"
 
 Please see the [Developers' Guide](https://highcoin.420integrated.com/docs/developers/devguide)
 for more details on configuring your environment, managing project dependencies, and

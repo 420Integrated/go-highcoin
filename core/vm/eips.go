@@ -61,17 +61,17 @@ func ActivateableEips() []string {
 // - Increase cost of BALANCE to 700
 // - Increase cost of EXTCODEHASH to 700
 // - Increase cost of SLOAD to 800
-// - Define SELFBALANCE, with cost GasFastStep (5)
+// - Define SELFBALANCE, with cost SmokeFastStep (5)
 func enable1884(jt *JumpTable) {
-	// Gas cost changes
-	jt[SLOAD].constantGas = params.SloadGasEIP1884
-	jt[BALANCE].constantGas = params.BalanceGasEIP1884
-	jt[EXTCODEHASH].constantGas = params.ExtcodeHashGasEIP1884
+	// Smoke cost changes
+	jt[SLOAD].constantSmoke = params.SloadSmokeEIP1884
+	jt[BALANCE].constantSmoke = params.BalanceSmokeEIP1884
+	jt[EXTCODEHASH].constantSmoke = params.ExtcodeHashSmokeEIP1884
 
 	// New opcode
 	jt[SELFBALANCE] = &operation{
 		execute:     opSelfBalance,
-		constantGas: GasFastStep,
+		constantSmoke: SmokeFastStep,
 		minStack:    minStack(0, 1),
 		maxStack:    maxStack(0, 1),
 	}
@@ -89,7 +89,7 @@ func enable1344(jt *JumpTable) {
 	// New opcode
 	jt[CHAINID] = &operation{
 		execute:     opChainID,
-		constantGas: GasQuickStep,
+		constantSmoke: SmokeQuickStep,
 		minStack:    minStack(0, 1),
 		maxStack:    maxStack(0, 1),
 	}
@@ -104,8 +104,8 @@ func opChainID(pc *uint64, interpreter *EVMInterpreter, callContext *callCtx) ([
 
 // enable2200 applies EIP-2200 (Rebalance net-metered SSTORE)
 func enable2200(jt *JumpTable) {
-	jt[SLOAD].constantGas = params.SloadGasEIP2200
-	jt[SSTORE].dynamicGas = gasSStoreEIP2200
+	jt[SLOAD].constantSmoke = params.SloadSmokeEIP2200
+	jt[SSTORE].dynamicSmoke = smokeSStoreEIP2200
 }
 
 // enable2315 applies EIP-2315 (Simple Subroutines)
@@ -114,14 +114,14 @@ func enable2315(jt *JumpTable) {
 	// New opcode
 	jt[BEGINSUB] = &operation{
 		execute:     opBeginSub,
-		constantGas: GasQuickStep,
+		constantSmoke: SmokeQuickStep,
 		minStack:    minStack(0, 0),
 		maxStack:    maxStack(0, 0),
 	}
 	// New opcode
 	jt[JUMPSUB] = &operation{
 		execute:     opJumpSub,
-		constantGas: GasSlowStep,
+		constantSmoke: SmokeSlowStep,
 		minStack:    minStack(1, 0),
 		maxStack:    maxStack(1, 0),
 		jumps:       true,
@@ -129,46 +129,46 @@ func enable2315(jt *JumpTable) {
 	// New opcode
 	jt[RETURNSUB] = &operation{
 		execute:     opReturnSub,
-		constantGas: GasFastStep,
+		constantSmoke: SmokeFastStep,
 		minStack:    minStack(0, 0),
 		maxStack:    maxStack(0, 0),
 		jumps:       true,
 	}
 }
 
-// enable2929 enables "EIP-2929: Gas cost increases for state access opcodes"
+// enable2929 enables "EIP-2929: Smoke cost increases for state access opcodes"
 func enable2929(jt *JumpTable) {
-	jt[SSTORE].dynamicGas = gasSStoreEIP2929
+	jt[SSTORE].dynamicSmoke = smokeSStoreEIP2929
 
-	jt[SLOAD].constantGas = 0
-	jt[SLOAD].dynamicGas = gasSLoadEIP2929
+	jt[SLOAD].constantSmoke = 0
+	jt[SLOAD].dynamicSmoke = smokeSLoadEIP2929
 
-	jt[EXTCODECOPY].constantGas = WarmStorageReadCostEIP2929
-	jt[EXTCODECOPY].dynamicGas = gasExtCodeCopyEIP2929
+	jt[EXTCODECOPY].constantSmoke = WarmStorageReadCostEIP2929
+	jt[EXTCODECOPY].dynamicSmoke = smokeExtCodeCopyEIP2929
 
-	jt[EXTCODESIZE].constantGas = WarmStorageReadCostEIP2929
-	jt[EXTCODESIZE].dynamicGas = gasEip2929AccountCheck
+	jt[EXTCODESIZE].constantSmoke = WarmStorageReadCostEIP2929
+	jt[EXTCODESIZE].dynamicSmoke = smokeEip2929AccountCheck
 
-	jt[EXTCODEHASH].constantGas = WarmStorageReadCostEIP2929
-	jt[EXTCODEHASH].dynamicGas = gasEip2929AccountCheck
+	jt[EXTCODEHASH].constantSmoke = WarmStorageReadCostEIP2929
+	jt[EXTCODEHASH].dynamicSmoke = smokeEip2929AccountCheck
 
-	jt[BALANCE].constantGas = WarmStorageReadCostEIP2929
-	jt[BALANCE].dynamicGas = gasEip2929AccountCheck
+	jt[BALANCE].constantSmoke = WarmStorageReadCostEIP2929
+	jt[BALANCE].dynamicSmoke = smokeEip2929AccountCheck
 
-	jt[CALL].constantGas = WarmStorageReadCostEIP2929
-	jt[CALL].dynamicGas = gasCallEIP2929
+	jt[CALL].constantSmoke = WarmStorageReadCostEIP2929
+	jt[CALL].dynamicSmoke = smokeCallEIP2929
 
-	jt[CALLCODE].constantGas = WarmStorageReadCostEIP2929
-	jt[CALLCODE].dynamicGas = gasCallCodeEIP2929
+	jt[CALLCODE].constantSmoke = WarmStorageReadCostEIP2929
+	jt[CALLCODE].dynamicSmoke = smokeCallCodeEIP2929
 
-	jt[STATICCALL].constantGas = WarmStorageReadCostEIP2929
-	jt[STATICCALL].dynamicGas = gasStaticCallEIP2929
+	jt[STATICCALL].constantSmoke = WarmStorageReadCostEIP2929
+	jt[STATICCALL].dynamicSmoke = smokeStaticCallEIP2929
 
-	jt[DELEGATECALL].constantGas = WarmStorageReadCostEIP2929
-	jt[DELEGATECALL].dynamicGas = gasDelegateCallEIP2929
+	jt[DELEGATECALL].constantSmoke = WarmStorageReadCostEIP2929
+	jt[DELEGATECALL].dynamicSmoke = smokeDelegateCallEIP2929
 
-	// This was previously part of the dynamic cost, but we're using it as a constantGas
+	// This was previously part of the dynamic cost, but we're using it as a constantSmoke
 	// factor here
-	jt[SELFDESTRUCT].constantGas = params.SelfdestructGasEIP150
-	jt[SELFDESTRUCT].dynamicGas = gasSelfdestructEIP2929
+	jt[SELFDESTRUCT].constantSmoke = params.SelfdestructSmokeEIP150
+	jt[SELFDESTRUCT].dynamicSmoke = smokeSelfdestructEIP2929
 }

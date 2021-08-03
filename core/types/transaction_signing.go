@@ -233,8 +233,8 @@ func (s eip2930Signer) Hash(tx *Transaction) common.Hash {
 	case LegacyTxType:
 		return rlpHash([]interface{}{
 			tx.Nonce(),
-			tx.GasPrice(),
-			tx.Gas(),
+			tx.SmokePrice(),
+			tx.Smoke(),
 			tx.To(),
 			tx.Value(),
 			tx.Data(),
@@ -246,8 +246,8 @@ func (s eip2930Signer) Hash(tx *Transaction) common.Hash {
 			[]interface{}{
 				s.chainId,
 				tx.Nonce(),
-				tx.GasPrice(),
-				tx.Gas(),
+				tx.SmokePrice(),
+				tx.Smoke(),
 				tx.To(),
 				tx.Value(),
 				tx.Data(),
@@ -324,8 +324,8 @@ func (s EIP155Signer) SignatureValues(tx *Transaction, sig []byte) (R, S, V *big
 func (s EIP155Signer) Hash(tx *Transaction) common.Hash {
 	return rlpHash([]interface{}{
 		tx.Nonce(),
-		tx.GasPrice(),
-		tx.Gas(),
+		tx.SmokePrice(),
+		tx.Smoke(),
 		tx.To(),
 		tx.Value(),
 		tx.Data(),
@@ -394,8 +394,8 @@ func (fs FrontierSigner) SignatureValues(tx *Transaction, sig []byte) (r, s, v *
 func (fs FrontierSigner) Hash(tx *Transaction) common.Hash {
 	return rlpHash([]interface{}{
 		tx.Nonce(),
-		tx.GasPrice(),
-		tx.Gas(),
+		tx.SmokePrice(),
+		tx.Smoke(),
 		tx.To(),
 		tx.Value(),
 		tx.Data(),

@@ -32,7 +32,7 @@ import (
 	"github.com/420integrated/go-highcoin/contracts/checkpointoracle"
 	"github.com/420integrated/go-highcoin/contracts/checkpointoracle/contract"
 	"github.com/420integrated/go-highcoin/crypto"
-	"github.com/420integrated/go-highcoin/ethclient"
+	"github.com/420integrated/go-highcoin/highclient"
 	"github.com/420integrated/go-highcoin/log"
 	"github.com/420integrated/go-highcoin/params"
 	"github.com/420integrated/go-highcoin/rpc"
@@ -160,7 +160,7 @@ func sign(ctx *cli.Context) error {
 		reqCtx, cancelFn := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancelFn()
 
-		head, err := ethclient.NewClient(node).HeaderByNumber(reqCtx, nil)
+		head, err := highclient.NewClient(node).HeaderByNumber(reqCtx, nil)
 		if err != nil {
 			return err
 		}
@@ -283,12 +283,12 @@ func publish(ctx *cli.Context) error {
 	reqCtx, cancelFn := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancelFn()
 
-	head, err := ethclient.NewClient(client).HeaderByNumber(reqCtx, nil)
+	head, err := highclient.NewClient(client).HeaderByNumber(reqCtx, nil)
 	if err != nil {
 		return err
 	}
 	num := head.Number.Uint64()
-	recent, err := ethclient.NewClient(client).HeaderByNumber(reqCtx, big.NewInt(int64(num-128)))
+	recent, err := highclient.NewClient(client).HeaderByNumber(reqCtx, big.NewInt(int64(num-128)))
 	if err != nil {
 		return err
 	}

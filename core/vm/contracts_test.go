@@ -30,7 +30,7 @@ import (
 // precompiledTest defines the input/output pairs for precompiled contract tests.
 type precompiledTest struct {
 	Input, Expected string
-	Gas             uint64
+	Smoke             uint64
 	Name            string
 	NoBenchmark     bool // Benchmark primarily the worst-cases
 }
@@ -94,15 +94,15 @@ var blake2FMalformedInputTests = []precompiledFailureTest{
 func testPrecompiled(addr string, test precompiledTest, t *testing.T) {
 	p := allPrecompiles[common.HexToAddress(addr)]
 	in := common.Hex2Bytes(test.Input)
-	gas := p.RequiredGas(in)
-	t.Run(fmt.Sprintf("%s-Gas=%d", test.Name, gas), func(t *testing.T) {
-		if res, _, err := RunPrecompiledContract(p, in, gas); err != nil {
+	smoke := p.RequiredSmoke(in)
+	t.Run(fmt.Sprintf("%s-Smoke=%d", test.Name, smoke), func(t *testing.T) {
+		if res, _, err := RunPrecompiledContract(p, in, smoke); err != nil {
 			t.Error(err)
 		} else if common.Bytes2Hex(res) != test.Expected {
 			t.Errorf("Expected %v, got %v", test.Expected, common.Bytes2Hex(res))
 		}
-		if expGas := test.Gas; expGas != gas {
-			t.Errorf("%v: gas wrong, expected %d, got %d", test.Name, expGas, gas)
+		if expSmoke := test.Smoke; expSmoke != smoke {
+			t.Errorf("%v: smoke wrong, expected %d, got %d", test.Name, expSmoke, smoke)
 		}
 		// Verify that the precompile did not touch the input buffer
 		exp := common.Hex2Bytes(test.Input)
@@ -115,12 +115,12 @@ func testPrecompiled(addr string, test precompiledTest, t *testing.T) {
 func testPrecompiledOOG(addr string, test precompiledTest, t *testing.T) {
 	p := allPrecompiles[common.HexToAddress(addr)]
 	in := common.Hex2Bytes(test.Input)
-	gas := p.RequiredGas(in) - 1
+	smoke := p.RequiredSmoke(in) - 1
 
-	t.Run(fmt.Sprintf("%s-Gas=%d", test.Name, gas), func(t *testing.T) {
-		_, _, err := RunPrecompiledContract(p, in, gas)
-		if err.Error() != "out of gas" {
-			t.Errorf("Expected error [out of gas], got [%v]", err)
+	t.Run(fmt.Sprintf("%s-Smoke=%d", test.Name, smoke), func(t *testing.T) {
+		_, _, err := RunPrecompiledContract(p, in, smoke)
+		if err.Error() != "out of smoke" {
+			t.Errorf("Expected error [out of smoke], got [%v]", err)
 		}
 		// Verify that the precompile did not touch the input buffer
 		exp := common.Hex2Bytes(test.Input)
@@ -133,9 +133,9 @@ func testPrecompiledOOG(addr string, test precompiledTest, t *testing.T) {
 func testPrecompiledFailure(addr string, test precompiledFailureTest, t *testing.T) {
 	p := allPrecompiles[common.HexToAddress(addr)]
 	in := common.Hex2Bytes(test.Input)
-	gas := p.RequiredGas(in)
+	smoke := p.RequiredSmoke(in)
 	t.Run(test.Name, func(t *testing.T) {
-		_, _, err := RunPrecompiledContract(p, in, gas)
+		_, _, err := RunPrecompiledContract(p, in, smoke)
 		if err.Error() != test.ExpectedError {
 			t.Errorf("Expected error [%v], got [%v]", test.ExpectedError, err)
 		}
@@ -153,7 +153,7 @@ func benchmarkPrecompiled(addr string, test precompiledTest, bench *testing.B) {
 	}
 	p := allPrecompiles[common.HexToAddress(addr)]
 	in := common.Hex2Bytes(test.Input)
-	reqGas := p.RequiredGas(in)
+	reqSmoke := p.RequiredSmoke(in)
 
 	var (
 		res  []byte
@@ -161,24 +161,24 @@ func benchmarkPrecompiled(addr string, test precompiledTest, bench *testing.B) {
 		data = make([]byte, len(in))
 	)
 
-	bench.Run(fmt.Sprintf("%s-Gas=%d", test.Name, reqGas), func(bench *testing.B) {
+	bench.Run(fmt.Sprintf("%s-Smoke=%d", test.Name, reqSmoke), func(bench *testing.B) {
 		bench.ReportAllocs()
 		start := time.Now()
 		bench.ResetTimer()
 		for i := 0; i < bench.N; i++ {
 			copy(data, in)
-			res, _, err = RunPrecompiledContract(p, data, reqGas)
+			res, _, err = RunPrecompiledContract(p, data, reqSmoke)
 		}
 		bench.StopTimer()
 		elapsed := uint64(time.Since(start))
 		if elapsed < 1 {
 			elapsed = 1
 		}
-		gasUsed := reqGas * uint64(bench.N)
-		bench.ReportMetric(float64(reqGas), "gas/op")
+		smokeUsed := reqSmoke * uint64(bench.N)
+		bench.ReportMetric(float64(reqSmoke), "smoke/op")
 		// Keep it as uint64, multiply 100 to get two digit float later
-		mgasps := (100 * 1000 * gasUsed) / elapsed
-		bench.ReportMetric(float64(mgasps)/100, "mgas/s")
+		msmokeps := (100 * 1000 * smokeUsed) / elapsed
+		bench.ReportMetric(float64(msmokeps)/100, "msmoke/s")
 		//Check if it is correct
 		if err != nil {
 			bench.Error(err)
@@ -353,7 +353,7 @@ func loadJsonFail(name string) ([]precompiledFailureTest, error) {
 	return testcases, err
 }
 
-// BenchmarkPrecompiledBLS12381G1MultiExpWorstCase benchmarks the worst case we could find that still fits a gaslimit of 10MGas.
+// BenchmarkPrecompiledBLS12381G1MultiExpWorstCase benchmarks the worst case we could find that still fits a smokelimit of 10MSmoke.
 func BenchmarkPrecompiledBLS12381G1MultiExpWorstCase(b *testing.B) {
 	task := "0000000000000000000000000000000008d8c4a16fb9d8800cce987c0eadbb6b3b005c213d44ecb5adeed713bae79d606041406df26169c35df63cf972c94be1" +
 		"0000000000000000000000000000000011bc8afe71676e6730702a46ef817060249cd06cd82e6981085012ff6d013aa4470ba3a2c71e13ef653e1e223d1ccfe9" +
@@ -371,7 +371,7 @@ func BenchmarkPrecompiledBLS12381G1MultiExpWorstCase(b *testing.B) {
 	benchmarkPrecompiled("0c", testcase, b)
 }
 
-// BenchmarkPrecompiledBLS12381G2MultiExpWorstCase benchmarks the worst case we could find that still fits a gaslimit of 10MGas.
+// BenchmarkPrecompiledBLS12381G2MultiExpWorstCase benchmarks the worst case we could find that still fits a smokelimit of 10MSmoke.
 func BenchmarkPrecompiledBLS12381G2MultiExpWorstCase(b *testing.B) {
 	task := "000000000000000000000000000000000d4f09acd5f362e0a516d4c13c5e2f504d9bd49fdfb6d8b7a7ab35a02c391c8112b03270d5d9eefe9b659dd27601d18f" +
 		"000000000000000000000000000000000fd489cb75945f3b5ebb1c0e326d59602934c8f78fe9294a8877e7aeb95de5addde0cb7ab53674df8b2cfbb036b30b99" +

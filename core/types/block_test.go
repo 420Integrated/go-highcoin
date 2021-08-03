@@ -45,8 +45,8 @@ func TestBlockEncoding(t *testing.T) {
 		}
 	}
 	check("Difficulty", block.Difficulty(), big.NewInt(131072))
-	check("GasLimit", block.GasLimit(), uint64(3141592))
-	check("GasUsed", block.GasUsed(), uint64(21000))
+	check("SmokeLimit", block.SmokeLimit(), uint64(3141592))
+	check("SmokeUsed", block.SmokeUsed(), uint64(21000))
 	check("Coinbase", block.Coinbase(), common.HexToAddress("8888f1f195afa192cfee860698584c030f4c9db1"))
 	check("MixDigest", block.MixDigest(), common.HexToHash("bd4472abb6659ebe3ee06ee4d7b72a00a9f4d001caca51342001075469aff498"))
 	check("Root", block.Root(), common.HexToHash("ef1552a40b7165c3cd773806b9e0c165b75356e0314bf0706f279c729f51e017"))
@@ -81,8 +81,8 @@ func TestEIP2718BlockEncoding(t *testing.T) {
 		}
 	}
 	check("Difficulty", block.Difficulty(), big.NewInt(131072))
-	check("GasLimit", block.GasLimit(), uint64(3141592))
-	check("GasUsed", block.GasUsed(), uint64(42000))
+	check("SmokeLimit", block.SmokeLimit(), uint64(3141592))
+	check("SmokeUsed", block.SmokeUsed(), uint64(42000))
 	check("Coinbase", block.Coinbase(), common.HexToAddress("8888f1f195afa192cfee860698584c030f4c9db1"))
 	check("MixDigest", block.MixDigest(), common.HexToHash("bd4472abb6659ebe3ee06ee4d7b72a00a9f4d001caca51342001075469aff498"))
 	check("Root", block.Root(), common.HexToHash("ef1552a40b7165c3cd773806b9e0c165b75356e0314bf0706f279c729f51e017"))
@@ -96,8 +96,8 @@ func TestEIP2718BlockEncoding(t *testing.T) {
 		Nonce:    0,
 		To:       &to,
 		Value:    big.NewInt(10),
-		Gas:      50000,
-		GasPrice: big.NewInt(10),
+		Smoke:      50000,
+		SmokePrice: big.NewInt(10),
 	})
 	sig := common.Hex2Bytes("9bea4c4daac7c7c52e093e6a4c35dbbcf8856f1af7b059ba20253e70848d094f8a8fae537ce25ed8cb5af9adac3f141af69bd515bd2ba031522df09b97dd72b100")
 	tx1, _ = tx1.WithSignature(HomesteadSigner{}, sig)
@@ -108,8 +108,8 @@ func TestEIP2718BlockEncoding(t *testing.T) {
 		ChainID:    big.NewInt(1),
 		Nonce:      0,
 		To:         &to,
-		Gas:        123457,
-		GasPrice:   big.NewInt(10),
+		Smoke:        123457,
+		SmokePrice:   big.NewInt(10),
 		AccessList: AccessList{{Address: addr, StorageKeys: []common.Hash{{0}}}},
 	})
 	sig2 := common.Hex2Bytes("3dbacc8d0259f2508625e97fdfc57cd85fdd16e5821bc2c10bdd1a52649e8335476e10695b183a87b0aa292a7f4b78ef0c3fbe62aa2c42c84e1d9c3da159ef1401")
@@ -187,8 +187,8 @@ func makeBenchBlock() *Block {
 	header := &Header{
 		Difficulty: math.BigPow(11, 11),
 		Number:     math.BigPow(2, 9),
-		GasLimit:   12345678,
-		GasUsed:    1476322,
+		SmokeLimit:   12345678,
+		SmokeUsed:    1476322,
 		Time:       9876543,
 		Extra:      []byte("coolest block on chain"),
 	}
@@ -202,14 +202,14 @@ func makeBenchBlock() *Block {
 			panic(err)
 		}
 		txs[i] = signedTx
-		receipts[i] = NewReceipt(make([]byte, 32), false, tx.Gas())
+		receipts[i] = NewReceipt(make([]byte, 32), false, tx.Smoke())
 	}
 	for i := range uncles {
 		uncles[i] = &Header{
 			Difficulty: math.BigPow(11, 11),
 			Number:     math.BigPow(2, 9),
-			GasLimit:   12345678,
-			GasUsed:    1476322,
+			SmokeLimit:   12345678,
+			SmokeUsed:    1476322,
 			Time:       9876543,
 			Extra:      []byte("benchmark uncle"),
 		}

@@ -115,8 +115,8 @@ type ChainSyncReader interface {
 type CallMsg struct {
 	From     common.Address  // the sender of the 'transaction'
 	To       *common.Address // the destination contract (nil for contract creation)
-	Gas      uint64          // if 0, the call executes with near-infinite gas
-	GasPrice *big.Int        // marleys <-> gas exchange ratio
+	Smoke      uint64          // if 0, the call executes with near-infinite smoke
+	SmokePrice *big.Int        // marleys <-> smoke exchange ratio
 	Value    *big.Int        // amount of marleys sent along with the call
 	Data     []byte          // input data, usually an ABI-encoded contract method invocation
 
@@ -133,7 +133,7 @@ type ContractCaller interface {
 
 // FilterQuery contains options for contract log filtering.
 type FilterQuery struct {
-	BlockHash *common.Hash     // used by eth_getLogs, return logs only from block with this hash
+	BlockHash *common.Hash     // used by high_getLogs, return logs only from block with this hash
 	FromBlock *big.Int         // beginning of the queried range, nil means genesis block
 	ToBlock   *big.Int         // end of the range, nil means latest block
 	Addresses []common.Address // restricts matches to events created by specific contracts
@@ -174,10 +174,10 @@ type TransactionSender interface {
 	SendTransaction(ctx context.Context, tx *types.Transaction) error
 }
 
-// GasPricer wraps the gas price oracle, which monitors the blockchain to determine the
-// optimal gas price given current fee market conditions.
-type GasPricer interface {
-	SuggestGasPrice(ctx context.Context) (*big.Int, error)
+// SmokePricer wraps the smoke price oracle, which monitors the blockchain to determine the
+// optimal smoke price given current fee market conditions.
+type SmokePricer interface {
+	SuggestSmokePrice(ctx context.Context) (*big.Int, error)
 }
 
 // A PendingStateReader provides access to the pending state, which is the result of all
@@ -198,12 +198,12 @@ type PendingContractCaller interface {
 	PendingCallContract(ctx context.Context, call CallMsg) ([]byte, error)
 }
 
-// GasEstimator wraps EstimateGas, which tries to estimate the gas needed to execute a
+// SmokeEstimator wraps EstimateSmoke, which tries to estimate the smoke needed to execute a
 // specific transaction based on the pending state. There is no guarantee that this is the
-// true gas limit requirement as other transactions may be added or removed by miners, but
+// true smoke limit requirement as other transactions may be added or removed by miners, but
 // it should provide a basis for setting a reasonable default.
-type GasEstimator interface {
-	EstimateGas(ctx context.Context, call CallMsg) (uint64, error)
+type SmokeEstimator interface {
+	EstimateSmoke(ctx context.Context, call CallMsg) (uint64, error)
 }
 
 // A PendingStateEventer provides access to real time notifications about changes to the

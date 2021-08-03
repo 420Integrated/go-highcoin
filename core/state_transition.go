@@ -34,7 +34,7 @@ A state transition is a change made when a transaction is applied to the current
 The state transitioning model does all the necessary work to work out a valid new state root.
 
 1) Nonce handling
-2) Pre pay gas
+2) Pre pay smoke
 3) Create a new state object if the recipient is \0*32
 4) Value transfer
 == If contract creation ==
@@ -45,11 +45,11 @@ The state transitioning model does all the necessary work to work out a valid ne
 6) Derive new state root
 */
 type StateTransition struct {
-	gp         *GasPool
+	gp         *SmokePool
 	msg        Message
-	gas        uint64
-	gasPrice   *big.Int
-	initialGas uint64
+	smoke        uint64
+	smokePrice   *big.Int
+	initialSmoke uint64
 	value      *big.Int
 	data       []byte
 	state      vm.StateDB
@@ -61,8 +61,8 @@ type Message interface {
 	From() common.Address
 	To() *common.Address
 
-	GasPrice() *big.Int
-	Gas() uint64
+	SmokePrice() *big.Int
+	Smoke() uint64
 	Value() *big.Int
 
 	Nonce() uint64
@@ -74,7 +74,7 @@ type Message interface {
 // ExecutionResult includes all output after executing given evm
 // message no matter the execution itself is successful or not.
 type ExecutionResult struct {
-	UsedGas    uint64 // Total used gas but include the refunded gas
+	UsedSmoke    uint64 // Total used smoke but include the refunded smoke
 	Err        error  // Any error encountered during the execution(listed in core/vm/errors.go)
 	ReturnData []byte // Returned data from evm(function result or data supplied with revert opcode)
 }
@@ -106,16 +106,16 @@ func (result *ExecutionResult) Revert() []byte {
 	return common.CopyBytes(result.ReturnData)
 }
 
-// IntrinsicGas computes the 'intrinsic gas' for a message with the given data.
-func IntrinsicGas(data []byte, accessList types.AccessList, isContractCreation bool, isHomestead, isEIP2028 bool) (uint64, error) {
-	// Set the starting gas for the raw transaction
-	var gas uint64
+// IntrinsicSmoke computes the 'intrinsic smoke' for a message with the given data.
+func IntrinsicSmoke(data []byte, accessList types.AccessList, isContractCreation bool, isHomestead, isEIP2028 bool) (uint64, error) {
+	// Set the starting smoke for the raw transaction
+	var smoke uint64
 	if isContractCreation && isHomestead {
-		gas = params.TxGasContractCreation
+		smoke = params.TxSmokeContractCreation
 	} else {
-		gas = params.TxGas
+		smoke = params.TxSmoke
 	}
-	// Bump the required gas by the amount of transactional data
+	// Bump the required smoke by the amount of transactional data
 	if len(data) > 0 {
 		// Zero and non-zero bytes are priced differently
 		var nz uint64
@@ -125,35 +125,35 @@ func IntrinsicGas(data []byte, accessList types.AccessList, isContractCreation b
 			}
 		}
 		// Make sure we don't exceed uint64 for all data combinations
-		nonZeroGas := params.TxDataNonZeroGasFrontier
+		nonZeroSmoke := params.TxDataNonZeroSmokeFrontier
 		if isEIP2028 {
-			nonZeroGas = params.TxDataNonZeroGasEIP2028
+			nonZeroSmoke = params.TxDataNonZeroSmokeEIP2028
 		}
-		if (math.MaxUint64-gas)/nonZeroGas < nz {
-			return 0, ErrGasUintOverflow
+		if (math.MaxUint64-smoke)/nonZeroSmoke < nz {
+			return 0, ErrSmokeUintOverflow
 		}
-		gas += nz * nonZeroGas
+		smoke += nz * nonZeroSmoke
 
 		z := uint64(len(data)) - nz
-		if (math.MaxUint64-gas)/params.TxDataZeroGas < z {
-			return 0, ErrGasUintOverflow
+		if (math.MaxUint64-smoke)/params.TxDataZeroSmoke < z {
+			return 0, ErrSmokeUintOverflow
 		}
-		gas += z * params.TxDataZeroGas
+		smoke += z * params.TxDataZeroSmoke
 	}
 	if accessList != nil {
-		gas += uint64(len(accessList)) * params.TxAccessListAddressGas
-		gas += uint64(accessList.StorageKeys()) * params.TxAccessListStorageKeyGas
+		smoke += uint64(len(accessList)) * params.TxAccessListAddressSmoke
+		smoke += uint64(accessList.StorageKeys()) * params.TxAccessListStorageKeySmoke
 	}
-	return gas, nil
+	return smoke, nil
 }
 
 // NewStateTransition initialises and returns a new state transition object.
-func NewStateTransition(evm *vm.EVM, msg Message, gp *GasPool) *StateTransition {
+func NewStateTransition(evm *vm.EVM, msg Message, gp *SmokePool) *StateTransition {
 	return &StateTransition{
 		gp:       gp,
 		evm:      evm,
 		msg:      msg,
-		gasPrice: msg.GasPrice(),
+		smokePrice: msg.SmokePrice(),
 		value:    msg.Value(),
 		data:     msg.Data(),
 		state:    evm.StateDB,
@@ -164,10 +164,10 @@ func NewStateTransition(evm *vm.EVM, msg Message, gp *GasPool) *StateTransition 
 // against the old state within the environment.
 //
 // ApplyMessage returns the bytes returned by any EVM execution (if it took place),
-// the gas used (which includes gas refunds) and an error if it failed. An error always
+// the smoke used (which includes smoke refunds) and an error if it failed. An error always
 // indicates a core error meaning that the message would always fail for that particular
 // state and would never be accepted within a block.
-func ApplyMessage(evm *vm.EVM, msg Message, gp *GasPool) (*ExecutionResult, error) {
+func ApplyMessage(evm *vm.EVM, msg Message, gp *SmokePool) (*ExecutionResult, error) {
 	return NewStateTransition(evm, msg, gp).TransitionDb()
 }
 
@@ -179,17 +179,17 @@ func (st *StateTransition) to() common.Address {
 	return *st.msg.To()
 }
 
-func (st *StateTransition) buyGas() error {
-	mgval := new(big.Int).Mul(new(big.Int).SetUint64(st.msg.Gas()), st.gasPrice)
+func (st *StateTransition) buySmoke() error {
+	mgval := new(big.Int).Mul(new(big.Int).SetUint64(st.msg.Smoke()), st.smokePrice)
 	if have, want := st.state.GetBalance(st.msg.From()), mgval; have.Cmp(want) < 0 {
 		return fmt.Errorf("%w: address %v have %v want %v", ErrInsufficientFunds, st.msg.From().Hex(), have, want)
 	}
-	if err := st.gp.SubGas(st.msg.Gas()); err != nil {
+	if err := st.gp.SubSmoke(st.msg.Smoke()); err != nil {
 		return err
 	}
-	st.gas += st.msg.Gas()
+	st.smoke += st.msg.Smoke()
 
-	st.initialGas = st.msg.Gas()
+	st.initialSmoke = st.msg.Smoke()
 	st.state.SubBalance(st.msg.From(), mgval)
 	return nil
 }
@@ -206,19 +206,19 @@ func (st *StateTransition) preCheck() error {
 				st.msg.From().Hex(), msgNonce, stNonce)
 		}
 	}
-	return st.buyGas()
+	return st.buySmoke()
 }
 
 // TransitionDb will transition the state by applying the current message and
 // returning the evm execution result with following fields.
 //
-// - used gas:
-//      total gas used (including gas being refunded)
+// - used smoke:
+//      total smoke used (including smoke being refunded)
 // - returndata:
 //      the returned data from evm
 // - concrete execution error:
 //      various **EVM** error which aborts the execution,
-//      e.g. ErrOutOfGas, ErrExecutionReverted
+//      e.g. ErrOutOfSmoke, ErrExecutionReverted
 //
 // However if any consensus issue encountered, return the error directly with
 // nil evm execution result.
@@ -227,13 +227,13 @@ func (st *StateTransition) TransitionDb() (*ExecutionResult, error) {
 	// applying the message. The rules include these clauses
 	//
 	// 1. the nonce of the message caller is correct
-	// 2. caller has enough balance to cover transaction fee(gaslimit * gasprice)
-	// 3. the amount of gas required is available in the block
-	// 4. the purchased gas is enough to cover intrinsic usage
-	// 5. there is no overflow when calculating intrinsic gas
+	// 2. caller has enough balance to cover transaction fee(smokelimit * smokeprice)
+	// 3. the amount of smoke required is available in the block
+	// 4. the purchased smoke is enough to cover intrinsic usage
+	// 5. there is no overflow when calculating intrinsic smoke
 	// 6. caller has enough balance to cover asset transfer for **topmost** call
 
-	// Check clauses 1-3, buy gas if everything is correct
+	// Check clauses 1-3, buy smoke if everything is correct
 	if err := st.preCheck(); err != nil {
 		return nil, err
 	}
@@ -243,15 +243,15 @@ func (st *StateTransition) TransitionDb() (*ExecutionResult, error) {
 	istanbul := st.evm.ChainConfig().IsIstanbul(st.evm.Context.BlockNumber)
 	contractCreation := msg.To() == nil
 
-	// Check clauses 4-5, subtract intrinsic gas if everything is correct
-	gas, err := IntrinsicGas(st.data, st.msg.AccessList(), contractCreation, homestead, istanbul)
+	// Check clauses 4-5, subtract intrinsic smoke if everything is correct
+	smoke, err := IntrinsicSmoke(st.data, st.msg.AccessList(), contractCreation, homestead, istanbul)
 	if err != nil {
 		return nil, err
 	}
-	if st.gas < gas {
-		return nil, fmt.Errorf("%w: have %d, want %d", ErrIntrinsicGas, st.gas, gas)
+	if st.smoke < smoke {
+		return nil, fmt.Errorf("%w: have %d, want %d", ErrIntrinsicSmoke, st.smoke, smoke)
 	}
-	st.gas -= gas
+	st.smoke -= smoke
 
 	// Check clause 6
 	if msg.Value().Sign() > 0 && !st.evm.Context.CanTransfer(st.state, msg.From(), msg.Value()) {
@@ -268,40 +268,40 @@ func (st *StateTransition) TransitionDb() (*ExecutionResult, error) {
 		vmerr error // vm errors do not effect consensus and are therefore not assigned to err
 	)
 	if contractCreation {
-		ret, _, st.gas, vmerr = st.evm.Create(sender, st.data, st.gas, st.value)
+		ret, _, st.smoke, vmerr = st.evm.Create(sender, st.data, st.smoke, st.value)
 	} else {
 		// Increment the nonce for the next transaction
 		st.state.SetNonce(msg.From(), st.state.GetNonce(sender.Address())+1)
-		ret, st.gas, vmerr = st.evm.Call(sender, st.to(), st.data, st.gas, st.value)
+		ret, st.smoke, vmerr = st.evm.Call(sender, st.to(), st.data, st.smoke, st.value)
 	}
-	st.refundGas()
-	st.state.AddBalance(st.evm.Context.Coinbase, new(big.Int).Mul(new(big.Int).SetUint64(st.gasUsed()), st.gasPrice))
+	st.refundSmoke()
+	st.state.AddBalance(st.evm.Context.Coinbase, new(big.Int).Mul(new(big.Int).SetUint64(st.smokeUsed()), st.smokePrice))
 
 	return &ExecutionResult{
-		UsedGas:    st.gasUsed(),
+		UsedSmoke:    st.smokeUsed(),
 		Err:        vmerr,
 		ReturnData: ret,
 	}, nil
 }
 
-func (st *StateTransition) refundGas() {
-	// Apply refund counter, capped to half of the used gas.
-	refund := st.gasUsed() / 2
+func (st *StateTransition) refundSmoke() {
+	// Apply refund counter, capped to half of the used smoke.
+	refund := st.smokeUsed() / 2
 	if refund > st.state.GetRefund() {
 		refund = st.state.GetRefund()
 	}
-	st.gas += refund
+	st.smoke += refund
 
-	// Return HIGH for remaining gas, exchanged at the original rate.
-	remaining := new(big.Int).Mul(new(big.Int).SetUint64(st.gas), st.gasPrice)
+	// Return HIGH for remaining smoke, exchanged at the original rate.
+	remaining := new(big.Int).Mul(new(big.Int).SetUint64(st.smoke), st.smokePrice)
 	st.state.AddBalance(st.msg.From(), remaining)
 
-	// Also return remaining gas to the block gas counter so it is
+	// Also return remaining smoke to the block smoke counter so it is
 	// available for the next transaction.
-	st.gp.AddGas(st.gas)
+	st.gp.AddSmoke(st.smoke)
 }
 
-// gasUsed returns the amount of gas used up by the state transition.
-func (st *StateTransition) gasUsed() uint64 {
-	return st.initialGas - st.gas
+// smokeUsed returns the amount of smoke used up by the state transition.
+func (st *StateTransition) smokeUsed() uint64 {
+	return st.initialSmoke - st.smoke
 }

@@ -35,10 +35,10 @@ import (
 )
 
 // PrecompiledContract is the basic interface for native Go contracts. The implementation
-// requires a deterministic gas count based on the input size of the Run method of the
+// requires a deterministic smoke count based on the input size of the Run method of the
 // contract.
 type PrecompiledContract interface {
-	RequiredGas(input []byte) uint64  // RequiredPrice calculates the contract gas use
+	RequiredSmoke(input []byte) uint64  // RequiredPrice calculates the contract smoke use
 	Run(input []byte) ([]byte, error) // Run runs the precompiled contract
 }
 
@@ -131,23 +131,23 @@ func init() {
 // RunPrecompiledContract runs and evaluates the output of a precompiled contract.
 // It returns
 // - the returned bytes,
-// - the _remaining_ gas,
+// - the _remaining_ smoke,
 // - any error that occurred
-func RunPrecompiledContract(p PrecompiledContract, input []byte, suppliedGas uint64) (ret []byte, remainingGas uint64, err error) {
-	gasCost := p.RequiredGas(input)
-	if suppliedGas < gasCost {
-		return nil, 0, ErrOutOfGas
+func RunPrecompiledContract(p PrecompiledContract, input []byte, suppliedSmoke uint64) (ret []byte, remainingSmoke uint64, err error) {
+	smokeCost := p.RequiredSmoke(input)
+	if suppliedSmoke < smokeCost {
+		return nil, 0, ErrOutOfSmoke
 	}
-	suppliedGas -= gasCost
+	suppliedSmoke -= smokeCost
 	output, err := p.Run(input)
-	return output, suppliedGas, err
+	return output, suppliedSmoke, err
 }
 
 // ECRECOVER implemented as a native contract.
 type ecrecover struct{}
 
-func (c *ecrecover) RequiredGas(input []byte) uint64 {
-	return params.EcrecoverGas
+func (c *ecrecover) RequiredSmoke(input []byte) uint64 {
+	return params.EcrecoverSmoke
 }
 
 func (c *ecrecover) Run(input []byte) ([]byte, error) {
@@ -184,12 +184,12 @@ func (c *ecrecover) Run(input []byte) ([]byte, error) {
 // SHA256 implemented as a native contract.
 type sha256hash struct{}
 
-// RequiredGas returns the gas required to execute the pre-compiled contract.
+// RequiredSmoke returns the smoke required to execute the pre-compiled contract.
 //
-// This method does not require any overflow checking as the input size gas costs
+// This method does not require any overflow checking as the input size smoke costs
 // required for anything significant is so high it's impossible to pay for.
-func (c *sha256hash) RequiredGas(input []byte) uint64 {
-	return uint64(len(input)+31)/32*params.Sha256PerWordGas + params.Sha256BaseGas
+func (c *sha256hash) RequiredSmoke(input []byte) uint64 {
+	return uint64(len(input)+31)/32*params.Sha256PerWordSmoke + params.Sha256BaseSmoke
 }
 func (c *sha256hash) Run(input []byte) ([]byte, error) {
 	h := sha256.Sum256(input)
@@ -199,12 +199,12 @@ func (c *sha256hash) Run(input []byte) ([]byte, error) {
 // RIPEMD160 implemented as a native contract.
 type ripemd160hash struct{}
 
-// RequiredGas returns the gas required to execute the pre-compiled contract.
+// RequiredSmoke returns the smoke required to execute the pre-compiled contract.
 //
-// This method does not require any overflow checking as the input size gas costs
+// This method does not require any overflow checking as the input size smoke costs
 // required for anything significant is so high it's impossible to pay for.
-func (c *ripemd160hash) RequiredGas(input []byte) uint64 {
-	return uint64(len(input)+31)/32*params.Ripemd160PerWordGas + params.Ripemd160BaseGas
+func (c *ripemd160hash) RequiredSmoke(input []byte) uint64 {
+	return uint64(len(input)+31)/32*params.Ripemd160PerWordSmoke + params.Ripemd160BaseSmoke
 }
 func (c *ripemd160hash) Run(input []byte) ([]byte, error) {
 	ripemd := ripemd160.New()
@@ -215,12 +215,12 @@ func (c *ripemd160hash) Run(input []byte) ([]byte, error) {
 // data copy implemented as a native contract.
 type dataCopy struct{}
 
-// RequiredGas returns the gas required to execute the pre-compiled contract.
+// RequiredSmoke returns the smoke required to execute the pre-compiled contract.
 //
-// This method does not require any overflow checking as the input size gas costs
+// This method does not require any overflow checking as the input size smoke costs
 // required for anything significant is so high it's impossible to pay for.
-func (c *dataCopy) RequiredGas(input []byte) uint64 {
-	return uint64(len(input)+31)/32*params.IdentityPerWordGas + params.IdentityBaseGas
+func (c *dataCopy) RequiredSmoke(input []byte) uint64 {
+	return uint64(len(input)+31)/32*params.IdentityPerWordSmoke + params.IdentityBaseSmoke
 }
 func (c *dataCopy) Run(in []byte) ([]byte, error) {
 	return in, nil
@@ -277,8 +277,8 @@ func modexpMultComplexity(x *big.Int) *big.Int {
 	return x
 }
 
-// RequiredGas returns the gas required to execute the pre-compiled contract.
-func (c *bigModExp) RequiredGas(input []byte) uint64 {
+// RequiredSmoke returns the smoke required to execute the pre-compiled contract.
+func (c *bigModExp) RequiredSmoke(input []byte) uint64 {
 	var (
 		baseLen = new(big.Int).SetBytes(getData(input, 0, 32))
 		expLen  = new(big.Int).SetBytes(getData(input, 32, 32))
@@ -311,8 +311,8 @@ func (c *bigModExp) RequiredGas(input []byte) uint64 {
 		adjExpLen.Mul(big8, adjExpLen)
 	}
 	adjExpLen.Add(adjExpLen, big.NewInt(int64(msb)))
-	// Calculate the gas cost of the operation
-	gas := new(big.Int).Set(math.BigMax(modLen, baseLen))
+	// Calculate the smoke cost of the operation
+	smoke := new(big.Int).Set(math.BigMax(modLen, baseLen))
 	if c.eip2565 {
 		// EIP-2565 has three changes
 		// 1. Different multComplexity (inlined here)
@@ -321,30 +321,30 @@ func (c *bigModExp) RequiredGas(input []byte) uint64 {
 		//    ceiling(x/8)^2
 		//
 		//where is x is max(length_of_MODULUS, length_of_BASE)
-		gas = gas.Add(gas, big7)
-		gas = gas.Div(gas, big8)
-		gas.Mul(gas, gas)
+		smoke = smoke.Add(smoke, big7)
+		smoke = smoke.Div(smoke, big8)
+		smoke.Mul(smoke, smoke)
 
-		gas.Mul(gas, math.BigMax(adjExpLen, big1))
+		smoke.Mul(smoke, math.BigMax(adjExpLen, big1))
 		// 2. Different divisor (`GQUADDIVISOR`) (3)
-		gas.Div(gas, big3)
-		if gas.BitLen() > 64 {
+		smoke.Div(smoke, big3)
+		if smoke.BitLen() > 64 {
 			return math.MaxUint64
 		}
-		// 3. Minimum price of 200 gas
-		if gas.Uint64() < 200 {
+		// 3. Minimum price of 200 smoke
+		if smoke.Uint64() < 200 {
 			return 200
 		}
-		return gas.Uint64()
+		return smoke.Uint64()
 	}
-	gas = modexpMultComplexity(gas)
-	gas.Mul(gas, math.BigMax(adjExpLen, big1))
-	gas.Div(gas, big20)
+	smoke = modexpMultComplexity(smoke)
+	smoke.Mul(smoke, math.BigMax(adjExpLen, big1))
+	smoke.Div(smoke, big20)
 
-	if gas.BitLen() > 64 {
+	if smoke.BitLen() > 64 {
 		return math.MaxUint64
 	}
-	return gas.Uint64()
+	return smoke.Uint64()
 }
 
 func (c *bigModExp) Run(input []byte) ([]byte, error) {
@@ -415,9 +415,9 @@ func runBn256Add(input []byte) ([]byte, error) {
 // Istanbul consensus rules.
 type bn256AddIstanbul struct{}
 
-// RequiredGas returns the gas required to execute the pre-compiled contract.
-func (c *bn256AddIstanbul) RequiredGas(input []byte) uint64 {
-	return params.Bn256AddGasIstanbul
+// RequiredSmoke returns the smoke required to execute the pre-compiled contract.
+func (c *bn256AddIstanbul) RequiredSmoke(input []byte) uint64 {
+	return params.Bn256AddSmokeIstanbul
 }
 
 func (c *bn256AddIstanbul) Run(input []byte) ([]byte, error) {
@@ -428,9 +428,9 @@ func (c *bn256AddIstanbul) Run(input []byte) ([]byte, error) {
 // conforming to Byzantium consensus rules.
 type bn256AddByzantium struct{}
 
-// RequiredGas returns the gas required to execute the pre-compiled contract.
-func (c *bn256AddByzantium) RequiredGas(input []byte) uint64 {
-	return params.Bn256AddGasByzantium
+// RequiredSmoke returns the smoke required to execute the pre-compiled contract.
+func (c *bn256AddByzantium) RequiredSmoke(input []byte) uint64 {
+	return params.Bn256AddSmokeByzantium
 }
 
 func (c *bn256AddByzantium) Run(input []byte) ([]byte, error) {
@@ -453,9 +453,9 @@ func runBn256ScalarMul(input []byte) ([]byte, error) {
 // multiplication conforming to Istanbul consensus rules.
 type bn256ScalarMulIstanbul struct{}
 
-// RequiredGas returns the gas required to execute the pre-compiled contract.
-func (c *bn256ScalarMulIstanbul) RequiredGas(input []byte) uint64 {
-	return params.Bn256ScalarMulGasIstanbul
+// RequiredSmoke returns the smoke required to execute the pre-compiled contract.
+func (c *bn256ScalarMulIstanbul) RequiredSmoke(input []byte) uint64 {
+	return params.Bn256ScalarMulSmokeIstanbul
 }
 
 func (c *bn256ScalarMulIstanbul) Run(input []byte) ([]byte, error) {
@@ -466,9 +466,9 @@ func (c *bn256ScalarMulIstanbul) Run(input []byte) ([]byte, error) {
 // multiplication conforming to Byzantium consensus rules.
 type bn256ScalarMulByzantium struct{}
 
-// RequiredGas returns the gas required to execute the pre-compiled contract.
-func (c *bn256ScalarMulByzantium) RequiredGas(input []byte) uint64 {
-	return params.Bn256ScalarMulGasByzantium
+// RequiredSmoke returns the smoke required to execute the pre-compiled contract.
+func (c *bn256ScalarMulByzantium) RequiredSmoke(input []byte) uint64 {
+	return params.Bn256ScalarMulSmokeByzantium
 }
 
 func (c *bn256ScalarMulByzantium) Run(input []byte) ([]byte, error) {
@@ -521,9 +521,9 @@ func runBn256Pairing(input []byte) ([]byte, error) {
 // conforming to Istanbul consensus rules.
 type bn256PairingIstanbul struct{}
 
-// RequiredGas returns the gas required to execute the pre-compiled contract.
-func (c *bn256PairingIstanbul) RequiredGas(input []byte) uint64 {
-	return params.Bn256PairingBaseGasIstanbul + uint64(len(input)/192)*params.Bn256PairingPerPointGasIstanbul
+// RequiredSmoke returns the smoke required to execute the pre-compiled contract.
+func (c *bn256PairingIstanbul) RequiredSmoke(input []byte) uint64 {
+	return params.Bn256PairingBaseSmokeIstanbul + uint64(len(input)/192)*params.Bn256PairingPerPointSmokeIstanbul
 }
 
 func (c *bn256PairingIstanbul) Run(input []byte) ([]byte, error) {
@@ -534,9 +534,9 @@ func (c *bn256PairingIstanbul) Run(input []byte) ([]byte, error) {
 // conforming to Byzantium consensus rules.
 type bn256PairingByzantium struct{}
 
-// RequiredGas returns the gas required to execute the pre-compiled contract.
-func (c *bn256PairingByzantium) RequiredGas(input []byte) uint64 {
-	return params.Bn256PairingBaseGasByzantium + uint64(len(input)/192)*params.Bn256PairingPerPointGasByzantium
+// RequiredSmoke returns the smoke required to execute the pre-compiled contract.
+func (c *bn256PairingByzantium) RequiredSmoke(input []byte) uint64 {
+	return params.Bn256PairingBaseSmokeByzantium + uint64(len(input)/192)*params.Bn256PairingPerPointSmokeByzantium
 }
 
 func (c *bn256PairingByzantium) Run(input []byte) ([]byte, error) {
@@ -545,8 +545,8 @@ func (c *bn256PairingByzantium) Run(input []byte) ([]byte, error) {
 
 type blake2F struct{}
 
-func (c *blake2F) RequiredGas(input []byte) uint64 {
-	// If the input is malformed, we can't calculate the gas, return 0 and let the
+func (c *blake2F) RequiredSmoke(input []byte) uint64 {
+	// If the input is malformed, we can't calculate the smoke, return 0 and let the
 	// actual call choke and fault.
 	if len(input) != blake2FInputLength {
 		return 0
@@ -614,9 +614,9 @@ var (
 // bls12381G1Add implements EIP-2537 G1Add precompile.
 type bls12381G1Add struct{}
 
-// RequiredGas returns the gas required to execute the pre-compiled contract.
-func (c *bls12381G1Add) RequiredGas(input []byte) uint64 {
-	return params.Bls12381G1AddGas
+// RequiredSmoke returns the smoke required to execute the pre-compiled contract.
+func (c *bls12381G1Add) RequiredSmoke(input []byte) uint64 {
+	return params.Bls12381G1AddSmoke
 }
 
 func (c *bls12381G1Add) Run(input []byte) ([]byte, error) {
@@ -652,9 +652,9 @@ func (c *bls12381G1Add) Run(input []byte) ([]byte, error) {
 // bls12381G1Mul implements EIP-2537 G1Mul precompile.
 type bls12381G1Mul struct{}
 
-// RequiredGas returns the gas required to execute the pre-compiled contract.
-func (c *bls12381G1Mul) RequiredGas(input []byte) uint64 {
-	return params.Bls12381G1MulGas
+// RequiredSmoke returns the smoke required to execute the pre-compiled contract.
+func (c *bls12381G1Mul) RequiredSmoke(input []byte) uint64 {
+	return params.Bls12381G1MulSmoke
 }
 
 func (c *bls12381G1Mul) Run(input []byte) ([]byte, error) {
@@ -688,12 +688,12 @@ func (c *bls12381G1Mul) Run(input []byte) ([]byte, error) {
 // bls12381G1MultiExp implements EIP-2537 G1MultiExp precompile.
 type bls12381G1MultiExp struct{}
 
-// RequiredGas returns the gas required to execute the pre-compiled contract.
-func (c *bls12381G1MultiExp) RequiredGas(input []byte) uint64 {
+// RequiredSmoke returns the smoke required to execute the pre-compiled contract.
+func (c *bls12381G1MultiExp) RequiredSmoke(input []byte) uint64 {
 	// Calculate G1 point, scalar value pair length
 	k := len(input) / 160
 	if k == 0 {
-		// Return 0 gas for small input length
+		// Return 0 smoke for small input length
 		return 0
 	}
 	// Lookup discount value for G1 point, scalar value pair length
@@ -703,8 +703,8 @@ func (c *bls12381G1MultiExp) RequiredGas(input []byte) uint64 {
 	} else {
 		discount = params.Bls12381MultiExpDiscountTable[dLen-1]
 	}
-	// Calculate gas and return the result
-	return (uint64(k) * params.Bls12381G1MulGas * discount) / 1000
+	// Calculate smoke and return the result
+	return (uint64(k) * params.Bls12381G1MulSmoke * discount) / 1000
 }
 
 func (c *bls12381G1MultiExp) Run(input []byte) ([]byte, error) {
@@ -745,9 +745,9 @@ func (c *bls12381G1MultiExp) Run(input []byte) ([]byte, error) {
 // bls12381G2Add implements EIP-2537 G2Add precompile.
 type bls12381G2Add struct{}
 
-// RequiredGas returns the gas required to execute the pre-compiled contract.
-func (c *bls12381G2Add) RequiredGas(input []byte) uint64 {
-	return params.Bls12381G2AddGas
+// RequiredSmoke returns the smoke required to execute the pre-compiled contract.
+func (c *bls12381G2Add) RequiredSmoke(input []byte) uint64 {
+	return params.Bls12381G2AddSmoke
 }
 
 func (c *bls12381G2Add) Run(input []byte) ([]byte, error) {
@@ -783,9 +783,9 @@ func (c *bls12381G2Add) Run(input []byte) ([]byte, error) {
 // bls12381G2Mul implements EIP-2537 G2Mul precompile.
 type bls12381G2Mul struct{}
 
-// RequiredGas returns the gas required to execute the pre-compiled contract.
-func (c *bls12381G2Mul) RequiredGas(input []byte) uint64 {
-	return params.Bls12381G2MulGas
+// RequiredSmoke returns the smoke required to execute the pre-compiled contract.
+func (c *bls12381G2Mul) RequiredSmoke(input []byte) uint64 {
+	return params.Bls12381G2MulSmoke
 }
 
 func (c *bls12381G2Mul) Run(input []byte) ([]byte, error) {
@@ -819,12 +819,12 @@ func (c *bls12381G2Mul) Run(input []byte) ([]byte, error) {
 // bls12381G2MultiExp implements EIP-2537 G2MultiExp precompile.
 type bls12381G2MultiExp struct{}
 
-// RequiredGas returns the gas required to execute the pre-compiled contract.
-func (c *bls12381G2MultiExp) RequiredGas(input []byte) uint64 {
+// RequiredSmoke returns the smoke required to execute the pre-compiled contract.
+func (c *bls12381G2MultiExp) RequiredSmoke(input []byte) uint64 {
 	// Calculate G2 point, scalar value pair length
 	k := len(input) / 288
 	if k == 0 {
-		// Return 0 gas for small input length
+		// Return 0 smoke for small input length
 		return 0
 	}
 	// Lookup discount value for G2 point, scalar value pair length
@@ -834,8 +834,8 @@ func (c *bls12381G2MultiExp) RequiredGas(input []byte) uint64 {
 	} else {
 		discount = params.Bls12381MultiExpDiscountTable[dLen-1]
 	}
-	// Calculate gas and return the result
-	return (uint64(k) * params.Bls12381G2MulGas * discount) / 1000
+	// Calculate smoke and return the result
+	return (uint64(k) * params.Bls12381G2MulSmoke * discount) / 1000
 }
 
 func (c *bls12381G2MultiExp) Run(input []byte) ([]byte, error) {
@@ -876,9 +876,9 @@ func (c *bls12381G2MultiExp) Run(input []byte) ([]byte, error) {
 // bls12381Pairing implements EIP-2537 Pairing precompile.
 type bls12381Pairing struct{}
 
-// RequiredGas returns the gas required to execute the pre-compiled contract.
-func (c *bls12381Pairing) RequiredGas(input []byte) uint64 {
-	return params.Bls12381PairingBaseGas + uint64(len(input)/384)*params.Bls12381PairingPerPairGas
+// RequiredSmoke returns the smoke required to execute the pre-compiled contract.
+func (c *bls12381Pairing) RequiredSmoke(input []byte) uint64 {
+	return params.Bls12381PairingBaseSmoke + uint64(len(input)/384)*params.Bls12381PairingPerPairSmoke
 }
 
 func (c *bls12381Pairing) Run(input []byte) ([]byte, error) {
@@ -955,9 +955,9 @@ func decodeBLS12381FieldElement(in []byte) ([]byte, error) {
 // bls12381MapG1 implements EIP-2537 MapG1 precompile.
 type bls12381MapG1 struct{}
 
-// RequiredGas returns the gas required to execute the pre-compiled contract.
-func (c *bls12381MapG1) RequiredGas(input []byte) uint64 {
-	return params.Bls12381MapG1Gas
+// RequiredSmoke returns the smoke required to execute the pre-compiled contract.
+func (c *bls12381MapG1) RequiredSmoke(input []byte) uint64 {
+	return params.Bls12381MapG1Smoke
 }
 
 func (c *bls12381MapG1) Run(input []byte) ([]byte, error) {
@@ -990,9 +990,9 @@ func (c *bls12381MapG1) Run(input []byte) ([]byte, error) {
 // bls12381MapG2 implements EIP-2537 MapG2 precompile.
 type bls12381MapG2 struct{}
 
-// RequiredGas returns the gas required to execute the pre-compiled contract.
-func (c *bls12381MapG2) RequiredGas(input []byte) uint64 {
-	return params.Bls12381MapG2Gas
+// RequiredSmoke returns the smoke required to execute the pre-compiled contract.
+func (c *bls12381MapG2) RequiredSmoke(input []byte) uint64 {
+	return params.Bls12381MapG2Smoke
 }
 
 func (c *bls12381MapG2) Run(input []byte) ([]byte, error) {

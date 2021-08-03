@@ -23,7 +23,7 @@ import (
 	"strings"
 
 	"github.com/dop251/goja"
-	"github.com/420integrated/go-highcoin/internal/ethapi"
+	"github.com/420integrated/go-highcoin/internal/highapi"
 	"github.com/420integrated/go-highcoin/log"
 	"github.com/420integrated/go-highcoin/signer/core"
 	"github.com/420integrated/go-highcoin/signer/rules/deps"
@@ -230,7 +230,7 @@ func (r *rulesetUI) OnSignerStartup(info core.StartupInfo) {
 	}
 }
 
-func (r *rulesetUI) OnApprovedTx(tx ethapi.SignTransactionResult) {
+func (r *rulesetUI) OnApprovedTx(tx highapi.SignTransactionResult) {
 	jsonTx, err := json.Marshal(tx)
 	if err != nil {
 		log.Warn("failed marshalling transaction", "tx", tx)

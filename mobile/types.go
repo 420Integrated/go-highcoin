@@ -135,8 +135,8 @@ func (h *Header) GetReceiptHash() *Hash  { return &Hash{h.header.ReceiptHash} }
 func (h *Header) GetBloom() *Bloom       { return &Bloom{h.header.Bloom} }
 func (h *Header) GetDifficulty() *BigInt { return &BigInt{h.header.Difficulty} }
 func (h *Header) GetNumber() int64       { return h.header.Number.Int64() }
-func (h *Header) GetGasLimit() int64     { return int64(h.header.GasLimit) }
-func (h *Header) GetGasUsed() int64      { return int64(h.header.GasUsed) }
+func (h *Header) GetSmokeLimit() int64     { return int64(h.header.SmokeLimit) }
+func (h *Header) GetSmokeUsed() int64      { return int64(h.header.SmokeUsed) }
 func (h *Header) GetTime() int64         { return int64(h.header.Time) }
 func (h *Header) GetExtra() []byte       { return h.header.Extra }
 func (h *Header) GetMixDigest() *Hash    { return &Hash{h.header.MixDigest} }
@@ -211,8 +211,8 @@ func (b *Block) GetReceiptHash() *Hash          { return &Hash{b.block.ReceiptHa
 func (b *Block) GetBloom() *Bloom               { return &Bloom{b.block.Bloom()} }
 func (b *Block) GetDifficulty() *BigInt         { return &BigInt{b.block.Difficulty()} }
 func (b *Block) GetNumber() int64               { return b.block.Number().Int64() }
-func (b *Block) GetGasLimit() int64             { return int64(b.block.GasLimit()) }
-func (b *Block) GetGasUsed() int64              { return int64(b.block.GasUsed()) }
+func (b *Block) GetSmokeLimit() int64             { return int64(b.block.SmokeLimit()) }
+func (b *Block) GetSmokeUsed() int64              { return int64(b.block.SmokeUsed()) }
 func (b *Block) GetTime() int64                 { return int64(b.block.Time()) }
 func (b *Block) GetExtra() []byte               { return b.block.Extra() }
 func (b *Block) GetMixDigest() *Hash            { return &Hash{b.block.MixDigest()} }
@@ -232,17 +232,17 @@ type Transaction struct {
 
 // NewContractCreation creates a new transaction for deploying a new contract with
 // the given properties.
-func NewContractCreation(nonce int64, amount *BigInt, gasLimit int64, gasPrice *BigInt, data []byte) *Transaction {
-	return &Transaction{types.NewContractCreation(uint64(nonce), amount.bigint, uint64(gasLimit), gasPrice.bigint, common.CopyBytes(data))}
+func NewContractCreation(nonce int64, amount *BigInt, smokeLimit int64, smokePrice *BigInt, data []byte) *Transaction {
+	return &Transaction{types.NewContractCreation(uint64(nonce), amount.bigint, uint64(smokeLimit), smokePrice.bigint, common.CopyBytes(data))}
 }
 
 // NewTransaction creates a new transaction with the given properties. Contracts
 // can be created by transacting with a nil recipient.
-func NewTransaction(nonce int64, to *Address, amount *BigInt, gasLimit int64, gasPrice *BigInt, data []byte) *Transaction {
+func NewTransaction(nonce int64, to *Address, amount *BigInt, smokeLimit int64, smokePrice *BigInt, data []byte) *Transaction {
 	if to == nil {
-		return &Transaction{types.NewContractCreation(uint64(nonce), amount.bigint, uint64(gasLimit), gasPrice.bigint, common.CopyBytes(data))}
+		return &Transaction{types.NewContractCreation(uint64(nonce), amount.bigint, uint64(smokeLimit), smokePrice.bigint, common.CopyBytes(data))}
 	}
-	return &Transaction{types.NewTransaction(uint64(nonce), to.address, amount.bigint, uint64(gasLimit), gasPrice.bigint, common.CopyBytes(data))}
+	return &Transaction{types.NewTransaction(uint64(nonce), to.address, amount.bigint, uint64(smokeLimit), smokePrice.bigint, common.CopyBytes(data))}
 }
 
 // NewTransactionFromRLP parses a transaction from an RLP data dump.
@@ -284,8 +284,8 @@ func (tx *Transaction) String() string {
 }
 
 func (tx *Transaction) GetData() []byte      { return tx.tx.Data() }
-func (tx *Transaction) GetGas() int64        { return int64(tx.tx.Gas()) }
-func (tx *Transaction) GetGasPrice() *BigInt { return &BigInt{tx.tx.GasPrice()} }
+func (tx *Transaction) GetSmoke() int64        { return int64(tx.tx.Smoke()) }
+func (tx *Transaction) GetSmokePrice() *BigInt { return &BigInt{tx.tx.SmokePrice()} }
 func (tx *Transaction) GetValue() *BigInt    { return &BigInt{tx.tx.Value()} }
 func (tx *Transaction) GetNonce() int64      { return int64(tx.tx.Nonce()) }
 
@@ -382,9 +382,9 @@ func (r *Receipt) String() string {
 
 func (r *Receipt) GetStatus() int               { return int(r.receipt.Status) }
 func (r *Receipt) GetPostState() []byte         { return r.receipt.PostState }
-func (r *Receipt) GetCumulativeGasUsed() int64  { return int64(r.receipt.CumulativeGasUsed) }
+func (r *Receipt) GetCumulativeSmokeUsed() int64  { return int64(r.receipt.CumulativeSmokeUsed) }
 func (r *Receipt) GetBloom() *Bloom             { return &Bloom{r.receipt.Bloom} }
 func (r *Receipt) GetLogs() *Logs               { return &Logs{r.receipt.Logs} }
 func (r *Receipt) GetTxHash() *Hash             { return &Hash{r.receipt.TxHash} }
 func (r *Receipt) GetContractAddress() *Address { return &Address{r.receipt.ContractAddress} }
-func (r *Receipt) GetGasUsed() int64            { return int64(r.receipt.GasUsed) }
+func (r *Receipt) GetSmokeUsed() int64            { return int64(r.receipt.SmokeUsed) }

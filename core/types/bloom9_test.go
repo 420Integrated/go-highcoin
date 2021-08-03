@@ -100,25 +100,25 @@ func BenchmarkCreateBloom(b *testing.B) {
 	var rSmall = Receipts{
 		&Receipt{
 			Status:            ReceiptStatusFailed,
-			CumulativeGasUsed: 1,
+			CumulativeSmokeUsed: 1,
 			Logs: []*Log{
 				{Address: common.BytesToAddress([]byte{0x11})},
 				{Address: common.BytesToAddress([]byte{0x01, 0x11})},
 			},
 			TxHash:          txs[0].Hash(),
 			ContractAddress: common.BytesToAddress([]byte{0x01, 0x11, 0x11}),
-			GasUsed:         1,
+			SmokeUsed:         1,
 		},
 		&Receipt{
 			PostState:         common.Hash{2}.Bytes(),
-			CumulativeGasUsed: 3,
+			CumulativeSmokeUsed: 3,
 			Logs: []*Log{
 				{Address: common.BytesToAddress([]byte{0x22})},
 				{Address: common.BytesToAddress([]byte{0x02, 0x22})},
 			},
 			TxHash:          txs[1].Hash(),
 			ContractAddress: common.BytesToAddress([]byte{0x02, 0x22, 0x22}),
-			GasUsed:         2,
+			SmokeUsed:         2,
 		},
 	}
 

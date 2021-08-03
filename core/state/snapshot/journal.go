@@ -27,7 +27,7 @@ import (
 	"github.com/VictoriaMetrics/fastcache"
 	"github.com/420integrated/go-highcoin/common"
 	"github.com/420integrated/go-highcoin/core/rawdb"
-	"github.com/420integrated/go-highcoin/ethdb"
+	"github.com/420integrated/go-highcoin/highdb"
 	"github.com/420integrated/go-highcoin/log"
 	"github.com/420integrated/go-highcoin/rlp"
 	"github.com/420integrated/go-highcoin/trie"
@@ -64,7 +64,7 @@ type journalStorage struct {
 }
 
 // loadAndParseLegacyJournal tries to parse the snapshot journal in legacy format.
-func loadAndParseLegacyJournal(db ethdb.KeyValueStore, base *diskLayer) (snapshot, journalGenerator, error) {
+func loadAndParseLegacyJournal(db highdb.KeyValueStore, base *diskLayer) (snapshot, journalGenerator, error) {
 	// Retrieve the journal, for legacy journal it must exist since even for
 	// 0 layer it stores if we've already generated the snapshot or are
 	// in progress only.
@@ -88,7 +88,7 @@ func loadAndParseLegacyJournal(db ethdb.KeyValueStore, base *diskLayer) (snapsho
 }
 
 // loadAndParseJournal tries to parse the snapshot journal in latest format.
-func loadAndParseJournal(db ethdb.KeyValueStore, base *diskLayer) (snapshot, journalGenerator, error) {
+func loadAndParseJournal(db highdb.KeyValueStore, base *diskLayer) (snapshot, journalGenerator, error) {
 	// Retrieve the disk layer generator. It must exist, no matter the
 	// snapshot is fully generated or not. Otherwise the entire disk
 	// layer is invalid.
@@ -147,7 +147,7 @@ func loadAndParseJournal(db ethdb.KeyValueStore, base *diskLayer) (snapshot, jou
 }
 
 // loadSnapshot loads a pre-existing state snapshot backed by a key-value store.
-func loadSnapshot(diskdb ethdb.KeyValueStore, triedb *trie.Database, cache int, root common.Hash, recovery bool) (snapshot, error) {
+func loadSnapshot(diskdb highdb.KeyValueStore, triedb *trie.Database, cache int, root common.Hash, recovery bool) (snapshot, error) {
 	// Retrieve the block number and hash of the snapshot, failing if no snapshot
 	// is present in the database (or crashed mid-update).
 	baseRoot := rawdb.ReadSnapshotRoot(diskdb)

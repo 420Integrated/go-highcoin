@@ -25,8 +25,8 @@ import (
 // LegacyTx is the transaction data of regular Highcoin transactions.
 type LegacyTx struct {
 	Nonce    uint64          // nonce of sender account
-	GasPrice *big.Int        // marleys per gas
-	Gas      uint64          // gas limit
+	SmokePrice *big.Int        // marleys per smoke
+	Smoke      uint64          // smoke limit
 	To       *common.Address `rlp:"nil"` // nil means contract creation
 	Value    *big.Int        // marleys amount
 	Data     []byte          // contract invocation input data
@@ -35,25 +35,25 @@ type LegacyTx struct {
 
 // NewTransaction creates an unsigned legacy transaction.
 // Deprecated: use NewTx instead.
-func NewTransaction(nonce uint64, to common.Address, amount *big.Int, gasLimit uint64, gasPrice *big.Int, data []byte) *Transaction {
+func NewTransaction(nonce uint64, to common.Address, amount *big.Int, smokeLimit uint64, smokePrice *big.Int, data []byte) *Transaction {
 	return NewTx(&LegacyTx{
 		Nonce:    nonce,
 		To:       &to,
 		Value:    amount,
-		Gas:      gasLimit,
-		GasPrice: gasPrice,
+		Smoke:      smokeLimit,
+		SmokePrice: smokePrice,
 		Data:     data,
 	})
 }
 
 // NewContractCreation creates an unsigned legacy transaction.
 // Deprecated: use NewTx instead.
-func NewContractCreation(nonce uint64, amount *big.Int, gasLimit uint64, gasPrice *big.Int, data []byte) *Transaction {
+func NewContractCreation(nonce uint64, amount *big.Int, smokeLimit uint64, smokePrice *big.Int, data []byte) *Transaction {
 	return NewTx(&LegacyTx{
 		Nonce:    nonce,
 		Value:    amount,
-		Gas:      gasLimit,
-		GasPrice: gasPrice,
+		Smoke:      smokeLimit,
+		SmokePrice: smokePrice,
 		Data:     data,
 	})
 }
@@ -64,10 +64,10 @@ func (tx *LegacyTx) copy() TxData {
 		Nonce: tx.Nonce,
 		To:    tx.To, // TODO: copy pointed-to address
 		Data:  common.CopyBytes(tx.Data),
-		Gas:   tx.Gas,
+		Smoke:   tx.Smoke,
 		// These are initialized below.
 		Value:    new(big.Int),
-		GasPrice: new(big.Int),
+		SmokePrice: new(big.Int),
 		V:        new(big.Int),
 		R:        new(big.Int),
 		S:        new(big.Int),
@@ -75,8 +75,8 @@ func (tx *LegacyTx) copy() TxData {
 	if tx.Value != nil {
 		cpy.Value.Set(tx.Value)
 	}
-	if tx.GasPrice != nil {
-		cpy.GasPrice.Set(tx.GasPrice)
+	if tx.SmokePrice != nil {
+		cpy.SmokePrice.Set(tx.SmokePrice)
 	}
 	if tx.V != nil {
 		cpy.V.Set(tx.V)
@@ -96,8 +96,8 @@ func (tx *LegacyTx) txType() byte           { return LegacyTxType }
 func (tx *LegacyTx) chainID() *big.Int      { return deriveChainId(tx.V) }
 func (tx *LegacyTx) accessList() AccessList { return nil }
 func (tx *LegacyTx) data() []byte           { return tx.Data }
-func (tx *LegacyTx) gas() uint64            { return tx.Gas }
-func (tx *LegacyTx) gasPrice() *big.Int     { return tx.GasPrice }
+func (tx *LegacyTx) smoke() uint64            { return tx.Smoke }
+func (tx *LegacyTx) smokePrice() *big.Int     { return tx.SmokePrice }
 func (tx *LegacyTx) value() *big.Int        { return tx.Value }
 func (tx *LegacyTx) nonce() uint64          { return tx.Nonce }
 func (tx *LegacyTx) to() *common.Address    { return tx.To }

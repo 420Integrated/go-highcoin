@@ -27,7 +27,7 @@ import (
 	"github.com/420integrated/go-highcoin/common/mclock"
 	"github.com/420integrated/go-highcoin/core/forkid"
 	"github.com/420integrated/go-highcoin/core/types"
-	"github.com/420integrated/go-highcoin/eth/downloader"
+	"github.com/420integrated/go-highcoin/high/downloader"
 	"github.com/420integrated/go-highcoin/light"
 	"github.com/420integrated/go-highcoin/log"
 	"github.com/420integrated/go-highcoin/p2p"
@@ -470,7 +470,7 @@ func (d *downloaderPeerNotify) registerPeer(p *serverPeer) {
 		handler: h,
 		peer:    p,
 	}
-	h.downloader.RegisterLightPeer(p.id, ethVersion, pc)
+	h.downloader.RegisterLightPeer(p.id, highVersion, pc)
 }
 
 func (d *downloaderPeerNotify) unregisterPeer(p *serverPeer) {

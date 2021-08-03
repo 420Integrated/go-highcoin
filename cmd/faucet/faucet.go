@@ -47,10 +47,10 @@ import (
 	"github.com/420integrated/go-highcoin/common"
 	"github.com/420integrated/go-highcoin/core"
 	"github.com/420integrated/go-highcoin/core/types"
-	"github.com/420integrated/go-highcoin/eth/downloader"
-	"github.com/420integrated/go-highcoin/eth/ethconfig"
-	"github.com/420integrated/go-highcoin/ethclient"
-	"github.com/420integrated/go-highcoin/ethstats"
+	"github.com/420integrated/go-highcoin/high/downloader"
+	"github.com/420integrated/go-highcoin/high/highconfig"
+	"github.com/420integrated/go-highcoin/highclient"
+	"github.com/420integrated/go-highcoin/highstats"
 	"github.com/420integrated/go-highcoin/les"
 	"github.com/420integrated/go-highcoin/log"
 	"github.com/420integrated/go-highcoin/node"
@@ -64,7 +64,7 @@ import (
 var (
 	genesisFlag = flag.String("genesis", "", "Genesis json file to seed the chain with")
 	apiPortFlag = flag.Int("apiport", 8080, "Listener port for the HTTP API connection")
-	ethPortFlag = flag.Int("highport", 30303, "Listener port for the devp2p connection")
+	highPortFlag = flag.Int("highport", 30303, "Listener port for the devp2p connection")
 	bootFlag    = flag.String("bootnodes", "", "Comma separated bootnode enode URLs to seed with")
 	netFlag     = flag.Uint64("network", 0, "Network ID to use for the Highcoin protocol")
 	statsFlag   = flag.String("highstats", "", "Highstats network monitoring auth string")
@@ -179,7 +179,7 @@ func main() {
 		log.Crit("Failed to unlock faucet signer account", "err", err)
 	}
 	// Assemble and start the faucet light service
-	faucet, err := newFaucet(genesis, *ethPortFlag, enodes, *netFlag, *statsFlag, ks, website.Bytes())
+	faucet, err := newFaucet(genesis, *highPortFlag, enodes, *netFlag, *statsFlag, ks, website.Bytes())
 	if err != nil {
 		log.Crit("Failed to start faucet", "err", err)
 	}
@@ -202,7 +202,7 @@ type request struct {
 type faucet struct {
 	config *params.ChainConfig // Chain configurations for signing
 	stack  *node.Node          // Highcoin protocol stack
-	client *ethclient.Client   // Client connection to the Highcoin chain
+	client *highclient.Client   // Client connection to the Highcoin chain
 	index  []byte              // Index page to serve up on the web
 
 	keystore *keystore.KeyStore // Keystore containing the single signer
@@ -210,7 +210,7 @@ type faucet struct {
 	head     *types.Header      // Current head header of the faucet
 	balance  *big.Int           // Current balance of the faucet
 	nonce    uint64             // Current pending nonce of the faucet
-	price    *big.Int           // Current gas price to issue funds with
+	price    *big.Int           // Current smoke price to issue funds with
 
 	conns    []*wsConn            // Currently live websocket connections
 	timeouts map[string]time.Time // History of users and their funding timeouts
@@ -247,7 +247,7 @@ func newFaucet(genesis *core.Genesis, port int, enodes []*enode.Node, network ui
 	}
 
 	// Assemble the Highcoin light client protocol
-	cfg := ethconfig.Defaults
+	cfg := highconfig.Defaults
 	cfg.SyncMode = downloader.LightSync
 	cfg.NetworkId = network
 	cfg.Genesis = genesis
@@ -258,9 +258,9 @@ func newFaucet(genesis *core.Genesis, port int, enodes []*enode.Node, network ui
 		return nil, fmt.Errorf("Failed to register the Highcoin service: %w", err)
 	}
 
-	// Assemble the ethstats monitoring and reporting service'
+	// Assemble the highstats monitoring and reporting service'
 	if stats != "" {
-		if err := ethstats.New(stack, lesBackend.ApiBackend, lesBackend.Engine(), stats); err != nil {
+		if err := highstats.New(stack, lesBackend.ApiBackend, lesBackend.Engine(), stats); err != nil {
 			return nil, err
 		}
 	}
@@ -280,7 +280,7 @@ func newFaucet(genesis *core.Genesis, port int, enodes []*enode.Node, network ui
 		stack.Close()
 		return nil, err
 	}
-	client := ethclient.NewClient(api)
+	client := highclient.NewClient(api)
 
 	return &faucet{
 		config:   genesis.Config,
@@ -558,7 +558,7 @@ func (f *faucet) refresh(head *types.Header) error {
 			return err
 		}
 	}
-	// Retrieve the balance, nonce and gas price from the current head
+	// Retrieve the balance, nonce and smoke price from the current head
 	var (
 		balance *big.Int
 		nonce   uint64
@@ -570,7 +570,7 @@ func (f *faucet) refresh(head *types.Header) error {
 	if nonce, err = f.client.NonceAt(ctx, f.account.Address, head.Number); err != nil {
 		return err
 	}
-	if price, err = f.client.SuggestGasPrice(ctx); err != nil {
+	if price, err = f.client.SuggestSmokePrice(ctx); err != nil {
 		return err
 	}
 	// Everything succeeded, update the cached stats and eject old requests

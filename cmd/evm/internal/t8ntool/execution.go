@@ -30,7 +30,7 @@ import (
 	"github.com/420integrated/go-highcoin/core/types"
 	"github.com/420integrated/go-highcoin/core/vm"
 	"github.com/420integrated/go-highcoin/crypto"
-	"github.com/420integrated/go-highcoin/ethdb"
+	"github.com/420integrated/go-highcoin/highdb"
 	"github.com/420integrated/go-highcoin/log"
 	"github.com/420integrated/go-highcoin/params"
 	"github.com/420integrated/go-highcoin/rlp"
@@ -64,7 +64,7 @@ type ommer struct {
 type stEnv struct {
 	Coinbase    common.Address                      `json:"currentCoinbase"   gencodec:"required"`
 	Difficulty  *big.Int                            `json:"currentDifficulty" gencodec:"required"`
-	GasLimit    uint64                              `json:"currentGasLimit"   gencodec:"required"`
+	SmokeLimit    uint64                              `json:"currentSmokeLimit"   gencodec:"required"`
 	Number      uint64                              `json:"currentNumber"     gencodec:"required"`
 	Timestamp   uint64                              `json:"currentTimestamp"  gencodec:"required"`
 	BlockHashes map[math.HexOrDecimal64]common.Hash `json:"blockHashes,omitempty"`
@@ -74,7 +74,7 @@ type stEnv struct {
 type stEnvMarshaling struct {
 	Coinbase   common.UnprefixedAddress
 	Difficulty *math.HexOrDecimal256
-	GasLimit   math.HexOrDecimal64
+	SmokeLimit   math.HexOrDecimal64
 	Number     math.HexOrDecimal64
 	Timestamp  math.HexOrDecimal64
 }
@@ -101,15 +101,15 @@ func (pre *Prestate) Apply(vmConfig vm.Config, chainConfig *params.ChainConfig,
 	var (
 		statedb     = MakePreState(rawdb.NewMemoryDatabase(), pre.Pre)
 		signer      = types.MakeSigner(chainConfig, new(big.Int).SetUint64(pre.Env.Number))
-		gaspool     = new(core.GasPool)
+		smokepool     = new(core.SmokePool)
 		blockHash   = common.Hash{0x13, 0x37}
 		rejectedTxs []int
 		includedTxs types.Transactions
-		gasUsed     = uint64(0)
+		smokeUsed     = uint64(0)
 		receipts    = make(types.Receipts, 0)
 		txIndex     = 0
 	)
-	gaspool.AddGas(pre.Env.GasLimit)
+	smokepool.AddSmoke(pre.Env.SmokeLimit)
 	vmContext := vm.BlockContext{
 		CanTransfer: core.CanTransfer,
 		Transfer:    core.Transfer,
@@ -117,7 +117,7 @@ func (pre *Prestate) Apply(vmConfig vm.Config, chainConfig *params.ChainConfig,
 		BlockNumber: new(big.Int).SetUint64(pre.Env.Number),
 		Time:        new(big.Int).SetUint64(pre.Env.Timestamp),
 		Difficulty:  pre.Env.Difficulty,
-		GasLimit:    pre.Env.GasLimit,
+		SmokeLimit:    pre.Env.SmokeLimit,
 		GetHash:     getHash,
 	}
 	// If DAO is supported/enabled, we need to handle it here. In highcoin 'proper', it's
@@ -146,8 +146,8 @@ func (pre *Prestate) Apply(vmConfig vm.Config, chainConfig *params.ChainConfig,
 		snapshot := statedb.Snapshot()
 		evm := vm.NewEVM(vmContext, txContext, statedb, chainConfig, vmConfig)
 
-		// (ret []byte, usedGas uint64, failed bool, err error)
-		msgResult, err := core.ApplyMessage(evm, msg, gaspool)
+		// (ret []byte, usedSmoke uint64, failed bool, err error)
+		msgResult, err := core.ApplyMessage(evm, msg, smokepool)
 		if err != nil {
 			statedb.RevertToSnapshot(snapshot)
 			log.Info("rejected tx", "index", i, "hash", tx.Hash(), "from", msg.From(), "error", err)
@@ -158,7 +158,7 @@ func (pre *Prestate) Apply(vmConfig vm.Config, chainConfig *params.ChainConfig,
 		if hashError != nil {
 			return nil, nil, NewError(ErrorMissingBlockhash, hashError)
 		}
-		gasUsed += msgResult.UsedGas
+		smokeUsed += msgResult.UsedSmoke
 
 		// Receipt:
 		{
@@ -170,15 +170,15 @@ func (pre *Prestate) Apply(vmConfig vm.Config, chainConfig *params.ChainConfig,
 			}
 
 			// Create a new receipt for the transaction, storing the intermediate root and
-			// gas used by the tx.
-			receipt := &types.Receipt{Type: tx.Type(), PostState: root, CumulativeGasUsed: gasUsed}
+			// smoke used by the tx.
+			receipt := &types.Receipt{Type: tx.Type(), PostState: root, CumulativeSmokeUsed: smokeUsed}
 			if msgResult.Failed() {
 				receipt.Status = types.ReceiptStatusFailed
 			} else {
 				receipt.Status = types.ReceiptStatusSuccessful
 			}
 			receipt.TxHash = tx.Hash()
-			receipt.GasUsed = msgResult.UsedGas
+			receipt.SmokeUsed = msgResult.UsedSmoke
 
 			// If the transaction created a contract, store the creation address in the receipt.
 			if msg.To() == nil {
@@ -240,7 +240,7 @@ func (pre *Prestate) Apply(vmConfig vm.Config, chainConfig *params.ChainConfig,
 	return statedb, execRs, nil
 }
 
-func MakePreState(db ethdb.Database, accounts core.GenesisAlloc) *state.StateDB {
+func MakePreState(db highdb.Database, accounts core.GenesisAlloc) *state.StateDB {
 	sdb := state.NewDatabase(db)
 	statedb, _ := state.New(common.Hash{}, sdb, nil)
 	for addr, a := range accounts {

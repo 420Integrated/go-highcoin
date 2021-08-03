@@ -84,10 +84,10 @@ func TestCreation(t *testing.T) {
 				{7500000, ID{Hash: checksumToBytes(0x6727ef90), Next: 0}},       // Future
 			},
 		},
-		// Rinkeby test cases
+		// Ruderalis test cases
 		{
-			params.RinkebyChainConfig,
-			params.RinkebyGenesisHash,
+			params.RuderalisChainConfig,
+			params.RuderalisGenesisHash,
 			[]testcase{
 				{0, ID{Hash: checksumToBytes(0x3b8e0691), Next: 1}},             // Unsynced, last Frontier block
 				{1, ID{Hash: checksumToBytes(0x60949295), Next: 2}},             // First and last Homestead block
@@ -182,7 +182,7 @@ func TestValidation(t *testing.T) {
 		// 0xffffffff. Local needs software update, reject.
 		{7279999, ID{Hash: checksumToBytes(0x5cddc0e1), Next: 0}, ErrLocalIncompatibleOrStale},
 
-		// Local is mainnet Petersburg, remote is Rinkeby Petersburg.
+		// Local is mainnet Petersburg, remote is Ruderalis Petersburg.
 		{7987396, ID{Hash: checksumToBytes(0xafec6b27), Next: 0}, ErrLocalIncompatibleOrStale},
 
 		// Local is mainnet Muir Glacier, far in the future. Remote announces Gopherium (non existing fork)

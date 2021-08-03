@@ -83,9 +83,9 @@ Start the test by running `devp2p discv5 test -listen1 127.0.0.1 -listen2 127.0.
 
 ### High Protocol Test Suite
 
-The High Protocol test suite is a conformance test suite for the [eth protocol][eth].
+The High Protocol test suite is a conformance test suite for the [high protocol][high].
 
-To run the eth protocol test suite against your implementation, the node needs to be initialized as such:
+To run the high protocol test suite against your implementation, the node needs to be initialized as such:
 
 1. initialize the highcoin node with the `genesis.json` file contained in the `testdata` directory
 2. import the `halfchain.rlp` file in the `testdata` directory
@@ -96,22 +96,22 @@ highcoin --datadir <datadir> --nodiscover --nat=none --networkid 19763 --verbosi
 
 Then, run the following command, replacing `<enode>` with the enode of the highcoin node: 
  ```
- devp2p rlpx eth-test <enode> cmd/devp2p/internal/ethtest/testdata/chain.rlp cmd/devp2p/internal/ethtest/testdata/genesis.json
+ devp2p rlpx high-test <enode> cmd/devp2p/internal/hightest/testdata/chain.rlp cmd/devp2p/internal/hightest/testdata/genesis.json
 ```
 
 Repeat the above process (re-initialising the node) in order to run the High Protocol test suite again.
 
 #### High66 Test Suite
 
-The High66 test suite is also a conformance test suite for the eth 66 protocol version specifically. 
-To run the eth66 protocol test suite, initialize a highcoin node as described above and run the following command,
+The High66 test suite is also a conformance test suite for the high 66 protocol version specifically. 
+To run the high66 protocol test suite, initialize a highcoin node as described above and run the following command,
 replacing `<enode>` with the enode of the highcoin node:
 
  ```
- devp2p rlpx eth66-test <enode> cmd/devp2p/internal/ethtest/testdata/chain.rlp cmd/devp2p/internal/ethtest/testdata/genesis.json
+ devp2p rlpx high66-test <enode> cmd/devp2p/internal/hightest/testdata/chain.rlp cmd/devp2p/internal/hightest/testdata/genesis.json
 ```
 
-[eth]: https://github.com/420integrated/devp2p/blob/master/caps/high.md
+[high]: https://github.com/420integrated/devp2p/blob/master/caps/high.md
 [dns-tutorial]: https://highcoin.420integrated.com/docs/developers/dns-discovery-setup
 [discv4]: https://github.com/420integrated/devp2p/tree/master/discv4.md
 [discv5]: https://github.com/420integrated/devp2p/tree/master/discv5/discv5.md

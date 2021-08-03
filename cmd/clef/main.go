@@ -42,7 +42,7 @@ import (
 	"github.com/420integrated/go-highcoin/common/hexutil"
 	"github.com/420integrated/go-highcoin/core/types"
 	"github.com/420integrated/go-highcoin/crypto"
-	"github.com/420integrated/go-highcoin/internal/ethapi"
+	"github.com/420integrated/go-highcoin/internal/highapi"
 	"github.com/420integrated/go-highcoin/internal/flags"
 	"github.com/420integrated/go-highcoin/log"
 	"github.com/420integrated/go-highcoin/node"
@@ -100,7 +100,7 @@ var (
 	chainIdFlag = cli.Int64Flag{
 		Name:  "chainid",
 		Value: params.MainnetChainConfig.ChainID.Int64(),
-		Usage: "Chain id to use for signing (1=mainnet, 3=Ropsten, 4=Rinkeby, 5=Goerli)",
+		Usage: "Chain id to use for signing (420=main-net, 421=ruderalis)",
 	}
 	rpcPortFlag = cli.IntFlag{
 		Name:  "http.port",
@@ -878,8 +878,8 @@ func testExternalUI(api *core.SignerAPI) {
 			ReceiptHash: common.HexToHash("0000H45H"),
 			Difficulty:  big.NewInt(1337),
 			Number:      big.NewInt(1337),
-			GasLimit:    1338,
-			GasUsed:     1338,
+			SmokeLimit:    1338,
+			SmokeUsed:     1338,
 			Time:        1338,
 			Extra:       []byte("Extra data Extra data Extra data  Extra data  Extra data  Extra data  Extra data Extra data"),
 			MixDigest:   common.HexToHash("0x0000H45H"),
@@ -929,8 +929,8 @@ func testExternalUI(api *core.SignerAPI) {
 			Value:    hexutil.Big(*big.NewInt(6)),
 			From:     common.NewMixedcaseAddress(a),
 			To:       &to,
-			GasPrice: hexutil.Big(*big.NewInt(5)),
-			Gas:      1000,
+			SmokePrice: hexutil.Big(*big.NewInt(5)),
+			Smoke:      1000,
 			Input:    nil,
 		}
 		_, err := api.SignTransaction(ctx, tx, nil)
@@ -1065,8 +1065,8 @@ func GenDoc(ctx *cli.Context) {
 				Value:    hexutil.Big(*big.NewInt(6)),
 				From:     common.NewMixedcaseAddress(a),
 				To:       nil,
-				GasPrice: hexutil.Big(*big.NewInt(5)),
-				Gas:      1000,
+				SmokePrice: hexutil.Big(*big.NewInt(5)),
+				Smoke:      1000,
 				Input:    nil,
 			}})
 	}
@@ -1081,8 +1081,8 @@ func GenDoc(ctx *cli.Context) {
 					Value:    hexutil.Big(*big.NewInt(6)),
 					From:     common.NewMixedcaseAddress(a),
 					To:       nil,
-					GasPrice: hexutil.Big(*big.NewInt(5)),
-					Gas:      1000,
+					SmokePrice: hexutil.Big(*big.NewInt(5)),
+					Smoke:      1000,
 					Input:    nil,
 				}})
 		add("SignTxResponse - deny", "Response to SignTxRequest. When denying a request, there's no need to "+
@@ -1107,7 +1107,7 @@ func GenDoc(ctx *cli.Context) {
 		rlpdata := common.FromHex("0xf85d640101948a8eafb1cf62bfbeb1741769dae1a9dd47996192018026a0716bd90515acb1e68e5ac5867aa11a1e65399c3349d479f5fb698554ebc6f293a04e8a4ebfff434e971e0ef12c5bf3a881b06fd04fc3f8b8a7291fb67a26a1d4ed")
 		var tx types.Transaction
 		tx.UnmarshalBinary(rlpdata)
-		add("OnApproved - SignTransactionResult", desc, &ethapi.SignTransactionResult{Raw: rlpdata, Tx: &tx})
+		add("OnApproved - SignTransactionResult", desc, &highapi.SignTransactionResult{Raw: rlpdata, Tx: &tx})
 
 	}
 	{ // User input

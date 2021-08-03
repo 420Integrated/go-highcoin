@@ -304,7 +304,7 @@ func opCallDataCopy(pc *uint64, interpreter *EVMInterpreter, callContext *callCt
 	if overflow {
 		dataOffset64 = 0xffffffffffffffff
 	}
-	// These values are checked for overflow during gas cost calculation
+	// These values are checked for overflow during smoke cost calculation
 	memOffset64 := memOffset.Uint64()
 	length64 := length.Uint64()
 	callContext.memory.Set(memOffset64, length64, getData(callContext.contract.Input, dataOffset64, length64))
@@ -424,8 +424,8 @@ func opExtCodeHash(pc *uint64, interpreter *EVMInterpreter, callContext *callCtx
 	return nil, nil
 }
 
-func opGasprice(pc *uint64, interpreter *EVMInterpreter, callContext *callCtx) ([]byte, error) {
-	v, _ := uint256.FromBig(interpreter.evm.GasPrice)
+func opSmokeprice(pc *uint64, interpreter *EVMInterpreter, callContext *callCtx) ([]byte, error) {
+	v, _ := uint256.FromBig(interpreter.evm.SmokePrice)
 	callContext.stack.push(v)
 	return nil, nil
 }
@@ -475,8 +475,8 @@ func opDifficulty(pc *uint64, interpreter *EVMInterpreter, callContext *callCtx)
 	return nil, nil
 }
 
-func opGasLimit(pc *uint64, interpreter *EVMInterpreter, callContext *callCtx) ([]byte, error) {
-	callContext.stack.push(new(uint256.Int).SetUint64(interpreter.evm.Context.GasLimit))
+func opSmokeLimit(pc *uint64, interpreter *EVMInterpreter, callContext *callCtx) ([]byte, error) {
+	callContext.stack.push(new(uint256.Int).SetUint64(interpreter.evm.Context.SmokeLimit))
 	return nil, nil
 }
 
@@ -589,8 +589,8 @@ func opMsize(pc *uint64, interpreter *EVMInterpreter, callContext *callCtx) ([]b
 	return nil, nil
 }
 
-func opGas(pc *uint64, interpreter *EVMInterpreter, callContext *callCtx) ([]byte, error) {
-	callContext.stack.push(new(uint256.Int).SetUint64(callContext.contract.Gas))
+func opSmoke(pc *uint64, interpreter *EVMInterpreter, callContext *callCtx) ([]byte, error) {
+	callContext.stack.push(new(uint256.Int).SetUint64(callContext.contract.Smoke))
 	return nil, nil
 }
 
@@ -599,35 +599,35 @@ func opCreate(pc *uint64, interpreter *EVMInterpreter, callContext *callCtx) ([]
 		value        = callContext.stack.pop()
 		offset, size = callContext.stack.pop(), callContext.stack.pop()
 		input        = callContext.memory.GetCopy(int64(offset.Uint64()), int64(size.Uint64()))
-		gas          = callContext.contract.Gas
+		smoke          = callContext.contract.Smoke
 	)
 	if interpreter.evm.chainRules.IsEIP150 {
-		gas -= gas / 64
+		smoke -= smoke / 64
 	}
 	// reuse size int for stackvalue
 	stackvalue := size
 
-	callContext.contract.UseGas(gas)
+	callContext.contract.UseSmoke(smoke)
 	//TODO: use uint256.Int instead of converting with toBig()
 	var bigVal = big0
 	if !value.IsZero() {
 		bigVal = value.ToBig()
 	}
 
-	res, addr, returnGas, suberr := interpreter.evm.Create(callContext.contract, input, gas, bigVal)
+	res, addr, returnSmoke, suberr := interpreter.evm.Create(callContext.contract, input, smoke, bigVal)
 	// Push item on the stack based on the returned error. If the ruleset is
-	// homestead we must check for CodeStoreOutOfGasError (homestead only
+	// homestead we must check for CodeStoreOutOfSmokeError (homestead only
 	// rule) and treat as an error, if the ruleset is frontier we must
 	// ignore this error and pretend the operation was successful.
-	if interpreter.evm.chainRules.IsHomestead && suberr == ErrCodeStoreOutOfGas {
+	if interpreter.evm.chainRules.IsHomestead && suberr == ErrCodeStoreOutOfSmoke {
 		stackvalue.Clear()
-	} else if suberr != nil && suberr != ErrCodeStoreOutOfGas {
+	} else if suberr != nil && suberr != ErrCodeStoreOutOfSmoke {
 		stackvalue.Clear()
 	} else {
 		stackvalue.SetBytes(addr.Bytes())
 	}
 	callContext.stack.push(&stackvalue)
-	callContext.contract.Gas += returnGas
+	callContext.contract.Smoke += returnSmoke
 
 	if suberr == ErrExecutionReverted {
 		return res, nil
@@ -641,12 +641,12 @@ func opCreate2(pc *uint64, interpreter *EVMInterpreter, callContext *callCtx) ([
 		offset, size = callContext.stack.pop(), callContext.stack.pop()
 		salt         = callContext.stack.pop()
 		input        = callContext.memory.GetCopy(int64(offset.Uint64()), int64(size.Uint64()))
-		gas          = callContext.contract.Gas
+		smoke          = callContext.contract.Smoke
 	)
 
 	// Apply EIP150
-	gas -= gas / 64
-	callContext.contract.UseGas(gas)
+	smoke -= smoke / 64
+	callContext.contract.UseSmoke(smoke)
 	// reuse size int for stackvalue
 	stackvalue := size
 	//TODO: use uint256.Int instead of converting with toBig()
@@ -654,7 +654,7 @@ func opCreate2(pc *uint64, interpreter *EVMInterpreter, callContext *callCtx) ([
 	if !endowment.IsZero() {
 		bigEndowment = endowment.ToBig()
 	}
-	res, addr, returnGas, suberr := interpreter.evm.Create2(callContext.contract, input, gas,
+	res, addr, returnSmoke, suberr := interpreter.evm.Create2(callContext.contract, input, smoke,
 		bigEndowment, &salt)
 	// Push item on the stack based on the returned error.
 	if suberr != nil {
@@ -663,7 +663,7 @@ func opCreate2(pc *uint64, interpreter *EVMInterpreter, callContext *callCtx) ([
 		stackvalue.SetBytes(addr.Bytes())
 	}
 	callContext.stack.push(&stackvalue)
-	callContext.contract.Gas += returnGas
+	callContext.contract.Smoke += returnSmoke
 
 	if suberr == ErrExecutionReverted {
 		return res, nil
@@ -673,10 +673,10 @@ func opCreate2(pc *uint64, interpreter *EVMInterpreter, callContext *callCtx) ([
 
 func opCall(pc *uint64, interpreter *EVMInterpreter, callContext *callCtx) ([]byte, error) {
 	stack := callContext.stack
-	// Pop gas. The actual gas in interpreter.evm.callGasTemp.
+	// Pop smoke. The actual smoke in interpreter.evm.callSmokeTemp.
 	// We can use this as a temporary value
 	temp := stack.pop()
-	gas := interpreter.evm.callGasTemp
+	smoke := interpreter.evm.callSmokeTemp
 	// Pop other call parameters.
 	addr, value, inOffset, inSize, retOffset, retSize := stack.pop(), stack.pop(), stack.pop(), stack.pop(), stack.pop(), stack.pop()
 	toAddr := common.Address(addr.Bytes20())
@@ -688,11 +688,11 @@ func opCall(pc *uint64, interpreter *EVMInterpreter, callContext *callCtx) ([]by
 	// By using big0 here, we save an alloc for the most common case (non-highcoin-transferring contract calls),
 	// but it would make more sense to extend the usage of uint256.Int
 	if !value.IsZero() {
-		gas += params.CallStipend
+		smoke += params.CallStipend
 		bigVal = value.ToBig()
 	}
 
-	ret, returnGas, err := interpreter.evm.Call(callContext.contract, toAddr, args, gas, bigVal)
+	ret, returnSmoke, err := interpreter.evm.Call(callContext.contract, toAddr, args, smoke, bigVal)
 
 	if err != nil {
 		temp.Clear()
@@ -703,17 +703,17 @@ func opCall(pc *uint64, interpreter *EVMInterpreter, callContext *callCtx) ([]by
 	if err == nil || err == ErrExecutionReverted {
 		callContext.memory.Set(retOffset.Uint64(), retSize.Uint64(), ret)
 	}
-	callContext.contract.Gas += returnGas
+	callContext.contract.Smoke += returnSmoke
 
 	return ret, nil
 }
 
 func opCallCode(pc *uint64, interpreter *EVMInterpreter, callContext *callCtx) ([]byte, error) {
-	// Pop gas. The actual gas is in interpreter.evm.callGasTemp.
+	// Pop smoke. The actual smoke is in interpreter.evm.callSmokeTemp.
 	stack := callContext.stack
 	// We use it as a temporary value
 	temp := stack.pop()
-	gas := interpreter.evm.callGasTemp
+	smoke := interpreter.evm.callSmokeTemp
 	// Pop other call parameters.
 	addr, value, inOffset, inSize, retOffset, retSize := stack.pop(), stack.pop(), stack.pop(), stack.pop(), stack.pop(), stack.pop()
 	toAddr := common.Address(addr.Bytes20())
@@ -723,11 +723,11 @@ func opCallCode(pc *uint64, interpreter *EVMInterpreter, callContext *callCtx) (
 	//TODO: use uint256.Int instead of converting with toBig()
 	var bigVal = big0
 	if !value.IsZero() {
-		gas += params.CallStipend
+		smoke += params.CallStipend
 		bigVal = value.ToBig()
 	}
 
-	ret, returnGas, err := interpreter.evm.CallCode(callContext.contract, toAddr, args, gas, bigVal)
+	ret, returnSmoke, err := interpreter.evm.CallCode(callContext.contract, toAddr, args, smoke, bigVal)
 	if err != nil {
 		temp.Clear()
 	} else {
@@ -737,24 +737,24 @@ func opCallCode(pc *uint64, interpreter *EVMInterpreter, callContext *callCtx) (
 	if err == nil || err == ErrExecutionReverted {
 		callContext.memory.Set(retOffset.Uint64(), retSize.Uint64(), ret)
 	}
-	callContext.contract.Gas += returnGas
+	callContext.contract.Smoke += returnSmoke
 
 	return ret, nil
 }
 
 func opDelegateCall(pc *uint64, interpreter *EVMInterpreter, callContext *callCtx) ([]byte, error) {
 	stack := callContext.stack
-	// Pop gas. The actual gas is in interpreter.evm.callGasTemp.
+	// Pop smoke. The actual smoke is in interpreter.evm.callSmokeTemp.
 	// We use it as a temporary value
 	temp := stack.pop()
-	gas := interpreter.evm.callGasTemp
+	smoke := interpreter.evm.callSmokeTemp
 	// Pop other call parameters.
 	addr, inOffset, inSize, retOffset, retSize := stack.pop(), stack.pop(), stack.pop(), stack.pop(), stack.pop()
 	toAddr := common.Address(addr.Bytes20())
 	// Get arguments from the memory.
 	args := callContext.memory.GetPtr(int64(inOffset.Uint64()), int64(inSize.Uint64()))
 
-	ret, returnGas, err := interpreter.evm.DelegateCall(callContext.contract, toAddr, args, gas)
+	ret, returnSmoke, err := interpreter.evm.DelegateCall(callContext.contract, toAddr, args, smoke)
 	if err != nil {
 		temp.Clear()
 	} else {
@@ -764,24 +764,24 @@ func opDelegateCall(pc *uint64, interpreter *EVMInterpreter, callContext *callCt
 	if err == nil || err == ErrExecutionReverted {
 		callContext.memory.Set(retOffset.Uint64(), retSize.Uint64(), ret)
 	}
-	callContext.contract.Gas += returnGas
+	callContext.contract.Smoke += returnSmoke
 
 	return ret, nil
 }
 
 func opStaticCall(pc *uint64, interpreter *EVMInterpreter, callContext *callCtx) ([]byte, error) {
-	// Pop gas. The actual gas is in interpreter.evm.callGasTemp.
+	// Pop smoke. The actual smoke is in interpreter.evm.callSmokeTemp.
 	stack := callContext.stack
 	// We use it as a temporary value
 	temp := stack.pop()
-	gas := interpreter.evm.callGasTemp
+	smoke := interpreter.evm.callSmokeTemp
 	// Pop other call parameters.
 	addr, inOffset, inSize, retOffset, retSize := stack.pop(), stack.pop(), stack.pop(), stack.pop(), stack.pop()
 	toAddr := common.Address(addr.Bytes20())
 	// Get arguments from the memory.
 	args := callContext.memory.GetPtr(int64(inOffset.Uint64()), int64(inSize.Uint64()))
 
-	ret, returnGas, err := interpreter.evm.StaticCall(callContext.contract, toAddr, args, gas)
+	ret, returnSmoke, err := interpreter.evm.StaticCall(callContext.contract, toAddr, args, smoke)
 	if err != nil {
 		temp.Clear()
 	} else {
@@ -791,7 +791,7 @@ func opStaticCall(pc *uint64, interpreter *EVMInterpreter, callContext *callCtx)
 	if err == nil || err == ErrExecutionReverted {
 		callContext.memory.Set(retOffset.Uint64(), retSize.Uint64(), ret)
 	}
-	callContext.contract.Gas += returnGas
+	callContext.contract.Smoke += returnSmoke
 
 	return ret, nil
 }

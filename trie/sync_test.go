@@ -22,7 +22,7 @@ import (
 
 	"github.com/420integrated/go-highcoin/common"
 	"github.com/420integrated/go-highcoin/crypto"
-	"github.com/420integrated/go-highcoin/ethdb/memorydb"
+	"github.com/420integrated/go-highcoin/highdb/memorydb"
 )
 
 // makeTestTrie create a sample test trie to test node-wise reconstruction.

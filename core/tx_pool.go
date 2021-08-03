@@ -59,7 +59,7 @@ var (
 	// ErrInvalidSender is returned if the transaction contains an invalid signature.
 	ErrInvalidSender = errors.New("invalid sender")
 
-	// ErrUnderpriced is returned if a transaction's gas price is below the minimum
+	// ErrUnderpriced is returned if a transaction's smoke price is below the minimum
 	// configured for the transaction pool.
 	ErrUnderpriced = errors.New("transaction underpriced")
 
@@ -71,9 +71,9 @@ var (
 	// with a different one without the required price bump.
 	ErrReplaceUnderpriced = errors.New("replacement transaction underpriced")
 
-	// ErrGasLimit is returned if a transaction's requested gas limit exceeds the
+	// ErrSmokeLimit is returned if a transaction's requested smoke limit exceeds the
 	// maximum allowance of the current block.
-	ErrGasLimit = errors.New("exceeds block gas limit")
+	ErrSmokeLimit = errors.New("exceeds block smoke limit")
 
 	// ErrNegativeValue is a sanity error to ensure no one is able to specify a
 	// transaction with a negative value.
@@ -127,7 +127,7 @@ const (
 	TxStatusIncluded
 )
 
-// blockChain provides the state of blockchain and current gas limit to do
+// blockChain provides the state of blockchain and current smoke limit to do
 // some pre checks in tx pool and event subscribers.
 type blockChain interface {
 	CurrentBlock() *types.Block
@@ -144,7 +144,7 @@ type TxPoolConfig struct {
 	Journal   string           // Journal of local transactions to survive node restarts
 	Rejournal time.Duration    // Time interval to regenerate the local transaction journal
 
-	PriceLimit uint64 // Minimum gas price to enforce for acceptance into the pool
+	PriceLimit uint64 // Minimum smoke price to enforce for acceptance into the pool
 	PriceBump  uint64 // Minimum price bump percentage to replace an already existing transaction (nonce)
 
 	AccountSlots uint64 // Number of executable transaction slots guaranteed per account
@@ -222,7 +222,7 @@ type TxPool struct {
 	config      TxPoolConfig
 	chainconfig *params.ChainConfig
 	chain       blockChain
-	gasPrice    *big.Int
+	smokePrice    *big.Int
 	txFeed      event.Feed
 	scope       event.SubscriptionScope
 	signer      types.Signer
@@ -233,7 +233,7 @@ type TxPool struct {
 
 	currentState  *state.StateDB // Current state in the blockchain head
 	pendingNonces *txNoncer      // Pending state tracking virtual nonces
-	currentMaxGas uint64         // Current gas limit for transaction caps
+	currentMaxSmoke uint64         // Current smoke limit for transaction caps
 
 	locals  *accountSet // Set of local transaction to exempt from eviction rules
 	journal *txJournal  // Journal of local transaction to back up to disk
@@ -261,7 +261,7 @@ type txpoolResetRequest struct {
 // NewTxPool creates a new transaction pool to gather, sort and filter inbound
 // transactions from the network.
 func NewTxPool(config TxPoolConfig, chainconfig *params.ChainConfig, chain blockChain) *TxPool {
-	// Sanitize the input to ensure no vulnerable gas prices are set
+	// Sanitize the input to ensure no vulnerable smoke prices are set
 	config = (&config).sanitize()
 
 	// Create the transaction pool with its initial settings
@@ -280,7 +280,7 @@ func NewTxPool(config TxPoolConfig, chainconfig *params.ChainConfig, chain block
 		queueTxEventCh:  make(chan *types.Transaction),
 		reorgDoneCh:     make(chan chan struct{}),
 		reorgShutdownCh: make(chan struct{}),
-		gasPrice:        new(big.Int).SetUint64(config.PriceLimit),
+		smokePrice:        new(big.Int).SetUint64(config.PriceLimit),
 	}
 	pool.locals = newAccountSet(pool.signer)
 	for _, addr := range config.Locals {
@@ -412,21 +412,21 @@ func (pool *TxPool) SubscribeNewTxsEvent(ch chan<- NewTxsEvent) event.Subscripti
 	return pool.scope.Track(pool.txFeed.Subscribe(ch))
 }
 
-// GasPrice returns the current gas price enforced by the transaction pool.
-func (pool *TxPool) GasPrice() *big.Int {
+// SmokePrice returns the current smoke price enforced by the transaction pool.
+func (pool *TxPool) SmokePrice() *big.Int {
 	pool.mu.RLock()
 	defer pool.mu.RUnlock()
 
-	return new(big.Int).Set(pool.gasPrice)
+	return new(big.Int).Set(pool.smokePrice)
 }
 
-// SetGasPrice updates the minimum price required by the transaction pool for a
+// SetSmokePrice updates the minimum price required by the transaction pool for a
 // new transaction, and drops all transactions below this threshold.
-func (pool *TxPool) SetGasPrice(price *big.Int) {
+func (pool *TxPool) SetSmokePrice(price *big.Int) {
 	pool.mu.Lock()
 	defer pool.mu.Unlock()
 
-	pool.gasPrice = price
+	pool.smokePrice = price
 	for _, tx := range pool.priced.Cap(price) {
 		pool.removeTx(tx.Hash(), false)
 	}
@@ -536,17 +536,17 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 	if tx.Value().Sign() < 0 {
 		return ErrNegativeValue
 	}
-	// Ensure the transaction doesn't exceed the current block limit gas.
-	if pool.currentMaxGas < tx.Gas() {
-		return ErrGasLimit
+	// Ensure the transaction doesn't exceed the current block limit smoke.
+	if pool.currentMaxSmoke < tx.Smoke() {
+		return ErrSmokeLimit
 	}
 	// Make sure the transaction is signed properly.
 	from, err := types.Sender(pool.signer, tx)
 	if err != nil {
 		return ErrInvalidSender
 	}
-	// Drop non-local transactions under our own minimal accepted gas price
-	if !local && tx.GasPriceIntCmp(pool.gasPrice) < 0 {
+	// Drop non-local transactions under our own minimal accepted smoke price
+	if !local && tx.SmokePriceIntCmp(pool.smokePrice) < 0 {
 		return ErrUnderpriced
 	}
 	// Ensure the transaction adheres to nonce ordering
@@ -558,13 +558,13 @@ func (pool *TxPool) validateTx(tx *types.Transaction, local bool) error {
 	if pool.currentState.GetBalance(from).Cmp(tx.Cost()) < 0 {
 		return ErrInsufficientFunds
 	}
-	// Ensure the transaction has more gas than the basic tx fee.
-	intrGas, err := IntrinsicGas(tx.Data(), tx.AccessList(), tx.To() == nil, true, pool.istanbul)
+	// Ensure the transaction has more smoke than the basic tx fee.
+	intrSmoke, err := IntrinsicSmoke(tx.Data(), tx.AccessList(), tx.To() == nil, true, pool.istanbul)
 	if err != nil {
 		return err
 	}
-	if tx.Gas() < intrGas {
-		return ErrIntrinsicGas
+	if tx.Smoke() < intrSmoke {
+		return ErrIntrinsicSmoke
 	}
 	return nil
 }
@@ -598,7 +598,7 @@ func (pool *TxPool) add(tx *types.Transaction, local bool) (replaced bool, err e
 	if uint64(pool.all.Count()+numSlots(tx)) > pool.config.GlobalSlots+pool.config.GlobalQueue {
 		// If the new transaction is underpriced, don't accept it
 		if !isLocal && pool.priced.Underpriced(tx) {
-			log.Trace("Discarding underpriced transaction", "hash", hash, "price", tx.GasPrice())
+			log.Trace("Discarding underpriced transaction", "hash", hash, "price", tx.SmokePrice())
 			underpricedTxMeter.Mark(1)
 			return false, ErrUnderpriced
 		}
@@ -615,7 +615,7 @@ func (pool *TxPool) add(tx *types.Transaction, local bool) (replaced bool, err e
 		}
 		// Kick out the underpriced remote transactions.
 		for _, tx := range drop {
-			log.Trace("Discarding freshly underpriced transaction", "hash", tx.Hash(), "price", tx.GasPrice())
+			log.Trace("Discarding freshly underpriced transaction", "hash", tx.Hash(), "price", tx.SmokePrice())
 			underpricedTxMeter.Mark(1)
 			pool.removeTx(tx.Hash(), false)
 		}
@@ -1085,7 +1085,7 @@ func (pool *TxPool) runReorg(done chan struct{}, reset *txpoolResetRequest, dirt
 
 	// If a new block appeared, validate the pool of pending transactions. This will
 	// remove any transaction that has been included in the block or was invalidated
-	// because of another transaction (e.g. higher gas price).
+	// because of another transaction (e.g. higher smoke price).
 	if reset != nil {
 		pool.demoteUnexecutables()
 	}
@@ -1194,7 +1194,7 @@ func (pool *TxPool) reset(oldHead, newHead *types.Header) {
 	}
 	pool.currentState = statedb
 	pool.pendingNonces = newTxNoncer(statedb)
-	pool.currentMaxGas = newHead.GasLimit
+	pool.currentMaxSmoke = newHead.SmokeLimit
 
 	// Inject any transactions discarded due to reorgs
 	log.Debug("Reinjecting stale transactions", "count", len(reinject))
@@ -1227,8 +1227,8 @@ func (pool *TxPool) promoteExecutables(accounts []common.Address) []*types.Trans
 			pool.all.Remove(hash)
 		}
 		log.Trace("Removed old queued transactions", "count", len(forwards))
-		// Drop all transactions that are too costly (low balance or out of gas)
-		drops, _ := list.Filter(pool.currentState.GetBalance(addr), pool.currentMaxGas)
+		// Drop all transactions that are too costly (low balance or out of smoke)
+		drops, _ := list.Filter(pool.currentState.GetBalance(addr), pool.currentMaxSmoke)
 		for _, tx := range drops {
 			hash := tx.Hash()
 			pool.all.Remove(hash)
@@ -1420,8 +1420,8 @@ func (pool *TxPool) demoteUnexecutables() {
 			pool.all.Remove(hash)
 			log.Trace("Removed old pending transaction", "hash", hash)
 		}
-		// Drop all transactions that are too costly (low balance or out of gas), and queue any invalids back for later
-		drops, invalids := list.Filter(pool.currentState.GetBalance(addr), pool.currentMaxGas)
+		// Drop all transactions that are too costly (low balance or out of smoke), and queue any invalids back for later
+		drops, invalids := list.Filter(pool.currentState.GetBalance(addr), pool.currentMaxSmoke)
 		for _, tx := range drops {
 			hash := tx.Hash()
 			log.Trace("Removed unpayable pending transaction", "hash", hash)

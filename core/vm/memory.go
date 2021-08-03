@@ -25,7 +25,7 @@ import (
 // Memory implements a simple memory model for the highcoin virtual machine.
 type Memory struct {
 	store       []byte
-	lastGasCost uint64
+	lastSmokeCost uint64
 }
 
 // NewMemory returns a new memory model.

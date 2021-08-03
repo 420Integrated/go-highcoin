@@ -25,9 +25,9 @@ import (
 	"github.com/VictoriaMetrics/fastcache"
 	"github.com/420integrated/go-highcoin/common"
 	"github.com/420integrated/go-highcoin/core/rawdb"
-	"github.com/420integrated/go-highcoin/ethdb"
-	"github.com/420integrated/go-highcoin/ethdb/leveldb"
-	"github.com/420integrated/go-highcoin/ethdb/memorydb"
+	"github.com/420integrated/go-highcoin/highdb"
+	"github.com/420integrated/go-highcoin/highdb/leveldb"
+	"github.com/420integrated/go-highcoin/highdb/memorydb"
 	"github.com/420integrated/go-highcoin/rlp"
 )
 
@@ -518,7 +518,7 @@ func TestDiskMidAccountPartialMerge(t *testing.T) {
 // TestDiskSeek tests that seek-operations work on the disk layer
 func TestDiskSeek(t *testing.T) {
 	// Create some accounts in the disk layer
-	var db ethdb.Database
+	var db highdb.Database
 
 	if dir, err := ioutil.TempDir("", "disklayer-test"); err != nil {
 		t.Fatal(err)

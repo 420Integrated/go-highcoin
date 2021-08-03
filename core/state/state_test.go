@@ -24,13 +24,13 @@ import (
 	"github.com/420integrated/go-highcoin/common"
 	"github.com/420integrated/go-highcoin/core/rawdb"
 	"github.com/420integrated/go-highcoin/crypto"
-	"github.com/420integrated/go-highcoin/ethdb"
+	"github.com/420integrated/go-highcoin/highdb"
 )
 
 var toAddr = common.BytesToAddress
 
 type stateTest struct {
-	db    ethdb.Database
+	db    highdb.Database
 	state *StateDB
 }
 

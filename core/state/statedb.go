@@ -220,20 +220,20 @@ func (s *StateDB) Preimages() map[common.Hash][]byte {
 	return s.preimages
 }
 
-// AddRefund adds gas to the refund counter
-func (s *StateDB) AddRefund(gas uint64) {
+// AddRefund adds smoke to the refund counter
+func (s *StateDB) AddRefund(smoke uint64) {
 	s.journal.append(refundChange{prev: s.refund})
-	s.refund += gas
+	s.refund += smoke
 }
 
-// SubRefund removes gas from the refund counter.
+// SubRefund removes smoke from the refund counter.
 // This method will panic if the refund counter goes below zero
-func (s *StateDB) SubRefund(gas uint64) {
+func (s *StateDB) SubRefund(smoke uint64) {
 	s.journal.append(refundChange{prev: s.refund})
-	if gas > s.refund {
-		panic(fmt.Sprintf("Refund counter below zero (gas: %d > refund: %d)", gas, s.refund))
+	if smoke > s.refund {
+		panic(fmt.Sprintf("Refund counter below zero (smoke: %d > refund: %d)", smoke, s.refund))
 	}
-	s.refund -= gas
+	s.refund -= smoke
 }
 
 // Exist reports if the given account address exists in the state.
@@ -794,7 +794,7 @@ func (s *StateDB) Finalise(deleteEmptyObjects bool) {
 		obj, exist := s.stateObjects[addr]
 		if !exist {
 			// ripeMD is 'touched' at block 1714175, in tx 0x1237f737031e40bcde4a8b7e717b2d15e3ecadfe49bb1bbc71ee9deb09c6fcf2
-			// That tx goes out of gas, and although the notion of 'touched' does not exist there, the
+			// That tx goes out of smoke, and although the notion of 'touched' does not exist there, the
 			// touch-event will still be recorded in the journal. Since ripeMD is a special snowflake,
 			// it will persist in the journal even though the journal is reverted. In this special circumstance,
 			// it may exist in `s.journal.dirties` but not in `s.stateObjects`.

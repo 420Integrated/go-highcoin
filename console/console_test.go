@@ -27,11 +27,11 @@ import (
 	"time"
 
 	"github.com/420integrated/go-highcoin/common"
-	"github.com/420integrated/go-highcoin/consensus/othash"
+	"github.com/420integrated/go-highcoin/consensus/ethash"
 	"github.com/420integrated/go-highcoin/console/prompt"
 	"github.com/420integrated/go-highcoin/core"
-	"github.com/420integrated/go-highcoin/eth"
-	"github.com/420integrated/go-highcoin/eth/ethconfig"
+	"github.com/420integrated/go-highcoin/high"
+	"github.com/420integrated/go-highcoin/high/highconfig"
 	"github.com/420integrated/go-highcoin/internal/jsre"
 	"github.com/420integrated/go-highcoin/miner"
 	"github.com/420integrated/go-highcoin/node"
@@ -86,7 +86,7 @@ type tester struct {
 
 // newTester creates a test environment based on which the console can operate.
 // Please ensure you call Close() on the returned tester to avoid leaks.
-func newTester(t *testing.T, confOverride func(*ethconfig.Config)) *tester {
+func newTester(t *testing.T, confOverride func(*highconfig.Config)) *tester {
 	// Create a temporary storage for the node keys and initialize it
 	workspace, err := ioutil.TempDir("", "console-tester-")
 	if err != nil {
@@ -98,19 +98,19 @@ func newTester(t *testing.T, confOverride func(*ethconfig.Config)) *tester {
 	if err != nil {
 		t.Fatalf("failed to create node: %v", err)
 	}
-	ethConf := &ethconfig.Config{
+	highConf := &highconfig.Config{
 		Genesis: core.DeveloperGenesisBlock(15, common.Address{}),
 		Miner: miner.Config{
 			Highcoinbase: common.HexToAddress(testAddress),
 		},
-		Ethash: othash.Config{
-			PowMode: othash.ModeTest,
+		Ethash: ethash.Config{
+			PowMode: ethash.ModeTest,
 		},
 	}
 	if confOverride != nil {
-		confOverride(ethConf)
+		confOverride(highConf)
 	}
-	ethBackend, err := high.New(stack, ethConf)
+	highBackend, err := high.New(stack, highConf)
 	if err != nil {
 		t.Fatalf("failed to register Highcoin protocol: %v", err)
 	}
@@ -140,7 +140,7 @@ func newTester(t *testing.T, confOverride func(*ethconfig.Config)) *tester {
 	return &tester{
 		workspace: workspace,
 		stack:     stack,
-		highcoin:  ethBackend,
+		highcoin:  highBackend,
 		console:   console,
 		input:     prompter,
 		output:    printer,

@@ -54,13 +54,13 @@ func (tt *TransactionTest) Run(config *params.ChainConfig) error {
 		if err != nil {
 			return nil, nil, err
 		}
-		// Intrinsic gas
-		requiredGas, err := core.IntrinsicGas(tx.Data(), tx.AccessList(), tx.To() == nil, isHomestead, isIstanbul)
+		// Intrinsic smoke
+		requiredSmoke, err := core.IntrinsicSmoke(tx.Data(), tx.AccessList(), tx.To() == nil, isHomestead, isIstanbul)
 		if err != nil {
 			return nil, nil, err
 		}
-		if requiredGas > tx.Gas() {
-			return nil, nil, fmt.Errorf("insufficient gas ( %d < %d )", tx.Gas(), requiredGas)
+		if requiredSmoke > tx.Smoke() {
+			return nil, nil, fmt.Errorf("insufficient smoke ( %d < %d )", tx.Smoke(), requiredSmoke)
 		}
 		h := tx.Hash()
 		return &sender, &h, nil

@@ -31,8 +31,8 @@ import (
 	"github.com/420integrated/go-highcoin/core/state"
 	"github.com/420integrated/go-highcoin/core/types"
 	"github.com/420integrated/go-highcoin/core/vm"
-	"github.com/420integrated/go-highcoin/eth/filters"
-	"github.com/420integrated/go-highcoin/internal/ethapi"
+	"github.com/420integrated/go-highcoin/high/filters"
+	"github.com/420integrated/go-highcoin/internal/highapi"
 	"github.com/420integrated/go-highcoin/rpc"
 )
 
@@ -73,7 +73,7 @@ func (b *Long) UnmarshalGraphQL(input interface{}) error {
 
 // Account represents an Highcoin account at a particular block.
 type Account struct {
-	backend       ethapi.Backend
+	backend       highapi.Backend
 	address       common.Address
 	blockNrOrHash rpc.BlockNumberOrHash
 }
@@ -122,7 +122,7 @@ func (a *Account) Storage(ctx context.Context, args struct{ Slot common.Hash }) 
 
 // Log represents an individual log message. All arguments are mandatory.
 type Log struct {
-	backend     ethapi.Backend
+	backend     highapi.Backend
 	transaction *Transaction
 	log         *types.Log
 }
@@ -154,7 +154,7 @@ func (l *Log) Data(ctx context.Context) hexutil.Bytes {
 // Transaction represents an Highcoin transaction.
 // backend and hash are mandatory; all others will be fetched when required.
 type Transaction struct {
-	backend ethapi.Backend
+	backend highapi.Backend
 	hash    common.Hash
 	tx      *types.Transaction
 	block   *Block
@@ -192,20 +192,20 @@ func (t *Transaction) InputData(ctx context.Context) (hexutil.Bytes, error) {
 	return tx.Data(), nil
 }
 
-func (t *Transaction) Gas(ctx context.Context) (hexutil.Uint64, error) {
+func (t *Transaction) Smoke(ctx context.Context) (hexutil.Uint64, error) {
 	tx, err := t.resolve(ctx)
 	if err != nil || tx == nil {
 		return 0, err
 	}
-	return hexutil.Uint64(tx.Gas()), nil
+	return hexutil.Uint64(tx.Smoke()), nil
 }
 
-func (t *Transaction) GasPrice(ctx context.Context) (hexutil.Big, error) {
+func (t *Transaction) SmokePrice(ctx context.Context) (hexutil.Big, error) {
 	tx, err := t.resolve(ctx)
 	if err != nil || tx == nil {
 		return hexutil.Big{}, err
 	}
-	return hexutil.Big(*tx.GasPrice()), nil
+	return hexutil.Big(*tx.SmokePrice()), nil
 }
 
 func (t *Transaction) Value(ctx context.Context) (hexutil.Big, error) {
@@ -296,21 +296,21 @@ func (t *Transaction) Status(ctx context.Context) (*Long, error) {
 	return &ret, nil
 }
 
-func (t *Transaction) GasUsed(ctx context.Context) (*Long, error) {
+func (t *Transaction) SmokeUsed(ctx context.Context) (*Long, error) {
 	receipt, err := t.getReceipt(ctx)
 	if err != nil || receipt == nil {
 		return nil, err
 	}
-	ret := Long(receipt.GasUsed)
+	ret := Long(receipt.SmokeUsed)
 	return &ret, nil
 }
 
-func (t *Transaction) CumulativeGasUsed(ctx context.Context) (*Long, error) {
+func (t *Transaction) CumulativeSmokeUsed(ctx context.Context) (*Long, error) {
 	receipt, err := t.getReceipt(ctx)
 	if err != nil || receipt == nil {
 		return nil, err
 	}
-	ret := Long(receipt.CumulativeGasUsed)
+	ret := Long(receipt.CumulativeSmokeUsed)
 	return &ret, nil
 }
 
@@ -375,7 +375,7 @@ type BlockType int
 // backend, and numberOrHash are mandatory. All other fields are lazily fetched
 // when required.
 type Block struct {
-	backend      ethapi.Backend
+	backend      highapi.Backend
 	numberOrHash *rpc.BlockNumberOrHash
 	hash         common.Hash
 	header       *types.Header
@@ -463,20 +463,20 @@ func (b *Block) Hash(ctx context.Context) (common.Hash, error) {
 	return b.hash, nil
 }
 
-func (b *Block) GasLimit(ctx context.Context) (Long, error) {
+func (b *Block) SmokeLimit(ctx context.Context) (Long, error) {
 	header, err := b.resolveHeader(ctx)
 	if err != nil {
 		return 0, err
 	}
-	return Long(header.GasLimit), nil
+	return Long(header.SmokeLimit), nil
 }
 
-func (b *Block) GasUsed(ctx context.Context) (Long, error) {
+func (b *Block) SmokeUsed(ctx context.Context) (Long, error) {
 	header, err := b.resolveHeader(ctx)
 	if err != nil {
 		return 0, err
 	}
-	return Long(header.GasUsed), nil
+	return Long(header.SmokeUsed), nil
 }
 
 func (b *Block) Parent(ctx context.Context) (*Block, error) {
@@ -736,7 +736,7 @@ type BlockFilterCriteria struct {
 
 // runFilter accepts a filter and executes it, returning all its results as
 // `Log` objects.
-func runFilter(ctx context.Context, be ethapi.Backend, filter *filters.Filter) ([]*Log, error) {
+func runFilter(ctx context.Context, be highapi.Backend, filter *filters.Filter) ([]*Log, error) {
 	logs, err := filter.Logs(ctx)
 	if err != nil || logs == nil {
 		return nil, err
@@ -792,13 +792,13 @@ func (b *Block) Account(ctx context.Context, args struct {
 	}, nil
 }
 
-// CallData encapsulates arguments to `call` or `estimateGas`.
+// CallData encapsulates arguments to `call` or `estimateSmoke`.
 // All arguments are optional.
 type CallData struct {
 	From     *common.Address // The Highcoin address the call is from.
 	To       *common.Address // The Highcoin address the call is to.
-	Gas      *hexutil.Uint64 // The amount of gas provided for the call.
-	GasPrice *hexutil.Big    // The price of each unit of gas, in marleys.
+	Smoke      *hexutil.Uint64 // The amount of smoke provided for the call.
+	SmokePrice *hexutil.Big    // The price of each unit of smoke, in marleys.
 	Value    *hexutil.Big    // The value sent along with the call.
 	Data     *hexutil.Bytes  // Any data sent with the call.
 }
@@ -806,7 +806,7 @@ type CallData struct {
 // CallResult encapsulates the result of an invocation of the `call` accessor.
 type CallResult struct {
 	data    hexutil.Bytes // The return data from the call
-	gasUsed Long          // The amount of gas used
+	smokeUsed Long          // The amount of smoke used
 	status  Long          // The return status of the call - 0 for failure or 1 for success.
 }
 
@@ -814,8 +814,8 @@ func (c *CallResult) Data() hexutil.Bytes {
 	return c.data
 }
 
-func (c *CallResult) GasUsed() Long {
-	return c.gasUsed
+func (c *CallResult) SmokeUsed() Long {
+	return c.smokeUsed
 }
 
 func (c *CallResult) Status() Long {
@@ -823,7 +823,7 @@ func (c *CallResult) Status() Long {
 }
 
 func (b *Block) Call(ctx context.Context, args struct {
-	Data ethapi.CallArgs
+	Data highapi.CallArgs
 }) (*CallResult, error) {
 	if b.numberOrHash == nil {
 		_, err := b.resolve(ctx)
@@ -831,7 +831,7 @@ func (b *Block) Call(ctx context.Context, args struct {
 			return nil, err
 		}
 	}
-	result, err := ethapi.DoCall(ctx, b.backend, args.Data, *b.numberOrHash, nil, vm.Config{}, 5*time.Second, b.backend.RPCGasCap())
+	result, err := highapi.DoCall(ctx, b.backend, args.Data, *b.numberOrHash, nil, vm.Config{}, 5*time.Second, b.backend.RPCSmokeCap())
 	if err != nil {
 		return nil, err
 	}
@@ -842,13 +842,13 @@ func (b *Block) Call(ctx context.Context, args struct {
 
 	return &CallResult{
 		data:    result.ReturnData,
-		gasUsed: Long(result.UsedGas),
+		smokeUsed: Long(result.UsedSmoke),
 		status:  status,
 	}, nil
 }
 
-func (b *Block) EstimateGas(ctx context.Context, args struct {
-	Data ethapi.CallArgs
+func (b *Block) EstimateSmoke(ctx context.Context, args struct {
+	Data highapi.CallArgs
 }) (Long, error) {
 	if b.numberOrHash == nil {
 		_, err := b.resolveHeader(ctx)
@@ -856,12 +856,12 @@ func (b *Block) EstimateGas(ctx context.Context, args struct {
 			return 0, err
 		}
 	}
-	gas, err := ethapi.DoEstimateGas(ctx, b.backend, args.Data, *b.numberOrHash, b.backend.RPCGasCap())
-	return Long(gas), err
+	smoke, err := highapi.DoEstimateSmoke(ctx, b.backend, args.Data, *b.numberOrHash, b.backend.RPCSmokeCap())
+	return Long(smoke), err
 }
 
 type Pending struct {
-	backend ethapi.Backend
+	backend highapi.Backend
 }
 
 func (p *Pending) TransactionCount(ctx context.Context) (int32, error) {
@@ -898,10 +898,10 @@ func (p *Pending) Account(ctx context.Context, args struct {
 }
 
 func (p *Pending) Call(ctx context.Context, args struct {
-	Data ethapi.CallArgs
+	Data highapi.CallArgs
 }) (*CallResult, error) {
 	pendingBlockNr := rpc.BlockNumberOrHashWithNumber(rpc.PendingBlockNumber)
-	result, err := ethapi.DoCall(ctx, p.backend, args.Data, pendingBlockNr, nil, vm.Config{}, 5*time.Second, p.backend.RPCGasCap())
+	result, err := highapi.DoCall(ctx, p.backend, args.Data, pendingBlockNr, nil, vm.Config{}, 5*time.Second, p.backend.RPCSmokeCap())
 	if err != nil {
 		return nil, err
 	}
@@ -912,22 +912,22 @@ func (p *Pending) Call(ctx context.Context, args struct {
 
 	return &CallResult{
 		data:    result.ReturnData,
-		gasUsed: Long(result.UsedGas),
+		smokeUsed: Long(result.UsedSmoke),
 		status:  status,
 	}, nil
 }
 
-func (p *Pending) EstimateGas(ctx context.Context, args struct {
-	Data ethapi.CallArgs
+func (p *Pending) EstimateSmoke(ctx context.Context, args struct {
+	Data highapi.CallArgs
 }) (Long, error) {
 	pendingBlockNr := rpc.BlockNumberOrHashWithNumber(rpc.PendingBlockNumber)
-	gas, err := ethapi.DoEstimateGas(ctx, p.backend, args.Data, pendingBlockNr, p.backend.RPCGasCap())
-	return Long(gas), err
+	smoke, err := highapi.DoEstimateSmoke(ctx, p.backend, args.Data, pendingBlockNr, p.backend.RPCSmokeCap())
+	return Long(smoke), err
 }
 
 // Resolver is the top-level object in the GraphQL hierarchy.
 type Resolver struct {
-	backend ethapi.Backend
+	backend highapi.Backend
 }
 
 func (r *Resolver) Block(ctx context.Context, args struct {
@@ -1020,7 +1020,7 @@ func (r *Resolver) SendRawTransaction(ctx context.Context, args struct{ Data hex
 	if err := tx.UnmarshalBinary(args.Data); err != nil {
 		return common.Hash{}, err
 	}
-	hash, err := ethapi.SubmitTransaction(ctx, r.backend, tx)
+	hash, err := highapi.SubmitTransaction(ctx, r.backend, tx)
 	return hash, err
 }
 
@@ -1067,7 +1067,7 @@ func (r *Resolver) Logs(ctx context.Context, args struct{ Filter FilterCriteria 
 	return runFilter(ctx, r.backend, filter)
 }
 
-func (r *Resolver) GasPrice(ctx context.Context) (hexutil.Big, error) {
+func (r *Resolver) SmokePrice(ctx context.Context) (hexutil.Big, error) {
 	price, err := r.backend.SuggestPrice(ctx)
 	return hexutil.Big(*price), err
 }

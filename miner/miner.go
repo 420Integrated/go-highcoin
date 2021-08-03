@@ -28,7 +28,7 @@ import (
 	"github.com/420integrated/go-highcoin/core"
 	"github.com/420integrated/go-highcoin/core/state"
 	"github.com/420integrated/go-highcoin/core/types"
-	"github.com/420integrated/go-highcoin/eth/downloader"
+	"github.com/420integrated/go-highcoin/high/downloader"
 	"github.com/420integrated/go-highcoin/event"
 	"github.com/420integrated/go-highcoin/log"
 	"github.com/420integrated/go-highcoin/params"
@@ -43,13 +43,13 @@ type Backend interface {
 // Config is the configuration parameters of mining.
 type Config struct {
 	Highcoinbase common.Address `toml:",omitempty"` // Public address for block mining rewards (default = first account)
-	Notify    []string       `toml:",omitempty"` // HTTP URL list to be notified of new work packages(only useful in othash).
+	Notify    []string       `toml:",omitempty"` // HTTP URL list to be notified of new work packages(only useful in ethash).
 	ExtraData hexutil.Bytes  `toml:",omitempty"` // Block extra data set by the miner
-	GasFloor  uint64         // Target gas floor for mined blocks.
-	GasCeil   uint64         // Target gas ceiling for mined blocks.
-	GasPrice  *big.Int       // Minimum gas price for mining a transaction
+	SmokeFloor  uint64         // Target smoke floor for mined blocks.
+	SmokeCeil   uint64         // Target smoke ceiling for mined blocks.
+	SmokePrice  *big.Int       // Minimum smoke price for mining a transaction
 	Recommit  time.Duration  // The time interval for miner to re-create mining work.
-	Noverify  bool           // Disable remote mining solution verification(only useful in othash).
+	Noverify  bool           // Disable remote mining solution verification(only useful in ethash).
 }
 
 // Miner creates blocks and searches for proof-of-work values.
@@ -57,22 +57,22 @@ type Miner struct {
 	mux      *event.TypeMux
 	worker   *worker
 	coinbase common.Address
-	eth      Backend
+	high      Backend
 	engine   consensus.Engine
 	exitCh   chan struct{}
 	startCh  chan common.Address
 	stopCh   chan struct{}
 }
 
-func New(eth Backend, config *Config, chainConfig *params.ChainConfig, mux *event.TypeMux, engine consensus.Engine, isLocalBlock func(block *types.Block) bool) *Miner {
+func New(high Backend, config *Config, chainConfig *params.ChainConfig, mux *event.TypeMux, engine consensus.Engine, isLocalBlock func(block *types.Block) bool) *Miner {
 	miner := &Miner{
-		eth:     eth,
+		high:     high,
 		mux:     mux,
 		engine:  engine,
 		exitCh:  make(chan struct{}),
 		startCh: make(chan common.Address),
 		stopCh:  make(chan struct{}),
-		worker:  newWorker(config, chainConfig, engine, eth, mux, isLocalBlock, true),
+		worker:  newWorker(config, chainConfig, engine, high, mux, isLocalBlock, true),
 	}
 	go miner.update()
 
